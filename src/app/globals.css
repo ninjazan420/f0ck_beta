@@ -19,3 +19,21 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@layer components {
+  .stat-card {
+    @apply p-5 rounded-xl 
+           bg-gray-50/80 dark:bg-gray-900/50 
+           backdrop-blur-sm
+           border border-gray-100 dark:border-gray-800
+           text-center 
+           transition-all duration-300
+           hover:scale-[1.02] hover:shadow-sm
+           hover:bg-gray-50/90 dark:hover:bg-gray-900/60;
+  }
+  
+  .logo-container {
+    @apply transition-all duration-500
+           hover:scale-[1.02];
+  }
+}
