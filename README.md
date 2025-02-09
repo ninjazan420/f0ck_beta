@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# f0ck.org Beta v1
 
-## Getting Started
+Eine moderne Community-Plattform für Catmemes, Shitposts, Girls und mehr, entwickelt mit Next.js 14.
 
-First, run the development server:
+## Features
+
+- 🎨 Modernes, responsives Design mit Tailwind CSS
+- 🌓 Automatischer Dark/Light Mode
+- 🖼️ Zufälliges Logo-System
+- 📊 Vorbereitung für Statistik-Integration
+- 🔗 Integration mit f0ck.org Ökosystem
+- 🚀 Optimierte Performance durch Next.js
+
+## Quick Start
+
+Entwicklungsserver starten:
 
 ```bash
 npm run dev
-# or
+# oder
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Der Server startet unter [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Technologie-Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework**: Next.js 14
+- **Styling**: Tailwind CSS
+- **Fonts**: Geist Sans & Geist Mono
+- **Deployment**: Vercel
 
-## Learn More
+## Verlinkte Dienste
 
-To learn more about Next.js, take a look at the following resources:
+- [f0ck.org Main](https://f0ck.org)
+- [ShareX Server](https://sx.f0ck.org)
+- [Discord Community](https://discord.gg/SmWpwGnyrU)
+- [TeamSpeak 3](ts3server://ts.f0ck.org)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Entwicklung
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Das Projekt verwendet:
+- Server-Side Rendering für optimale Performance
+- Komponenten-basierte Architektur
+- Automatische Bildoptimierung
+- TypeScript für bessere Code-Qualität
 
-## Deploy on Vercel
+## Projektstruktur
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+src/
+├── app/
+│   ├── layout.tsx    # Root Layout mit Meta-Tags
+│   ├── page.tsx      # Homepage
+│   └── globals.css   # Globale Styles
+├── components/
+│   └── Footer.tsx    # Footer Komponente
+└── public/
+    └── logos/        # Logo Assets
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Support
+
+Du kannst das Projekt unterstützen auf [Ko-fi](https://ko-fi.com/f0ck_org)
+
+## License
+
+© 2024 f0ck.org Team. Alle Rechte vorbehalten.
