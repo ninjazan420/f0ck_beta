@@ -22,6 +22,26 @@ Eine moderne Community-Plattform für Catmemes, Shitposts, Girls und mehr, entwi
 - 📄 Erweiterte Dokumentation
 - 🎨 Konsistentes Design-System implementiert
 
+### Version 1.0.2 (31. Jan 2024)
+- ✨ Upload-System implementiert
+  - 🖼️ Thumbnail-Vorschau für Bilder
+  - 🏷️ Tag-System mit max. 10 Tags pro Upload
+  - 📊 Unterstützung für verschiedene Dateiformate (JPG, PNG, GIF, WebP, MP4, etc.)
+  - 🔒 Content Rating System (Safe, Sketchy, Unsafe)
+  - 📝 Datei-Informationen (Größe, Abmessungen, Format)
+  - 🔄 Max. 5 gleichzeitige Uploads
+- 🎨 Einstellungsseite hinzugefügt
+  - 🌓 Dark/Light Mode Toggle
+  - 👁️ NSFW Blur Option
+  - 📧 Email Sichtbarkeit
+  - 💬 DM Einstellungen
+  - 🎞️ GIF Autoplay
+  - 🖼️ Thumbnail-Qualität
+- 📝 Registrierungsseite hinzugefügt
+  - 👤 Benutzerregistrierung
+  - 📋 Feature-Übersicht
+  - 📜 ToS Integration
+
 ## Quick Start
 
 Entwicklungsserver starten:
