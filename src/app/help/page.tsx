@@ -39,14 +39,14 @@ export default function Help() {
         </h1>
         
         <section className="mb-8 font-[family-name:var(--font-geist-sans)]">
-          <p className="mb-4 text-gray-800 dark:text-gray-200">
+          <p className="mb-4 text-gray-900 dark:text-gray-400">
             f0ck.org is a cutting-edge imageboard platform engine inspired by popular services like Danbooru, Gelbooru, and Moebooru. It offers a robust and user-friendly interface for sharing and discovering a wide array of images, catering to various interests and communities.
           </p>
         </section>
 
         <section className="mb-8">
           <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4">Registration Process</h2>
-          <div className="font-[family-name:var(--font-geist-sans)] text-gray-800 dark:text-gray-200">
+          <div className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
             <p className="mb-4">
               Creating an account on f0ck.org is entirely optional. You can upload content anonymously without an account. If you choose to register, you do not need to provide an email address. However, if you want to use a Gravatar avatar, you can provide an email to fetch your Gravatar image.
             </p>
@@ -58,7 +58,7 @@ export default function Help() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4">Account Management</h2>
-          <p className="font-[family-name:var(--font-geist-sans)] text-gray-800 dark:text-gray-200">
+          <p className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
             At f0ck.org, we believe in giving users control over their online presence. You have the flexibility to delete your account at any time, should you choose to do so. It is important to note that while your account will be removed, the posts and content you have uploaded will remain on the platform unless an administrator decides to remove them.
           </p>
         </section>
@@ -68,12 +68,12 @@ export default function Help() {
           
           <div className="p-6 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
             <h3 className="text-xl font-[family-name:var(--font-geist-mono)] mb-3">Supported File Extensions</h3>
-            <p className="font-[family-name:var(--font-geist-sans)] text-gray-800 dark:text-gray-200">
+            <p className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
               Allowed extensions include: .jpg, .png, .gif, .webm, .mp4, .mov, .swf, .avif, .heif, .heic. You can also use direct links from platforms like YouTube, Twitter, Instagram, Twitch clips, and more!
             </p>
           </div>
 
-          <p className="mt-6 font-[family-name:var(--font-geist-sans)] text-gray-800 dark:text-gray-200">
+          <p className="mt-6 font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
             f0ck.org stands out due to its commitment to user privacy, ease of use, and comprehensive feature set inspired by the best aspects of Danbooru, Gelbooru, and Moebooru. Our platform is designed to be intuitive and responsive, providing a seamless browsing experience whether you are on a desktop or mobile device.
           </p>
         </section>

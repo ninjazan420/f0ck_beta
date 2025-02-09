@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
+  --background: #ffffff; /* Reines Weiß als Hintergrund */
   --foreground: #171717;
 }
 
@@ -32,8 +32,68 @@ body {
            hover:bg-gray-50/90 dark:hover:bg-gray-900/60;
   }
   
+  /* Zurück zu den ursprünglichen Farbwerten */
+  .stat-card > div:first-child {
+    @apply text-2xl font-light tracking-tight;
+  }
+
+  .stat-card > div:last-child {
+    @apply text-[13px] font-medium tracking-wide text-gray-500 dark:text-gray-400;
+  }
+  
   .logo-container {
     @apply transition-all duration-500
            hover:scale-[1.02];
+  }
+
+  .toggle-switch {
+    @apply relative inline-block w-12 h-6 cursor-pointer; /* Kleinere Dimensionen */
+  }
+
+  .toggle-switch input[type="checkbox"] {
+    @apply hidden;
+  }
+
+  .toggle-switch-background {
+    @apply absolute inset-0 bg-gray-200 dark:bg-gray-700 
+           rounded-full shadow-inner
+           transition-colors duration-300;
+  }
+
+  .toggle-switch-handle {
+    @apply absolute top-[2px] left-[2px] w-5 h-5
+           bg-white dark:bg-gray-200
+           rounded-full shadow-md
+           transition-transform duration-300
+           transform;
+  }
+
+  .toggle-switch input[type="checkbox"]:checked + .toggle-switch-background {
+    @apply bg-[#05c46b] dark:bg-[#04b360];
+  }
+
+  .toggle-switch input[type="checkbox"]:checked + .toggle-switch-background .toggle-switch-handle {
+    @apply translate-x-6;
+  }
+
+  .settings-card {
+    @apply p-4 rounded-lg
+           bg-gray-50/80 dark:bg-gray-900/50 
+           backdrop-blur-sm
+           border border-gray-100 dark:border-gray-800
+           transition-all duration-300
+           space-y-3;
+  }
+
+  .settings-card h2 {
+    @apply text-black dark:text-gray-400 font-semibold;
+  }
+
+  .settings-row {
+    @apply flex items-center justify-between
+           py-2
+           border-b border-gray-100 dark:border-gray-800
+           last:border-0
+           text-sm;
   }
 }

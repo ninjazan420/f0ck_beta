@@ -5,7 +5,6 @@ Eine moderne Community-Plattform für Catmemes, Shitposts, Girls und mehr, entwi
 ## Features
 
 - 🎨 Modernes, responsives Design mit Tailwind CSS
-- 🌓 Automatischer Dark/Light Mode
 - 🖼️ Zufälliges Logo-System
 - 📊 Vorbereitung für Statistik-Integration
 - 🔗 Integration mit f0ck.org Ökosystem

@@ -16,6 +16,7 @@ export const Navbar = () => {
     { label: 'Account', href: '/account' },
     { label: 'Register', href: '/register' },
     { label: 'Help', href: '/help' },
+    { label: 'Rules', href: '/rules' },
     { label: 'Settings', href: '/settings' },
   ];
 

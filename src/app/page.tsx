@@ -22,7 +22,7 @@ export default function Home() {
 
         {/* Welcome Text */}
         <div className="text-center space-y-4">
-          <h1 className="text-2xl font-[family-name:var(--font-geist-mono)]">
+          <h1 className="text-2xl font-[family-name:var(--font-geist-mono)] text-gray-900 dark:text-gray-400">
             Catmemes, Shitposts, Girls und mehr
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-sm">
@@ -38,8 +38,8 @@ export default function Home() {
             'Neue Posts (24h)'
           ].map((stat, index) => (
             <div key={index} className="stat-card">
-              <div className="text-2xl font-light tracking-tight">0</div>
-              <div className="text-[13px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
+              <div className="text-2xl font-light tracking-tight text-gray-900 dark:text-gray-400">0</div>
+              <div className="text-[13px] font-medium tracking-wide text-gray-500 dark:text-gray-500">
                 {stat}
               </div>
             </div>

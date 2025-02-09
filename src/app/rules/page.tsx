@@ -40,7 +40,7 @@ export default function Rules() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4">Terms of Use</h2>
-          <div className="space-y-2 font-[family-name:var(--font-geist-sans)] text-gray-800 dark:text-gray-200">
+          <div className="space-y-2 font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
             <p>• f0ck.org is provided to you without any warranty, express or implied.</p>
             <p>• f0ck reserves the right to delete your account or content without explanation.</p>
             <p>• f0ck reserves the right to change these terms of use.</p>
@@ -55,7 +55,7 @@ export default function Rules() {
         <section className="mb-8">
           <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4">Prohibited Content</h2>
           <div className="p-6 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900">
-            <div className="space-y-2 font-[family-name:var(--font-geist-sans)] text-gray-800 dark:text-gray-200">
+            <div className="space-y-2 font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
               <p>• Child pornography - Will be reported to authorities</p>
               <p>• Zoophilia</p>
               <p>• Extreme content (mutilation, brutality, etc.)</p>
@@ -66,7 +66,7 @@ export default function Rules() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4">Privacy Policy</h2>
-          <div className="space-y-2 font-[family-name:var(--font-geist-sans)] text-gray-800 dark:text-gray-200">
+          <div className="space-y-2 font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
             <p>• No personal data storage</p>
             <p>• System logs are completely disabled</p>
             <p>• Anonymous uploads available</p>
@@ -78,7 +78,7 @@ export default function Rules() {
 
         <section className="mb-8">
           <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4">Contact & DMCA</h2>
-          <div className="space-y-2 font-[family-name:var(--font-geist-sans)] text-gray-800 dark:text-gray-200">
+          <div className="space-y-2 font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
             <p>General Contact: mail[at]f0ck.org</p>
             <p>DMCA Notices: dmca@f0ck.org</p>
           </div>
