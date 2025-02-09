@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Navbar } from "@/components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,17 +25,11 @@ export const metadata: Metadata = {
     siteName: "f0ck beta v1",
     images: [
       {
-        url: "/logos/1.png",
+        url: "/logos/1.png", // Nur ein Beispiel-Logo für die Metadaten
         width: 411,
         height: 84,
-        alt: "f0ck.org Logo 1",
-      },
-      {
-        url: "/logos/2.png",
-        width: 411,
-        height: 84,
-        alt: "f0ck.org Logo 2",
-      },
+        alt: "f0ck.org Logo",
+      }
     ],
     locale: "de_DE",
     type: "website",
@@ -43,7 +38,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "f0ck beta v1",
     description: "Deine neue Anlaufstelle für Catmemes, Shitposts, Girls und mehr",
-    images: ["/logos/1.png", "/logos/2.png"],
+    images: ["/logos/1.png"],
   },
   metadataBase: new URL("https://beta.f0ck.org"),
   robots: {
@@ -51,14 +46,7 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/favicon.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: [
-      { url: "/apple-touch-icon.png" }
-    ],
+    icon: "/favicon.png"
   },
 };
 
@@ -72,6 +60,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Navbar />
         {children}
       </body>
     </html>

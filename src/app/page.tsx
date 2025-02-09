@@ -1,19 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
-
-// Da Next.js Server Components verwendet, wird dies bei jedem Request neu ausgeführt
-function getRandomLogo() {
-  const totalLogos = 2; // Anzahl der Logos anpassen (1.png, 2.png, etc.)
-  const randomNumber = Math.floor(Math.random() * totalLogos) + 1;
-  return `/logos/${randomNumber}.png`;  // Pfad jetzt relativ zum public Ordner
-}
+import { getRandomLogo } from "@/lib/utils";
 
 export default function Home() {
   const logoSrc = getRandomLogo();
   
   return (
-    <div className="min-h-screen flex flex-col items-center p-8">
+    <div className="min-h-[calc(100vh-36.8px)] flex flex-col items-center p-8">
       <div className="flex-1 flex flex-col items-center justify-center max-w-4xl w-full gap-8">
         {/* Logo Section */}
         <Link href="/" className="relative w-[411px] h-[84px] logo-container">
