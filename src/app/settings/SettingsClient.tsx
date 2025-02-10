@@ -7,7 +7,7 @@ import { useState, ChangeEvent } from 'react';
 export default function SettingsClient() {
   const { theme, toggleTheme } = useTheme();
   const [settings, setSettings] = useState({
-    blurNsfw: false,
+    blurNsfw: true, // Default-Wert auf true gesetzt
     showEmail: false,
     allowDm: false,
     autoplayGifs: false,
@@ -592,6 +592,37 @@ export default function SettingsClient() {
                   type="checkbox"
                   checked={settings.blurNsfw}
                   onChange={handleSettingChange('blurNsfw')}
+                />
+                <div className="toggle-switch-background">
+                  <div className="toggle-switch-handle"></div>
+                </div>
+              </label>
+            </div>
+          </section>
+
+          {/* Content Safety Section - Neu */}
+          <section className="settings-card">
+            <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
+              Content Safety
+            </h2>
+            
+            <div className="settings-row">
+              <div className="flex flex-col">
+                <span className="font-[family-name:var(--font-geist-mono)] text-gray-900 dark:text-gray-400">
+                  Blur NSFW Content
+                </span>
+                <span className="text-xs text-gray-500">
+                  Automatically blur NSFW images and thumbnails
+                </span>
+              </div>
+              <label className="toggle-switch">
+                <input 
+                  type="checkbox"
+                  checked={settings.blurNsfw}
+                  onChange={(e) => setSettings(prev => ({
+                    ...prev,
+                    blurNsfw: e.target.checked
+                  }))}
                 />
                 <div className="toggle-switch-background">
                   <div className="toggle-switch-handle"></div>

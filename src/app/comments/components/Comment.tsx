@@ -18,6 +18,9 @@ interface CommentProps {
     post: {
       id: string;
       title: string;
+      imageUrl: string;  // Direkte URL vom Post
+      type: 'image' | 'video' | 'gif';
+      nsfw?: boolean;
     };
     likes: number;
     createdAt: string;
@@ -116,11 +119,12 @@ export function Comment({ data }: CommentProps) {
             >
               {data.user.avatar ? (
                 <Image 
-                  src={data.user.avatar}
+                  src={data.user.avatar || '/images/default-avatar.png'} // Fallback hinzugefügt
                   alt={`${data.user.name}'s avatar`}
                   width={40}
                   height={40}
                   className="w-full h-full object-cover"
+                  priority
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -185,9 +189,51 @@ export function Comment({ data }: CommentProps) {
             </div>
           </div>
 
-          <p className="text-gray-700 dark:text-gray-300 font-[family-name:var(--font-geist-sans)]">
-            {data.text}
-          </p>
+          <div className="flex gap-4 mt-2">
+            <p className="flex-grow text-gray-700 dark:text-gray-300 font-[family-name:var(--font-geist-sans)]">
+              {data.text}
+            </p>
+
+            {/* Thumbnail */}
+            <Link 
+              href={`/post/${data.post.id}`}
+              className="relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-cover bg-center">
+                {data.post.imageUrl && (
+                  <Image
+                    src={data.post.imageUrl} // Direkte Verwendung der URL ohne Proxy
+                    alt={data.post.title}
+                    width={80}
+                    height={80}
+                    className={`object-cover w-full h-full transition-all duration-200 ${
+                      data.post.nsfw ? 'group-hover:blur-none blur-md' : ''
+                    }`}
+                    priority
+                  />
+                )}
+              </div>
+              {data.post.type === 'video' && (
+                <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-black/50 flex items-center justify-center">
+                  <div className="w-2.5 h-2.5 border-l-[5px] border-l-white border-y-[3px] border-y-transparent" />
+                </div>
+              )}
+              {data.post.type === 'gif' && (
+                <div className="absolute bottom-1 right-1">
+                  <span className="text-[10px] font-bold bg-black/50 text-white px-1.5 rounded">
+                    GIF
+                  </span>
+                </div>
+              )}
+              {data.post.nsfw && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:opacity-0">
+                  <span className="text-[10px] font-bold text-white px-1.5 py-0.5 bg-red-500/80 rounded">
+                    NSFW
+                  </span>
+                </div>
+              )}
+            </Link>
+          </div>
 
           <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
             <button className="hover:text-purple-600 dark:hover:text-purple-400">

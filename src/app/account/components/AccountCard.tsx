@@ -14,6 +14,7 @@ interface ProfileData {
   bio: string;
   avatarUrl: string | null;
   joinDate: string;
+  lastLogin: string; // Neu hinzugefügt
   uploads: number;
   favorites: number;
   comments: Comment[];
@@ -36,6 +37,7 @@ export function AccountCard() {
     bio: '',
     avatarUrl: null,
     joinDate: '2023-12-24',
+    lastLogin: '2024-01-10T15:45:00', // Neu hinzugefügt
     uploads: 42,
     favorites: 123,
     comments: [
@@ -121,11 +123,12 @@ export function AccountCard() {
             {(previewUrl || profile.avatarUrl) ? (
               <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
                 <Image 
-                  src={previewUrl || profile.avatarUrl || ''} 
-                  alt="Avatar" 
+                  src={previewUrl || profile.avatarUrl || '/images/default-avatar.png'} // Fallback hinzugefügt
+                  alt={`${profile.nickname}'s avatar`}
                   width={128}
                   height={128}
                   className="max-w-full max-h-full w-auto h-auto object-contain"
+                  priority
                 />
               </div>
             ) : (
@@ -199,6 +202,16 @@ export function AccountCard() {
               className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
               placeholder="Write something about yourself..."
             />
+          </div>
+
+          {/* Member Info */}
+          <div className="text-sm space-y-1">
+            <div className="text-gray-500">
+              Member since {new Date(profile.joinDate).toLocaleDateString()}
+            </div>
+            <div className="text-gray-500">
+              Last seen {new Date(profile.lastLogin).toLocaleString()}
+            </div>
           </div>
 
           {/* Kompaktere Stats in einer Zeile */}

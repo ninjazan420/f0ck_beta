@@ -19,6 +19,9 @@ interface CommentData {
   post: {
     id: string;
     title: string;
+    imageUrl: string; // Stellen Sie sicher, dass dies immer gefüllt ist
+    type: 'image' | 'video' | 'gif';
+    nsfw?: boolean;
   };
   likes: number;
   createdAt: string;
@@ -51,8 +54,11 @@ const MOCK_COMMENTS: CommentData[] = Array.from({ length: 20 }, (_, i) => ({
     ? "This is a longer comment that shows how multiple lines would look like in the comment section. It might contain some interesting thoughts about the post."
     : "Nice post!",
   post: {
-    id: `post-${i % 4}`,
-    title: `Amazing Artwork ${i % 4 + 1}`
+    id: `${i % 4}`,  // Entferne "post-" prefix
+    title: `Amazing Artwork ${i % 4 + 1}`,
+    imageUrl: `https://picsum.photos/400/300?random=${i}`, // Gleiche URL-Struktur wie PostGrid
+    type: 'image' as const,
+    nsfw: i % 3 === 0
   },
   likes: Math.floor(Math.random() * 50),
   createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
