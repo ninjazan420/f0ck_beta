@@ -6,7 +6,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Help & Information - f0ck beta v1",
-  description: "Learn about f0ck.org's features, registration process, and account management. Find information about supported file types and platform capabilities.",
+  description: "Learn about f0ck.org's features, registration process, and account management.",
   openGraph: {
     title: "Help & Information - f0ck beta v1",
     description: "Comprehensive guide about f0ck.org's features and usage",

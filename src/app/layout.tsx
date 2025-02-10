@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     siteName: "f0ck beta v1",
     images: [
       {
-        url: "/logos/1.png", // Nur ein Beispiel-Logo für die Metadaten
+        url: "/logos/1.png",
         width: 411,
         height: 84,
         alt: "f0ck.org Logo",
@@ -45,10 +45,7 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
-  },
-  icons: {
-    icon: "/favicon.png"
-  },
+  }
 };
 
 export default function RootLayout({
@@ -58,6 +55,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider>
           <Navbar />
