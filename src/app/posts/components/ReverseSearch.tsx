@@ -2,11 +2,11 @@ export function ReverseSearch({ imageUrl }: { imageUrl: string }) {
   const searchEngines = [
     {
       name: 'Google',
-      url: `https://www.google.com/searchbyimage?image_url=${encodeURIComponent(imageUrl)}`
+      url: `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(imageUrl)}`
     },
     {
       name: 'Yandex',
-      url: `https://yandex.com/images/search?url=${encodeURIComponent(imageUrl)}&rpt=imageview`
+      url: `https://yandex.com/images/search?url=${encodeURIComponent(imageUrl)}`
     },
     {
       name: 'SauceNAO',
