@@ -180,18 +180,6 @@ export function PostComments({ postId }: PostCommentsProps) {
           >
             {showPreview ? 'Edit' : 'Preview'}
           </button>
-          <button
-            type="button"
-            className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            🎨 GIF
-          </button>
-          <button
-            type="button"
-            className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            😊 Emoji
-          </button>
           <label className="ml-auto flex items-center gap-2 cursor-pointer">
             <span className="text-sm text-gray-600 dark:text-gray-400">Post Anonymously</span>
             <div className="relative inline-flex items-center">
@@ -226,13 +214,33 @@ export function PostComments({ postId }: PostCommentsProps) {
           <span className="text-xs text-gray-500">
             {newComment.length}/500 characters
           </span>
-          <button
-            onClick={handleSubmitComment}
-            disabled={!newComment.trim()}
-            className="px-4 py-2 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isAnonymous ? 'Post Anonymously' : 'Post Comment'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              🎨 GIF
+            </button>
+            <button
+              type="button"
+              className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              😊 Emoji
+            </button>
+            <button
+              onClick={() => setNewComment('')}
+              className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmitComment}
+              disabled={!newComment.trim()}
+              className="px-4 py-2 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isAnonymous ? 'Post Anonymously' : 'Post Comment'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -338,20 +346,40 @@ export function PostComments({ postId }: PostCommentsProps) {
                       className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
                       rows={3}
                     />
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => setReplyToId(null)}
-                        className="px-3 py-1 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => handleReply(comment.id)}
-                        disabled={!replyText.trim()}
-                        className="px-3 py-1 rounded-lg text-sm text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 disabled:opacity-50"
-                      >
-                        Reply
-                      </button>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500">
+                        {replyText.length}/500 characters
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        >
+                          🎨 GIF
+                        </button>
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        >
+                          😊 Emoji
+                        </button>
+                        <button
+                          onClick={() => {
+                            setReplyToId(null);
+                            setReplyText('');
+                          }}
+                          className="px-3 py-1 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleReply(comment.id)}
+                          disabled={!replyText.trim()}
+                          className="px-3 py-1 rounded-lg text-sm text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 disabled:opacity-50"
+                        >
+                          Reply
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

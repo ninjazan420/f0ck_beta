@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     description: "Deine neue Anlaufstelle für Catmemes, Shitposts, Girls und mehr",
     images: ["/logos/1.png"],
   },
-  metadataBase: new URL("https://beta.f0ck.org"),
+  metadataBase: new URL("http://localhost:3001"),
   robots: {
     index: true,
     follow: true,
