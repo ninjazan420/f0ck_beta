@@ -320,25 +320,66 @@ export function PostDetails({ postId }: { postId: string }) {
           </div>
 
           {/* Stats */}
-          <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
-            <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="px-4 py-2 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+            <div className="grid grid-cols-3 gap-2 text-center text-sm">
               <div>
-                <div className="text-xl font-medium text-gray-900 dark:text-gray-100">{post.stats.views}</div>
-                <div className="text-sm text-gray-500">Views</div>
+                <div className="font-medium text-gray-900 dark:text-gray-100">{post.stats.views}</div>
+                <div className="text-xs text-gray-500">Views</div>
               </div>
               <div>
-                <div className="text-xl font-medium text-gray-900 dark:text-gray-100">{post.stats.likes}</div>
-                <div className="text-sm text-gray-500">Likes</div>
+                <div className="font-medium text-gray-900 dark:text-gray-100">{post.stats.likes}</div>
+                <div className="text-xs text-gray-500">Likes</div>
               </div>
               <div>
-                <div className="text-xl font-medium text-gray-900 dark:text-gray-100">{post.stats.favorites}</div>
-                <div className="text-sm text-gray-500">Favorites</div>
+                <div className="font-medium text-gray-900 dark:text-gray-100">{post.stats.favorites}</div>
+                <div className="text-xs text-gray-500">Favorites</div>
               </div>
             </div>
           </div>
 
           {/* Tags */}
           <PostTags tags={post.tags} />
+
+          {/* Pools */}
+          <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 space-y-3">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Featured in Pools</h3>
+            <div className="space-y-2">
+              {[
+                { id: 'pool-1', name: 'Best Artworks 2024', items: 156, cover: "https://picsum.photos/400/225?random=1" },
+                { id: 'pool-2', name: 'Character Collection', items: 89, cover: "https://picsum.photos/400/225?random=2" },
+                { id: 'pool-3', name: 'Digital Art Showcase', items: 234, cover: "https://picsum.photos/400/225?random=3" }
+              ].map(pool => (
+                <Link
+                  key={pool.id}
+                  href={`/pool/${pool.id.replace('pool-', '')}`}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                >
+                  {/* Pool Cover Preview */}
+                  <div className="relative w-20 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-200 dark:bg-gray-800">
+                    <Image
+                      src={pool.cover}
+                      alt={`Cover for ${pool.name}`}
+                      fill
+                      className="object-cover group-hover:opacity-90 transition-opacity"
+                    />
+                  </div>
+                  {/* Pool Info */}
+                  <div className="flex-grow min-w-0">
+                    <div className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                      {pool.name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {pool.items} items
+                    </div>
+                  </div>
+                  {/* Arrow Icon */}
+                  <div className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300">
+                    →
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
 
           {/* Metadata */}
           <PostMetadata 
