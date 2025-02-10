@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface Comment {
   id: string;
@@ -119,9 +120,11 @@ export function AccountCard() {
           <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700">
             {(previewUrl || profile.avatarUrl) ? (
               <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
-                <img 
+                <Image 
                   src={previewUrl || profile.avatarUrl || ''} 
                   alt="Avatar" 
+                  width={128}
+                  height={128}
                   className="max-w-full max-h-full w-auto h-auto object-contain"
                 />
               </div>

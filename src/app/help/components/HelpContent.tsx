@@ -1,10 +1,5 @@
 'use client';
 
-export const metadata: Metadata = {
-  title: "Posts - f0ck beta v1",
-  description: "Browse through posts"
-};
-
 export function HelpContent() {
   return (
     <>

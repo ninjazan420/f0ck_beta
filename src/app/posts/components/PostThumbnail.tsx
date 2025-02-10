@@ -1,5 +1,6 @@
 'use client';
 import { ContentRating } from './PostsPage';
+import Image from 'next/image';
 
 interface PostProps {
   post: {
@@ -34,9 +35,11 @@ export function PostThumbnail({ post }: PostProps) {
     <a href={`/post/${post.id}`} className="block group">
       <div className="relative aspect-[4/3] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
         {/* Thumbnail */}
-        <img 
+        <Image 
           src={post.thumbnail} 
           alt={post.title}
+          width={400}
+          height={300}
           className="w-full h-full object-cover transition-transform duration-100 group-hover:scale-105"
         />
 

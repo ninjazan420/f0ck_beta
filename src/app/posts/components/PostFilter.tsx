@@ -9,7 +9,26 @@ const SORT_OPTIONS = {
   most_commented: 'Most Commented'
 } as const;
 
-export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleInfiniteScroll }) {
+interface FilterState {
+  searchText: string;
+  tags: string[];  // Hinzugefügt
+  uploader: string;
+  commenter: string;
+  sortBy: keyof typeof SORT_OPTIONS;
+  minLikes: number;
+  dateFrom: string;
+  dateTo: string;
+  contentRating: ContentRating[];
+}
+
+interface PostFilterProps {
+  filters: FilterState;
+  onFilterChange: (filters: FilterState) => void;
+  infiniteScroll: boolean;
+  onToggleInfiniteScroll: (enabled: boolean) => void;
+}
+
+export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleInfiniteScroll }: PostFilterProps) {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const toggleRating = (rating: ContentRating) => {
@@ -56,7 +75,7 @@ export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleIn
           
           <select
             value={filters.sortBy}
-            onChange={e => onFilterChange({ ...filters, sortBy: e.target.value })}
+            onChange={e => onFilterChange({ ...filters, sortBy: e.target.value as keyof typeof SORT_OPTIONS })}
             className="p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
           >
             {Object.entries(SORT_OPTIONS).map(([value, label]) => (

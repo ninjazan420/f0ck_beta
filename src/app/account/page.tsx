@@ -5,7 +5,13 @@ import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Account - f0ck beta v1",
-  description: "Your Account"
+  description: "Your Account",
+  icons: [
+    {
+      rel: 'icon',
+      url: '/favicon.ico',
+    },
+  ],
 };
 
 export default function Account() {

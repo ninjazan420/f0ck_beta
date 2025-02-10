@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, KeyboardEvent } from 'react';
+import Image from 'next/image';
 
 interface FileItem {
   id: string;
@@ -42,9 +43,9 @@ export function FileList({
         });
 
         // Bildabmessungen ermitteln
-        const img = new Image();
         dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
-          img.onload = () => resolve({ width: img.width, height: img.height });
+          const img = document.createElement('img');
+          img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
           img.src = thumbnail;
         });
       }
@@ -158,9 +159,11 @@ export function FileList({
           <div className="flex gap-4">
             {item.thumbnail && (
               <div className="w-24 h-24 flex-shrink-0 relative">
-                <img 
+                <Image 
                   src={item.thumbnail} 
-                  alt="" 
+                  alt={item.name}
+                  width={96}
+                  height={96}
                   className="absolute inset-0 w-full h-full object-contain"
                 />
               </div>

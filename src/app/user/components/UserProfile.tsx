@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface UserData {
   username: string;
@@ -117,7 +118,13 @@ export function UserProfile({ username }: { username: string }) {
           <div className={`w-24 h-24 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0
             ${userData.premium ? 'ring-2 ring-purple-400 dark:ring-purple-600' : ''}`}>
             {userData.avatar ? (
-              <img src={userData.avatar} alt="" className="w-full h-full object-cover" />
+              <Image 
+                src={userData.avatar} 
+                alt={`${userData.username}'s avatar`}
+                width={96}
+                height={96}
+                className="w-full h-full object-cover"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400 text-2xl">
                 {userData.username[0].toUpperCase()}

@@ -1,5 +1,4 @@
 'use client';
-import { type ChangeEvent } from 'react';
 
 export function InfiniteScrollToggle({ 
   enabled, 

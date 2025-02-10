@@ -8,7 +8,7 @@ export type ContentRating = 'safe' | 'sketchy' | 'unsafe';
 
 export function PostsPage() {
   const [infiniteScroll, setInfiniteScroll] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [filters, setFilters] = useState({
     searchText: '',
     tags: [] as string[],

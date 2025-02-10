@@ -7,9 +7,12 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "f0ck beta v1",
   description: "Welcome to f0ck.org",
-  icons: {
-    icon: '/favicon.ico'
-  }
+  icons: [
+    {
+      rel: 'icon',
+      url: '/favicon.ico',
+    },
+  ],
 };
 
 // Mock pinned post data
@@ -57,9 +60,11 @@ export default function Home() {
         <div className="w-full max-w-2xl mx-auto px-4 py-12">
           <div className="relative aspect-[2/1] rounded-xl overflow-hidden">
             <Link href={`/post/${PINNED_POST.id}`}>
-              <img
+              <Image
                 src={PINNED_POST.thumbnail}
                 alt={PINNED_POST.title}
+                width={800}
+                height={400}
                 className="w-full h-full object-cover"
               />
               {/* Post Info Overlay */}

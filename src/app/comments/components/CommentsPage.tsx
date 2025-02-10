@@ -1,9 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Footer } from "@/components/Footer";
 import { CommentFilter } from "./CommentFilter";
 import { CommentList } from "./CommentList";
-import { InfiniteScrollToggle } from "./InfiniteScrollToggle";
 
 export function CommentsPage() {
   const [infiniteScroll, setInfiniteScroll] = useState(false);

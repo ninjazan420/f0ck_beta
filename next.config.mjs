@@ -12,6 +12,22 @@ const nextConfig = {
   },
   env: {
     PORT: 3001
+  },
+  images: {
+    domains: ['picsum.photos', 'placehold.co'],  // Alternative zu remotePatterns
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos'
+      },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co'
+      }
+    ],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    minimumCacheTTL: 60
   }
 };
 

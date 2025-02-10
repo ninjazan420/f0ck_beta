@@ -2,7 +2,7 @@
 import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
 
-export default function Help() {
+export default function HelpPage() {
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
       <div className="w-full flex justify-center py-8">

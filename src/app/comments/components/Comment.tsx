@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface CommentProps {
   data: {
@@ -31,6 +33,9 @@ interface CommentProps {
 }
 
 export function Comment({ data }: CommentProps) {
+  const [showReplyBox, setShowReplyBox] = useState(false);
+  const [replyText, setReplyText] = useState('');
+
   const formattedDate = new Date(data.createdAt).toLocaleString();
 
   const getUserUrl = (username: string) => `/user/${username.toLowerCase()}`;
@@ -62,6 +67,13 @@ export function Comment({ data }: CommentProps) {
       default:
         return '';
     }
+  };
+
+  const handleReply = () => {
+    // Hier würde die API-Logik für das Senden der Antwort implementiert
+    console.log(`Replying to comment ${data.id}: ${replyText}`);
+    setReplyText('');
+    setShowReplyBox(false);
   };
 
   return (
@@ -103,9 +115,11 @@ export function Comment({ data }: CommentProps) {
               ${data.user.style ? getAvatarStyle(data.user.style) : 'hover:ring-2 hover:ring-purple-400 dark:hover:ring-purple-600'}`}
             >
               {data.user.avatar ? (
-                <img 
-                  src={data.user.avatar} 
-                  alt="" 
+                <Image 
+                  src={data.user.avatar}
+                  alt={`${data.user.name}'s avatar`}
+                  width={40}
+                  height={40}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -174,6 +188,46 @@ export function Comment({ data }: CommentProps) {
           <p className="text-gray-700 dark:text-gray-300 font-[family-name:var(--font-geist-sans)]">
             {data.text}
           </p>
+
+          <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
+            <button className="hover:text-purple-600 dark:hover:text-purple-400">
+              ❤️ {data.likes}
+            </button>
+            <button 
+              onClick={() => setShowReplyBox(!showReplyBox)}
+              className="hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1"
+            >
+              💬 Reply
+            </button>
+          </div>
+
+          {/* Reply Box */}
+          {showReplyBox && (
+            <div className="mt-4 space-y-2">
+              <textarea
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder={`Reply to ${data.user.name}...`}
+                className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
+                rows={3}
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowReplyBox(false)}
+                  className="px-3 py-1 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReply}
+                  disabled={!replyText.trim()}
+                  className="px-3 py-1 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Send Reply
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

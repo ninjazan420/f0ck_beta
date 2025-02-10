@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { PostMetadata } from './PostMetadata';
 import { PostTags } from './PostTags';
 import { PostComments } from './PostComments';
@@ -47,8 +48,8 @@ const MOCK_POST: PostData = {
   id: "post-1",
   title: "Amazing Artwork #1",
   description: "This is a beautiful piece of art that I found.",
-  imageUrl: "https://placehold.co/1200x800",
-  thumbnailUrl: "https://placehold.co/1200x800.jpg",
+  imageUrl: "https://picsum.photos/1200/800",       // Geändert zu picsum
+  thumbnailUrl: "https://picsum.photos/1200/800",   // Geändert zu picsum
   uploadDate: "2023-12-24T12:00:00Z",
   uploader: {
     id: "user1",
@@ -127,10 +128,14 @@ export function PostDetails({ postId }: { postId: string }) {
         <div className="space-y-6">
           {/* Image Container */}
           <div className="relative rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
-            <img
+            <Image
               src={post.imageUrl}
               alt={post.title}
+              width={1200}
+              height={800}
               className="w-full h-auto"
+              unoptimized        // Option hinzugefügt
+              priority          // Option hinzugefügt
             />
             
             {/* Content Rating Badge */}
@@ -170,7 +175,13 @@ export function PostDetails({ postId }: { postId: string }) {
                 <div className={`w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0
                   ${post.uploader.premium ? 'ring-2 ring-purple-400 dark:ring-purple-600' : ''}`}>
                   {post.uploader.avatar ? (
-                    <img src={post.uploader.avatar} alt="" className="w-full h-full object-cover" />
+                    <Image 
+                      src={post.uploader.avatar}
+                      alt={`${post.uploader.name}'s avatar`}
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 text-lg">
                       {post.uploader.name[0].toUpperCase()}

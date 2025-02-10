@@ -3,7 +3,13 @@ import { ComingSoon } from "@/components/ComingSoon";
 
 export const metadata: Metadata = {
   title: "Catalog - f0ck beta v1",
-  description: "Browse through our catalog"
+  description: "Browse through our catalog",
+  icons: [
+    {
+      rel: 'icon',
+      url: '/favicon.ico',
+    },
+  ],
 };
 
 export default function Catalog() {

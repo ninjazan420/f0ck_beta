@@ -1,27 +1,12 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ContentRating } from './PostsPage';
 
-interface Post {
-  id: string;
-  title: string;
-  thumbnail: string;
-  likes: number;
-  comments: number;
-  favorites: number;
-  contentRating: ContentRating;
-  createdAt: string;
-  isPinned: boolean; // Added isPinned status
-  mediaType: 'image' | 'gif' | 'video'; // Added mediaType
-  hasAudio: boolean; // Added hasAudio
-  isAd?: boolean; // Optional flag for ads
-  isSponsored?: boolean; // Optional flag for sponsored content
-}
-
-// Generate mock posts outside the component to avoid regeneration
+// Post-Interface wird direkt bei der Mock-Daten-Generierung verwendet
 const MOCK_POSTS = Array.from({ length: 28 }, (_, i) => ({
-  id: i + 1, // Simplified ID as number
+  id: (i + 1).toString(), // Geändert von i + 1 zu String
   title: `Amazing Artwork ${i + 1}`,
   thumbnail: `https://picsum.photos/400/300?random=${i}`,
   likes: Math.floor(Math.random() * 1000),
@@ -74,9 +59,11 @@ export function PostGrid({ loading = false, filters = {}, page = 1 }: PostGridPr
           href={`/post/${post.id}`}
           className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800"
         >
-          <img
+          <Image
             src={post.thumbnail}
             alt={post.title}
+            width={400}
+            height={400}
             className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
           />
           

@@ -72,7 +72,8 @@ export default function SettingsClient() {
           type: 'solid' as 'solid' | 'gradient' | 'animated',
           color: 'purple-600',
           gradient: ['purple-400', 'pink-600'],
-          animate: false
+          animate: false,
+          animation: 'pulse' // Neue Eigenschaft hinzugefügt
         }
       }
     }

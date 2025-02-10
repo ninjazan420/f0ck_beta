@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Mock user data - später durch echte User-Daten ersetzen
 const mockUser = {
@@ -25,9 +26,11 @@ export const Navbar = () => {
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
             {mockUser.avatar ? (
-              <img 
-                src={mockUser.avatar} 
-                alt="" 
+              <Image 
+                src={mockUser.avatar}
+                alt="User avatar"
+                width={24}
+                height={24}
                 className="w-full h-full object-cover"
               />
             ) : (
