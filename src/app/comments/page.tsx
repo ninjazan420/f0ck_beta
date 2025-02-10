@@ -1,11 +1,11 @@
 import { Metadata } from "next";
-import { ComingSoon } from "@/components/ComingSoon";
+import { CommentsPage } from "./components/CommentsPage";
 
 export const metadata: Metadata = {
-  title: "Comments - f0ck beta v1",
+  title: "Recent Comments - f0ck beta v1",
   description: "Recent comments on f0ck.org"
 };
 
 export default function Comments() {
-  return <ComingSoon pageName="Comments" />;
+  return <CommentsPage />;
 }

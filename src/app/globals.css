@@ -20,6 +20,17 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+@keyframes fade-in-out {
+  0% { opacity: 0; transform: translate3d(0, -20px, 0); }
+  15% { opacity: 1; transform: translate3d(0, 0, 0); }
+  85% { opacity: 1; transform: translate3d(0, 0, 0); }
+  100% { opacity: 0; transform: translate3d(0, 20px, 0); }
+}
+
+.animate-fade-in-out {
+  animation: fade-in-out 2s ease-in-out forwards;
+}
+
 @layer components {
   .stat-card {
     @apply p-5 rounded-xl 

@@ -75,6 +75,14 @@ export function AccountCard() {
 
   const handleSave = () => {
     // Hier würde die API-Logik implementiert
+    if (newAvatar) {
+      // Here you would upload the newAvatar file to your server
+      // For now, just update the local avatarUrl with the preview
+      setProfile(prev => ({
+        ...prev,
+        avatarUrl: previewUrl
+      }));
+    }
     setIsEditing(false);
   };
 

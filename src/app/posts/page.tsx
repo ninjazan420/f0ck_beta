@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ComingSoon } from "@/components/ComingSoon";
+import { PostsPage } from "./components/PostsPage";
 
 export const metadata: Metadata = {
   title: "Posts - f0ck beta v1",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Posts() {
-  return <ComingSoon pageName="Posts" />;
+  return <PostsPage />;
 }
