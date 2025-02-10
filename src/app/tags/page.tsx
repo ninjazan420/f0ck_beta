@@ -1,11 +1,16 @@
 import { Metadata } from "next";
-import { ComingSoon } from "@/components/ComingSoon";
+import { TagsPage } from "./components/TagsPage";
 
 export const metadata: Metadata = {
   title: "Tags - f0ck beta v1",
-  description: "f0ck.org tags"
+  description: "Browse and discover tags. Filter by category, popularity, and more.",
+  keywords: ["tags", "categories", "search", "filter", "browse", "discover"],
+  openGraph: {
+    title: "Tag Browser - f0ck beta v1",
+    description: "Explore our comprehensive tag system. Find content by categories, artists, and more.",
+  }
 };
 
 export default function Tags() {
-  return <ComingSoon pageName="Tags" />;
+  return <TagsPage />;
 }

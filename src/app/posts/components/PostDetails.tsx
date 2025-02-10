@@ -21,6 +21,15 @@ interface PostData {
     name: string;
     avatar: string | null;
     premium: boolean;
+    joinDate: string;
+    stats: {
+      totalPosts: number;
+      totalLikes: number;
+      totalViews: number;
+      level: number;
+      xp: number;
+      xpNeeded: number;
+    };
   };
   stats: {
     views: number;
@@ -57,7 +66,16 @@ const MOCK_POST: PostData = {
     id: "user1",
     name: "User1",
     avatar: null,
-    premium: true
+    premium: true,
+    joinDate: "2023-01-15T08:30:00Z",
+    stats: {
+      totalPosts: 342,
+      totalLikes: 15678,
+      totalViews: 89432,
+      level: 42,
+      xp: 8234,
+      xpNeeded: 10000
+    }
   },
   stats: {
     views: 1234,
@@ -86,6 +104,47 @@ const MOCK_POST: PostData = {
 export function PostDetails({ postId }: { postId: string }) {
   const [post, setPost] = useState<PostData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null);
+  const [isFavorited, setIsFavorited] = useState(false);
+
+  // Voting Handler
+  const handleVote = (type: 'like' | 'dislike') => {
+    if (userVote === type) {
+      setUserVote(null);
+      setPost(prev => prev ? {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          likes: type === 'like' ? prev.stats.likes - 1 : prev.stats.likes,
+          dislikes: type === 'dislike' ? prev.stats.dislikes - 1 : prev.stats.dislikes
+        }
+      } : null);
+    } else {
+      setUserVote(type);
+      setPost(prev => prev ? {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          likes: type === 'like' ? prev.stats.likes + 1 : 
+                 userVote === 'like' ? prev.stats.likes - 1 : prev.stats.likes,
+          dislikes: type === 'dislike' ? prev.stats.dislikes + 1 : 
+                    userVote === 'dislike' ? prev.stats.dislikes - 1 : prev.stats.dislikes
+        }
+      } : null);
+    }
+  };
+
+  // Favorite Handler
+  const handleFavorite = () => {
+    setIsFavorited(!isFavorited);
+    setPost(prev => prev ? {
+      ...prev,
+      stats: {
+        ...prev.stats,
+        favorites: isFavorited ? prev.stats.favorites - 1 : prev.stats.favorites + 1
+      }
+    } : null);
+  };
 
   useEffect(() => {
     // Simuliere API-Call
@@ -152,6 +211,43 @@ export function PostDetails({ postId }: { postId: string }) {
                 {post.contentRating.toUpperCase()}
               </span>
             </div>
+
+            {/* Voting Buttons */}
+            <div className="absolute bottom-4 right-4 flex items-center gap-2">
+              <button
+                onClick={() => handleVote('like')}
+                className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
+                  userVote === 'like'
+                    ? 'bg-green-500/80 text-white'
+                    : 'bg-gray-900/50 hover:bg-gray-900/60 text-white backdrop-blur-sm'
+                }`}
+              >
+                <span className="text-base">👍</span>
+                <span>{post.stats.likes}</span>
+              </button>
+              <button
+                onClick={() => handleVote('dislike')}
+                className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
+                  userVote === 'dislike'
+                    ? 'bg-red-500/80 text-white'
+                    : 'bg-gray-900/50 hover:bg-gray-900/60 text-white backdrop-blur-sm'
+                }`}
+              >
+                <span className="text-base">👎</span>
+                <span>{post.stats.dislikes}</span>
+              </button>
+              <button
+                onClick={handleFavorite}
+                className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
+                  isFavorited
+                    ? 'bg-purple-500/80 text-white'
+                    : 'bg-gray-900/50 hover:bg-gray-900/60 text-white backdrop-blur-sm'
+                }`}
+              >
+                <span className="text-base">{isFavorited ? '❤️' : '🤍'}</span>
+                <span>{post.stats.favorites}</span>
+              </button>
+            </div>
           </div>
 
           {/* Comments Section */}
@@ -171,32 +267,22 @@ export function PostDetails({ postId }: { postId: string }) {
           </div>
 
           {/* Uploader Info */}
-          <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+          <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 space-y-4">
             <div className="flex items-center gap-3">
               <Link href={`/user/${post.uploader.name.toLowerCase()}`} className="block">
                 <div className={`w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0
                   ${post.uploader.premium ? 'ring-2 ring-purple-400 dark:ring-purple-600' : ''}`}>
-                  {post.uploader.avatar ? (
-                    <Image 
-                      src={post.uploader.avatar}
-                      alt={`${post.uploader.name}'s avatar`}
-                      width={48}
-                      height={48}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Image 
-                      src={DEFAULT_AVATAR}
-                      alt="Default avatar"
-                      width={48}
-                      height={48}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
+                  <Image 
+                    src={post.uploader.avatar || DEFAULT_AVATAR}
+                    alt={`${post.uploader.name}'s avatar`}
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </Link>
               
-              <div>
+              <div className="flex-grow">
                 <Link href={`/user/${post.uploader.name.toLowerCase()}`}
                   className={`font-medium hover:opacity-80 transition-opacity ${
                     post.uploader.premium 
@@ -205,9 +291,30 @@ export function PostDetails({ postId }: { postId: string }) {
                   }`}>
                   {post.uploader.name}
                 </Link>
-                <div className="text-sm text-gray-500">
-                  {new Date(post.uploadDate).toLocaleDateString()}
+                <div className="text-sm text-gray-500 flex items-center gap-2">
+                  <span>Member since {new Date(post.uploader.joinDate).toLocaleDateString()}</span>
+                  {post.uploader.premium && (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
+                      PREMIUM
+                    </span>
+                  )}
                 </div>
+              </div>
+            </div>
+
+            {/* User Stats */}
+            <div className="grid grid-cols-3 gap-2 text-center text-sm">
+              <div className="p-2 rounded-lg bg-gray-100/50 dark:bg-gray-800/50">
+                <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats.totalPosts}</div>
+                <div className="text-gray-500">Posts</div>
+              </div>
+              <div className="p-2 rounded-lg bg-gray-100/50 dark:bg-gray-800/50">
+                <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats.totalLikes}</div>
+                <div className="text-gray-500">Likes</div>
+              </div>
+              <div className="p-2 rounded-lg bg-gray-100/50 dark:bg-gray-800/50">
+                <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats.totalViews}</div>
+                <div className="text-gray-500">Views</div>
               </div>
             </div>
           </div>
@@ -234,7 +341,12 @@ export function PostDetails({ postId }: { postId: string }) {
           <PostTags tags={post.tags} />
 
           {/* Metadata */}
-          <PostMetadata meta={post.meta} />
+          <PostMetadata 
+            meta={{
+              ...post.meta,
+              uploadDate: post.uploadDate // Füge das Uploaddatum zu den Metadaten hinzu
+            }} 
+          />
 
           {/* Reverse Search */}
           <ReverseSearch imageUrl={post.thumbnailUrl} />
