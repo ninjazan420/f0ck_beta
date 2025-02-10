@@ -2,120 +2,100 @@
 
 Eine moderne Imageboard-Plattform mit optionalen Premium-Features, entwickelt mit Next.js 14 und TailwindCSS.
 
-## 🌟 Features
+## 🌟 Hauptfunktionen
 
-### Basis Features (Kostenlos)
-- 🎭 Vollständig anonyme Nutzung möglich
-- 🖼️ Unterstützung für Bilder, GIFs und Videos
-- 🏷️ Fortschrittliches Tag-System (bis zu 20 Favoriten)
-- 🌓 Dark/Light Mode
-- 📱 Responsive Design
-- 🔍 Erweiterte Suchfunktionen
-- 💬 Kommentarfunktion
-- 📂 Grundlegende Pool-Funktionen (max. 5 Pools)
-- 📊 Standard-Upload (GIFs bis 10MB, Videos in 720p)
+### Grid & Posts
+- 📱 7x4 Grid-Layout für optimale Übersicht
+- 🖼️ Intelligente Thumbnail-Vorschauen
+- 📄 Titel-Anzeige in Thumbnails
+- 🏷️ Status-Badges:
+  - 📌 PIN für wichtige Posts
+  - 💎 AD für Werbung
+  - 🔒 Safe/Sketchy/Unsafe Content-Rating
+  - 🎬 Medientyp (PIC/GIF/VIDEO)
+  - 🔊 Audio-Indikator für Videos
+- 📊 Post-Statistiken (Likes, Kommentare, Favoriten)
+- 🔄 Infinite Scroll Option
+- 📑 Klassische Seitennavigation
 
+### Post-Details
+- 🖼️ Große Bildansicht
+- ℹ️ Detaillierte Metadaten
+- 🔍 Reverse Image Search
+- 👤 Uploader-Informationen
+- 📊 Erweiterte Statistiken
+- ⚡ Schnelle Navigation (vor/zurück)
+- 💬 Kommentarbereich
+
+### Kommentare
+- 👤 Anonyme Kommentare möglich
+- 💫 Premium-User Highlights
+- 🔗 Direkte Post-Verlinkungen
+- ↩️ Reply-Funktion
+- 👍 Like-System
+- 🕒 Zeitstempel
+- 🔍 Filterfunktionen:
+  - Benutzername
+  - Textsuche
+  - Datum
+  - Mindest-Likes
+
+### Benutzerprofile
+- 🎨 Anpassbare Profile
+- 📸 Avatar-Upload
+- 📝 Bio (140 Zeichen)
+- 📊 Aktivitätsstatistiken
+- 🔒 Privacy-Einstellungen:
+  - Profilsichtbarkeit
+  - Bio-Anzeige
+  - Kommentare
+  - Likes/Dislikes
+  - Favoriten
+  - Uploads
+  
 ### Premium Features 💎
-- 🎨 Farbige Nicknamen mit Animationen
-- 📦 Unbegrenzte Pools (öffentlich & privat)
-- 🏷️ Unbegrenzte Tag-Favoriten & Kategorien
+- 🎨 Farbige/animierte Nicknamen
+- 🌟 Premium-Badge
+- 📊 Erweiterte Statistiken
 - 🔔 Erweiterte Benachrichtigungen
-- 💬 Unbegrenzte Privatnachrichten
-- 📤 Erweiterte Upload-Funktionen:
-  - GIFs bis 50MB
-  - Videos in Originalqualität
-- 🚫 Keine Werbung
 
-## ✨ Neue Features in v3
+### Startseite
+- 🎯 Gepinnter Hauptpost
+- 📊 Plattform-Statistiken:
+  - Aktive Nutzer
+  - Neue Kommentare (24h)
+  - Neue Posts (24h)
+- 📢 Feature-Ankündigungen
 
-### Design & UI
-- 🎨 Komplett überarbeitetes UI
-- 🖼️ Verbesserte Thumbnail-Darstellung
-- 📱 Optimierte mobile Navigation
+### Technische Features
+- 🌓 Dark/Light Mode
+- 📱 Vollständig responsive
+- ⚡ Optimierte Performance
+- 🔍 SEO-optimiert
+- 🔒 Sicherheitsfeatures
 
-### Funktionalität
-- ⚙️ Erweiterte Einstellungsmöglichkeiten
-- 🔧 Anpassbare Grid-Layouts
-- 🎞️ Verbessertes Media-Handling
-- 👥 Erweitertes Nutzer-System
-
-### Premium-System
-- 💎 Einführung von Premium-Features
-- 🎨 Personalisierbare Nicknamen
-- 📂 Erweiterte Pool-Funktionen
-- 🔔 Individualisierbare Benachrichtigungen
-
-## 🛠️ Technologie
+## 🛠️ Technischer Stack
 
 - **Framework**: Next.js 14
-- **Styling**: Tailwind CSS
-- **Fonts**: Geist Sans & Mono
+- **Styling**: TailwindCSS
+- **Typografie**: Geist Sans & Mono
+- **Komponenten**: Custom React Components
+- **State Management**: React Hooks
+- **Routing**: Next.js App Router
 - **Deployment**: Vercel
 
-## 📂 Projektstruktur
+## 🔜 Geplante Features
 
-```
-src/
-├── app/
-│   ├── layout.tsx     # Root Layout mit Meta-Tags
-│   ├── page.tsx       # Homepage
-│   ├── rules/         # Rules Sektion
-│   │   └── page.tsx   # Rules Page
-│   ├── help/          # Help Sektion
-│   │   └── page.tsx   # Help Page
-│   └── globals.css    # Globale Styles
-├── components/
-│   ├── Navbar.tsx     # Navigation Komponente
-│   ├── Footer.tsx     # Footer Komponente
-│   └── ComingSoon.tsx # Platzhalter für zukünftige Features
-└── public/
-    └── logos/         # Logo Assets
+- 📨 Privates Messaging
+- 🏷️ Tag-System Erweiterungen
+- 📂 Pool-System
+- 🎨 Mehr Premium-Styles
+- 🔍 Erweiterte Suchfunktionen
 
-```
+## Support & Community
 
-## Komponenten
-
-### Navbar
-- Hauptnavigation mit zwei Menügruppen (links/rechts)
-- Responsive Design
-- Geist Mono Font Integration
-- Hover-Effekte
-
-### Footer
-- Community Links
-- Build-Informationen
-- Support-Links
-- Responsive Layout
-
-### ComingSoon
-- Platzhalter für in Entwicklung befindliche Seiten
-- Einheitliches Design
-- Informative Benutzerführung
-
-## Seiten
-
-### Rules (/rules)
-- Umfassende Nutzungsrichtlinien
-- Terms of Use
-- Verbotene Inhalte
-- Datenschutzrichtlinien
-- DMCA Informationen
-
-### Help (/help)
-- Plattform-Informationen
-- Registrierungsprozess
-- Account-Management
-- Unterstützte Dateitypen
-
-## Support
-
-Du kannst das Projekt unterstützen auf [Ko-fi](https://ko-fi.com/f0ck_org)
-
-## Verlinkte Dienste
-
-- [f0ck.org Main](https://f0ck.org)
-- [ShareX Server](https://sx.f0ck.org)
-- [Discord Community](https://discord.gg/SmWpwGnyrU)
+- Discord: [discord.gg/SmWpwGnyrU]
+- Ko-fi: [ko-fi.com/f0ck_org]
 
 ## License
 
