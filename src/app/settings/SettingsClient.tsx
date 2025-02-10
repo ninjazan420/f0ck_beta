@@ -1,5 +1,4 @@
 'use client';
-
 import { Footer } from "@/components/Footer";
 import { useTheme } from "@/context/ThemeContext";
 import { RandomLogo } from "@/components/RandomLogo";
@@ -66,9 +65,40 @@ export default function SettingsClient() {
         maxConversations: 5, // Standard: 5, Premium: unlimited
         attachments: false,
         groupChats: false,
+      },
+      nickname: {
+        enabled: false,
+        style: {
+          type: 'solid' as 'solid' | 'gradient' | 'animated',
+          color: 'purple-600',
+          gradient: ['purple-400', 'pink-600'],
+          animate: false
+        }
       }
     }
   });
+
+  const nicknameStyles = {
+    solid: [
+      { label: 'Purple', value: 'purple-600' },
+      { label: 'Pink', value: 'pink-600' },
+      { label: 'Blue', value: 'blue-600' },
+      { label: 'Emerald', value: 'emerald-500' },
+      { label: 'Rose', value: 'rose-500' },
+      { label: 'Violet', value: 'violet-500' }
+    ],
+    gradient: [
+      { label: 'Purple to Pink', value: ['purple-400', 'pink-600'] },
+      { label: 'Blue to Purple', value: ['blue-400', 'purple-600'] },
+      { label: 'Rose to Purple', value: ['rose-400', 'purple-600'] },
+      { label: 'Emerald to Blue', value: ['emerald-400', 'blue-600'] }
+    ],
+    animated: [
+      { label: 'Pulse', value: 'pulse' },
+      { label: 'Sparkle', value: 'sparkle' },
+      { label: 'Rainbow', value: 'rainbow' }
+    ]
+  };
 
   const handleSettingChange = (setting: keyof typeof settings) => (e: ChangeEvent<HTMLInputElement>) => {
     setSettings(prev => ({
@@ -79,19 +109,17 @@ export default function SettingsClient() {
 
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
-      {/* Logo Section */}
       <div className="w-full flex justify-center py-8">
         <RandomLogo />
       </div>
 
-      {/* Content Section */}
       <div className="container mx-auto px-4 py-4 max-w-4xl flex-grow">
         <h1 className="text-3xl font-[family-name:var(--font-geist-mono)] mb-8 text-center text-black dark:text-gray-400">
           Settings
         </h1>
 
         <div className="space-y-6">
-          {/* Premium Features - Jetzt als erste Sektion */}
+          {/* Premium Features Section */}
           <section className="settings-card bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] text-black dark:text-gray-400">
@@ -309,10 +337,230 @@ export default function SettingsClient() {
                   </div>
                 </label>
               </div>
+
+              <div className="space-y-4">
+                <div className="settings-row">
+                  <div className="flex flex-col">
+                    <span className="font-[family-name:var(--font-geist-mono)] inline-flex items-center gap-1">
+                      <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-purple-600 bg-clip-text text-transparent font-semibold">
+                        Colored Nickname
+                      </span>
+                      <span className="text-yellow-500 animate-pulse">⭐</span>
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Customize your nickname appearance
+                    </span>
+                  </div>
+                  <label className={`toggle-switch ${!settings.premium.isActive && 'opacity-50 cursor-not-allowed'}`}>
+                    <input 
+                      type="checkbox"
+                      checked={settings.premium.nickname.enabled}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        premium: {
+                          ...prev.premium,
+                          nickname: {
+                            ...prev.premium.nickname,
+                            enabled: e.target.checked
+                          }
+                        }
+                      }))}
+                      disabled={!settings.premium.isActive}
+                    />
+                    <div className="toggle-switch-background">
+                      <div className="toggle-switch-handle"></div>
+                    </div>
+                  </label>
+                </div>
+
+                {settings.premium.nickname.enabled && (
+                  <div className="space-y-4 p-4 bg-gray-100/50 dark:bg-gray-800/50 rounded-lg">
+                    <div className="space-y-2">
+                      <label className="block text-sm text-gray-600 dark:text-gray-400">
+                        Style Type
+                      </label>
+                      <select
+                        value={settings.premium.nickname.style.type}
+                        onChange={(e) => setSettings(prev => ({
+                          ...prev,
+                          premium: {
+                            ...prev.premium,
+                            nickname: {
+                              ...prev.premium.nickname,
+                              style: {
+                                ...prev.premium.nickname.style,
+                                type: e.target.value as typeof settings.premium.nickname.style.type
+                              }
+                            }
+                          }
+                        }))}
+                        className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+                      >
+                        <option value="solid">Solid Color</option>
+                        <option value="gradient">Gradient</option>
+                        <option value="animated">Animated</option>
+                      </select>
+                    </div>
+
+                    {settings.premium.nickname.style.type === 'solid' ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        {nicknameStyles.solid.map(color => (
+                          <button
+                            key={color.value}
+                            onClick={() => setSettings(prev => ({
+                              ...prev,
+                              premium: {
+                                ...prev.premium,
+                                nickname: {
+                                  ...prev.premium.nickname,
+                                  style: {
+                                    ...prev.premium.nickname.style,
+                                    color: color.value
+                                  }
+                                }
+                              }
+                            }))}
+                            className={`p-2 rounded-lg border-2 ${
+                              settings.premium.nickname.style.color === color.value
+                                ? 'border-purple-500'
+                                : 'border-transparent'
+                            }`}
+                          >
+                            <span className={`text-${color.value}`}>{color.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        {nicknameStyles.gradient.map(gradient => (
+                          <button
+                            key={gradient.value.join('-')}
+                            onClick={() => setSettings(prev => ({
+                              ...prev,
+                              premium: {
+                                ...prev.premium,
+                                nickname: {
+                                  ...prev.premium.nickname,
+                                  style: {
+                                    ...prev.premium.nickname.style,
+                                    gradient: gradient.value
+                                  }
+                                }
+                              }
+                            }))}
+                            className={`p-2 rounded-lg border-2 ${
+                              settings.premium.nickname.style.gradient?.join('-') === gradient.value.join('-')
+                                ? 'border-purple-500'
+                                : 'border-transparent'
+                            }`}
+                          >
+                            <span className={`bg-gradient-to-r from-${gradient.value[0]} to-${gradient.value[1]} bg-clip-text text-transparent`}>
+                              {gradient.label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Preview */}
+                    <div className="mt-4 p-4 rounded-lg bg-white dark:bg-gray-900 text-center">
+                      <span className={`text-lg font-medium ${
+                        settings.premium.nickname.style.type === 'solid'
+                          ? `text-${settings.premium.nickname.style.color}`
+                          : `${settings.premium.nickname.style.type === 'animated' ? 'animate-pulse' : ''} bg-gradient-to-r from-${settings.premium.nickname.style.gradient?.[0]} to-${settings.premium.nickname.style.gradient?.[1]} bg-clip-text text-transparent`
+                      }`}>
+                        Your Nickname
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </section>
 
-          {/* Appearance Settings */}
+          {/* Nickname Style Preview (für alle sichtbar) */}
+          <div className="relative space-y-4 p-6 bg-gray-100/50 dark:bg-gray-800/50 rounded-lg backdrop-blur-sm">
+            {/* Premium Overlay */}
+            {!settings.premium.isActive && (
+              <div className="absolute inset-0 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-10">
+                <div className="text-center">
+                  <span className="px-4 py-2 bg-purple-600/10 rounded-full text-sm text-purple-600 dark:text-purple-400 font-medium">
+                    Available with Premium 💎
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-4">
+              {/* Style Options */}
+              <div className="flex-1 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Style Type
+                  </label>
+                  <select
+                    value={settings.premium.nickname.style.type}
+                    disabled={!settings.premium.isActive}
+                    className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+                  >
+                    <option value="solid">Solid Color</option>
+                    <option value="gradient">Gradient</option>
+                    <option value="animated">Animated Effects</option>
+                  </select>
+                </div>
+
+                {/* Color/Effect Options */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {settings.premium.nickname.style.type === 'animated' ? 'Effect' : 'Color Style'}
+                  </label>
+                  <div className={`grid ${settings.premium.nickname.style.type === 'gradient' ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
+                    {(settings.premium.nickname.style.type === 'animated' 
+                      ? nicknameStyles.animated 
+                      : settings.premium.nickname.style.type === 'gradient'
+                        ? nicknameStyles.gradient
+                        : nicknameStyles.solid
+                    ).map(style => (
+                      <button
+                        key={typeof style.value === 'string' ? style.value : style.value.join('-')}
+                        className={`p-2 rounded-lg border-2 transition-all
+                          ${settings.premium.isActive ? 'hover:bg-gray-50 dark:hover:bg-gray-800/50' : 'cursor-not-allowed'}
+                          ${settings.premium.nickname.style.color === style.value ? 'border-purple-500' : 'border-transparent'}
+                        `}
+                        disabled={!settings.premium.isActive}
+                      >
+                        <span className={
+                          settings.premium.nickname.style.type === 'gradient'
+                            ? `bg-gradient-to-r from-${style.value[0]} to-${style.value[1]} bg-clip-text text-transparent`
+                            : settings.premium.nickname.style.type === 'animated'
+                              ? `animate-${style.value} bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent`
+                              : `text-${style.value}`
+                        }>
+                          {style.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview */}
+              <div className="w-1/3 p-4 rounded-lg bg-white dark:bg-gray-900/50 flex flex-col items-center justify-center">
+                <span className="text-sm text-gray-500 mb-2">Preview</span>
+                <span className={`text-lg font-medium ${
+                  settings.premium.nickname.style.type === 'animated'
+                    ? `animate-${settings.premium.nickname.style.animation} bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent`
+                    : settings.premium.nickname.style.type === 'gradient'
+                      ? `bg-gradient-to-r from-${settings.premium.nickname.style.gradient?.[0]} to-${settings.premium.nickname.style.gradient?.[1]} bg-clip-text text-transparent`
+                      : `text-${settings.premium.nickname.style.color}`
+                }`}>
+                  Your Nickname
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Appearance Settings Section */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Appearance
@@ -351,7 +599,7 @@ export default function SettingsClient() {
             </div>
           </section>
 
-          {/* Account Settings */}
+          {/* Account Settings Section */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Account
@@ -390,7 +638,7 @@ export default function SettingsClient() {
             </div>
           </section>
 
-          {/* Content Preferences */}
+          {/* Content Preferences Section */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Content Preferences
@@ -461,7 +709,7 @@ export default function SettingsClient() {
             </div>
           </section>
 
-          {/* Content Layout Settings */}
+          {/* Layout Settings Section */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Layout Preferences
@@ -566,7 +814,7 @@ export default function SettingsClient() {
             </div>
           </section>
 
-          {/* Upload Settings */}
+          {/* Upload Settings Section */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Upload Settings

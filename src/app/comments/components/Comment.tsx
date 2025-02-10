@@ -3,10 +3,12 @@
 interface CommentProps {
   data: {
     id: string;
-    user: {
-      id: string;
+    user: {      
+      id: string | null;  // null für anonyme User
       name: string;
       avatar: string | null;
+      isAnonymous?: boolean;  // Neues Flag für anonyme Kommentare
+      style?: { type: string; color?: string; gradient?: string[]; animate?: boolean }; // Neues Feld für Stil
     };
     text: string;
     post: {
@@ -19,6 +21,7 @@ interface CommentProps {
       id: string;
       user: {
         name: string;
+        isAnonymous?: boolean;
       };
       preview: string;
     };
@@ -28,6 +31,22 @@ interface CommentProps {
 export function Comment({ data }: CommentProps) {
   const formattedDate = new Date(data.createdAt).toLocaleString();
 
+  const getUserUrl = (username: string) => `/user/${username.toLowerCase()}`;
+  const getNickStyle = (style?: { type: string; color?: string; gradient?: string[]; animate?: boolean }) => {
+    if (!style) return '';
+    
+    switch(style.type) {
+      case 'solid':
+        return `text-${style.color}`;
+      case 'gradient':
+        return `bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} bg-clip-text text-transparent`;
+      case 'animated':
+        return `animate-pulse bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} bg-clip-text text-transparent`;
+      default:
+        return '';
+    }
+  };
+
   return (
     <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
       {/* Reply Preview */}
@@ -35,9 +54,13 @@ export function Comment({ data }: CommentProps) {
         <div className="mb-3 pl-4 border-l-2 border-purple-200 dark:border-purple-800/30 bg-purple-50/30 dark:bg-purple-900/10 rounded-r-lg py-2">
           <div className="text-sm text-gray-500 dark:text-gray-400">
             Reply to{' '}
-            <a href={`/user/${data.replyTo.user.name}`} className="text-purple-600 hover:underline">
-              {data.replyTo.user.name}
-            </a>:
+            {data.replyTo.user.isAnonymous ? (
+              <span className="text-gray-600 dark:text-gray-400">Anonymous</span>
+            ) : (
+              <a href={`/user/${data.replyTo.user.name}`} className="text-purple-600 hover:underline">
+                {data.replyTo.user.name}
+              </a>
+            )}:
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-300 font-[family-name:var(--font-geist-sans)] line-clamp-1">
             {data.replyTo.preview}
@@ -47,29 +70,44 @@ export function Comment({ data }: CommentProps) {
 
       <div className="flex gap-4">
         {/* Avatar */}
-        <a href={`/user/${data.user.name}`} className="block">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0 hover:ring-2 hover:ring-purple-400 dark:hover:ring-purple-600 transition-all">
-            {data.user.avatar ? (
-              <img 
-                src={data.user.avatar} 
-                alt="" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                {data.user.name[0].toUpperCase()}
-              </div>
-            )}
+        {data.user.isAnonymous ? (
+          <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0">
+            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+              ANON
+            </div>
           </div>
-        </a>
+        ) : (
+          <a href={getUserUrl(data.user.name)} className="block">
+            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0 hover:ring-2 hover:ring-purple-400 dark:hover:ring-purple-600 transition-all">
+              {data.user.avatar ? (
+                <img 
+                  src={data.user.avatar} 
+                  alt="" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  {data.user.name[0].toUpperCase()}
+                </div>
+              )}
+            </div>
+          </a>
+        )}
 
         {/* Comment Content */}
         <div className="flex-grow">
           <div className="flex items-center justify-between gap-4 mb-1">
             <div className="flex items-center gap-2">
-              <a href={`/user/${data.user.name}`} className="font-medium text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400">
-                {data.user.name}
-              </a>
+              {data.user.isAnonymous ? (
+                <span className="font-medium text-gray-600 dark:text-gray-400">
+                  Anonymous
+                </span>
+              ) : (
+                <a href={getUserUrl(data.user.name)} 
+                   className={`font-medium hover:opacity-80 transition-opacity ${getNickStyle(data.user.style)}`}>
+                  {data.user.name}
+                </a>
+              )}
               <span className="text-sm text-gray-500">
                 on{' '}
                 <a href={`/post/${data.post.id}`} className="hover:text-purple-600 dark:hover:text-purple-400">

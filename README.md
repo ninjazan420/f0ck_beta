@@ -1,68 +1,58 @@
-# f0ck.org Beta v1
+# f0ck.org Beta v3
 
-f0ck.org ist eine anonyme Imageboard-Plattform, entwickelt in TypeScript und TailwindCSS. Basierend auf szurubooru, Danbooru und anderen Imageboards, bietet es hohe Privatsphäre mit optionalen Benutzerkonten und minimaler Moderation.
+Eine moderne Imageboard-Plattform mit optionalen Premium-Features, entwickelt mit Next.js 14 und TailwindCSS.
 
-## Features
+## 🌟 Features
 
-- 🔒 Vollständig anonym nutzbar
-- 👤 Optionale Benutzerkonten für erweiterte Features
-- 🎨 Modernes, responsives Design mit TailwindCSS
-- 🚀 Hochperformante Next.js 14 Architektur
-- 🔍 Fortschrittliches Tag-System
+### Basis Features (Kostenlos)
+- 🎭 Vollständig anonyme Nutzung möglich
+- 🖼️ Unterstützung für Bilder, GIFs und Videos
+- 🏷️ Fortschrittliches Tag-System (bis zu 20 Favoriten)
 - 🌓 Dark/Light Mode
-- 🖼️ Unterstützung für verschiedene Medienformate
-- 🛡️ Fokus auf Privatsphäre
-- 📱 Mobile-First Ansatz
+- 📱 Responsive Design
+- 🔍 Erweiterte Suchfunktionen
+- 💬 Kommentarfunktion
+- 📂 Grundlegende Pool-Funktionen (max. 5 Pools)
+- 📊 Standard-Upload (GIFs bis 10MB, Videos in 720p)
 
-## Neue Features & Updates
+### Premium Features 💎
+- 🎨 Farbige Nicknamen mit Animationen
+- 📦 Unbegrenzte Pools (öffentlich & privat)
+- 🏷️ Unbegrenzte Tag-Favoriten & Kategorien
+- 🔔 Erweiterte Benachrichtigungen
+- 💬 Unbegrenzte Privatnachrichten
+- 📤 Erweiterte Upload-Funktionen:
+  - GIFs bis 50MB
+  - Videos in Originalqualität
+- 🚫 Keine Werbung
 
-### Version 1.0.1 (29. Jan 2024)
-- ✨ Neue Rules-Seite hinzugefügt
-- 🔄 Navigation um Rules-Link erweitert
-- 📱 Verbesserte mobile Navigation
-- 📄 Erweiterte Dokumentation
-- 🎨 Konsistentes Design-System implementiert
+## ✨ Neue Features in v3
 
-### Version 1.0.2 (31. Jan 2024)
-- ✨ Upload-System implementiert
-  - 🖼️ Thumbnail-Vorschau für Bilder
-  - 🏷️ Tag-System mit max. 10 Tags pro Upload
-  - 📊 Unterstützung für verschiedene Dateiformate (JPG, PNG, GIF, WebP, MP4, etc.)
-  - 🔒 Content Rating System (Safe, Sketchy, Unsafe)
-  - 📝 Datei-Informationen (Größe, Abmessungen, Format)
-  - 🔄 Max. 5 gleichzeitige Uploads
-- 🎨 Einstellungsseite hinzugefügt
-  - 🌓 Dark/Light Mode Toggle
-  - 👁️ NSFW Blur Option
-  - 📧 Email Sichtbarkeit
-  - 💬 DM Einstellungen
-  - 🎞️ GIF Autoplay
-  - 🖼️ Thumbnail-Qualität
-- 📝 Registrierungsseite hinzugefügt
-  - 👤 Benutzerregistrierung
-  - 📋 Feature-Übersicht
-  - 📜 ToS Integration
+### Design & UI
+- 🎨 Komplett überarbeitetes UI
+- 🖼️ Verbesserte Thumbnail-Darstellung
+- 📱 Optimierte mobile Navigation
 
-## Quick Start
+### Funktionalität
+- ⚙️ Erweiterte Einstellungsmöglichkeiten
+- 🔧 Anpassbare Grid-Layouts
+- 🎞️ Verbessertes Media-Handling
+- 👥 Erweitertes Nutzer-System
 
-Entwicklungsserver starten:
+### Premium-System
+- 💎 Einführung von Premium-Features
+- 🎨 Personalisierbare Nicknamen
+- 📂 Erweiterte Pool-Funktionen
+- 🔔 Individualisierbare Benachrichtigungen
 
-```bash
-npm run dev
-# oder
-yarn dev
-```
-
-Der Server startet unter [http://localhost:3000](http://localhost:3000).
-
-## Technologie-Stack
+## 🛠️ Technologie
 
 - **Framework**: Next.js 14
 - **Styling**: Tailwind CSS
-- **Fonts**: Geist Sans & Geist Mono
+- **Fonts**: Geist Sans & Mono
 - **Deployment**: Vercel
 
-## Projektstruktur
+## 📂 Projektstruktur
 
 ```
 src/
@@ -126,7 +116,6 @@ Du kannst das Projekt unterstützen auf [Ko-fi](https://ko-fi.com/f0ck_org)
 - [f0ck.org Main](https://f0ck.org)
 - [ShareX Server](https://sx.f0ck.org)
 - [Discord Community](https://discord.gg/SmWpwGnyrU)
-- [TeamSpeak 3](ts3server://ts.f0ck.org)
 
 ## License
 

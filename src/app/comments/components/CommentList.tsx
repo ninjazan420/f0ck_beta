@@ -5,9 +5,15 @@ import { Comment } from './Comment';
 interface CommentData {
   id: string;
   user: {
-    id: string;
+    id: string | null;
     name: string;
     avatar: string | null;
+    isAnonymous?: boolean;
+    style?: {
+      type: string;
+      gradient: string[];
+      animate: boolean;
+    };
   };
   text: string;
   post: {
@@ -20,6 +26,7 @@ interface CommentData {
     id: string;
     user: {
       name: string;
+      isAnonymous?: boolean;
     };
     preview: string;
   };
@@ -29,9 +36,16 @@ interface CommentData {
 const MOCK_COMMENTS: CommentData[] = Array.from({ length: 15 }, (_, i) => ({
   id: `comment-${i}`,
   user: {
-    id: `user-${i % 5}`,
-    name: `User${i % 5}`,
-    avatar: null
+    id: i % 3 === 0 ? null : `user-${i % 5}`,  // Jeder dritte Kommentar ist anonym
+    name: i % 3 === 0 ? 'Anonymous' : `User${i % 5}`,
+    avatar: null,
+    isAnonymous: i % 3 === 0,
+    // Premium Style für User1
+    style: i % 5 === 1 ? {
+      type: 'gradient',
+      gradient: ['purple-400', 'pink-600'],
+      animate: true
+    } : undefined
   },
   text: i % 3 === 0 
     ? "This is a longer comment that shows how multiple lines would look like in the comment section. It might contain some interesting thoughts about the post."
@@ -45,7 +59,10 @@ const MOCK_COMMENTS: CommentData[] = Array.from({ length: 15 }, (_, i) => ({
   ...(i % 4 === 0 ? {
     replyTo: {
       id: `comment-${i-1}`,
-      user: { name: `User${(i-1) % 5}` },
+      user: { 
+        name: `User${(i-1) % 5}`,
+        isAnonymous: (i-1) % 3 === 0  // Entsprechend auch für Replies
+      },
       preview: "This is the original comment that was replied to..."
     }
   } : {})
