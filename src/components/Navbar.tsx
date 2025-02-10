@@ -15,7 +15,7 @@ export const Navbar = () => {
     { label: 'Comments', href: '/comments' },
     { label: 'Tags', href: '/tags' },
     { label: 'Pools', href: '/pools' },
-    { label: 'User', href: '/users' },
+    { label: 'Users', href: '/users' },
   ];
 
   const rightMenuItems = [

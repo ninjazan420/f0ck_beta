@@ -5,8 +5,8 @@ import { getRandomLogo } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "f0ck beta v1",
-  description: "Welcome to f0ck.org",
+  title: "Home - f0ck beta v1",
+  description: "Welcome to f0ck beta v1 - A modern imageboard platform.",
   icons: [
     {
       rel: 'icon',

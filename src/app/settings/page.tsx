@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import SettingsClient from "./SettingsClient";
 
 export const metadata: Metadata = {
-  title: "Settings - f0ck beta v1",
-  description: "Customize your f0ck.org experience"
+  title: "Einstellungen - f0ck beta v1",
+  description: "Passe deine f0ck.org Einstellungen an",
 };
 
 export default function Settings() {
