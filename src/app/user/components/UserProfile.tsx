@@ -113,6 +113,8 @@ const MOCK_USER_DATA: { [key: string]: UserData } = {
   }
 };
 
+const DEFAULT_AVATAR = '/images/defaultavatar.png';
+
 export function UserProfile({ username }: { username: string }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -182,9 +184,13 @@ export function UserProfile({ username }: { username: string }) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-2xl">
-                  {userData.username[0].toUpperCase()}
-                </div>
+                <Image
+                  src={DEFAULT_AVATAR}
+                  alt={`${userData.username}'s default avatar`}
+                  width={128}
+                  height={128}
+                  className="w-full h-full object-contain"
+                />
               )}
             </div>
           </div>

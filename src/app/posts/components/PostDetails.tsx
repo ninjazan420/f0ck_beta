@@ -7,6 +7,8 @@ import { PostTags } from './PostTags';
 import { PostComments } from './PostComments';
 import { ReverseSearch } from './ReverseSearch';
 
+const DEFAULT_AVATAR = '/images/defaultavatar.png';
+
 interface PostData {
   id: string;
   title: string;
@@ -183,9 +185,13 @@ export function PostDetails({ postId }: { postId: string }) {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-lg">
-                      {post.uploader.name[0].toUpperCase()}
-                    </div>
+                    <Image 
+                      src={DEFAULT_AVATAR}
+                      alt="Default avatar"
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-cover"
+                    />
                   )}
                 </div>
               </Link>

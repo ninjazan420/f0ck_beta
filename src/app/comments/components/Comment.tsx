@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+const DEFAULT_AVATAR = '/images/defaultavatar.png';
+
 interface CommentProps {
   data: {
     id: string;
@@ -117,20 +119,14 @@ export function Comment({ data }: CommentProps) {
               transition-all duration-300
               ${data.user.style ? getAvatarStyle(data.user.style) : 'hover:ring-2 hover:ring-purple-400 dark:hover:ring-purple-600'}`}
             >
-              {data.user.avatar ? (
-                <Image 
-                  src={data.user.avatar || '/images/default-avatar.png'} // Fallback hinzugefügt
-                  alt={`${data.user.name}'s avatar`}
-                  width={40}
-                  height={40}
-                  className="w-full h-full object-cover"
-                  priority
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  {data.user.name[0].toUpperCase()}
-                </div>
-              )}
+              <Image 
+                src={data.user.avatar || DEFAULT_AVATAR} // Fallback hinzugefügt
+                alt={`${data.user.name}'s avatar`}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+                priority
+              />
             </div>
           </Link>
         )}

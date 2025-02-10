@@ -123,7 +123,7 @@ export function AccountCard() {
             {(previewUrl || profile.avatarUrl) ? (
               <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
                 <Image 
-                  src={previewUrl || profile.avatarUrl || '/images/default-avatar.png'} // Fallback hinzugefügt
+                  src={previewUrl || profile.avatarUrl || '/images/defaultavatar.png'} // FDFlback hinzugefügt
                   alt={`${profile.nickname}'s avatar`}
                   width={128}
                   height={128}

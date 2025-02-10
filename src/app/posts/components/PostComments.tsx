@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+const DEFAULT_AVATAR = '/images/defaultavatar.png';
+
 interface Comment {
   id: string;
   user: {      
@@ -270,19 +272,13 @@ export function PostComments({ postId }: PostCommentsProps) {
                     transition-all duration-300
                     ${comment.user.style ? getAvatarStyle(comment.user.style) : 'hover:ring-2 hover:ring-purple-400 dark:hover:ring-purple-600'}`}
                   >
-                    {comment.user.avatar ? (
-                      <Image 
-                        src={comment.user.avatar}
-                        alt={`${comment.user.name}'s avatar`}
-                        width={40}
-                        height={40}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        {comment.user.name[0].toUpperCase()}
-                      </div>
-                    )}
+                    <Image 
+                      src={comment.user.avatar || DEFAULT_AVATAR}
+                      alt={`${comment.user.name}'s avatar`}
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 </Link>
               )}
