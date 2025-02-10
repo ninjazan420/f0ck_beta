@@ -49,6 +49,7 @@ export const Navbar = () => {
     { label: 'Help', href: '/help' },
     { label: 'Rules', href: '/rules' },
     { label: 'Settings', href: '/settings' },
+    { label: 'Premium', href: '/premium' },
   ];
 
   return (

@@ -343,7 +343,7 @@ export default function SettingsClient() {
                   <div className="flex flex-col">
                     <span className="font-[family-name:var(--font-geist-mono)] inline-flex items-center gap-1">
                       <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-purple-600 bg-clip-text text-transparent font-semibold">
-                        Colored Nickname
+                        Colored Nickname and Avatar
                       </span>
                       <span className="text-yellow-500 animate-pulse">⭐</span>
                     </span>

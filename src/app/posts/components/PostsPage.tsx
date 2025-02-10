@@ -36,7 +36,7 @@ export function PostsPage() {
           infiniteScroll={infiniteScroll} 
         />
       </div>
-      <footer className="mt-2">
+      <footer className="mt-[-150px]">
         <Footer />
       </footer>
     </div>

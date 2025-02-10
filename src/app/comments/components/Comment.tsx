@@ -47,6 +47,21 @@ export function Comment({ data }: CommentProps) {
     }
   };
 
+  const getAvatarStyle = (style?: { type: string; color?: string; gradient?: string[]; animate?: boolean }) => {
+    if (!style) return '';
+    
+    switch(style.type) {
+      case 'solid':
+        return `ring-2 ring-${style.color}`;
+      case 'gradient':
+        return `ring-2 bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} ring-purple-400`;
+      case 'animated':
+        return `ring-2 bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} ring-purple-400 animate-pulse`;
+      default:
+        return '';
+    }
+  };
+
   return (
     <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
       {/* Reply Preview */}
@@ -78,7 +93,10 @@ export function Comment({ data }: CommentProps) {
           </div>
         ) : (
           <a href={getUserUrl(data.user.name)} className="block">
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0 hover:ring-2 hover:ring-purple-400 dark:hover:ring-purple-600 transition-all">
+            <div className={`w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0 
+              transition-all duration-300
+              ${data.user.style ? getAvatarStyle(data.user.style) : 'hover:ring-2 hover:ring-purple-400 dark:hover:ring-purple-600'}`}
+            >
               {data.user.avatar ? (
                 <img 
                   src={data.user.avatar} 
@@ -103,10 +121,17 @@ export function Comment({ data }: CommentProps) {
                   Anonymous
                 </span>
               ) : (
-                <a href={getUserUrl(data.user.name)} 
-                   className={`font-medium hover:opacity-80 transition-opacity ${getNickStyle(data.user.style)}`}>
-                  {data.user.name}
-                </a>
+                <>
+                  <a href={getUserUrl(data.user.name)} 
+                     className={`font-medium hover:opacity-80 transition-opacity ${getNickStyle(data.user.style)}`}>
+                    {data.user.name}
+                  </a>
+                  {data.user.style && (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
+                      PREMIUM
+                    </span>
+                  )}
+                </>
               )}
               <span className="text-sm text-gray-500">
                 on{' '}
