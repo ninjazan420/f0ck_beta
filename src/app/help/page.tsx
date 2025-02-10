@@ -2,7 +2,7 @@
 import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
 
-export default function HelpPage() {
+export default function Help() {
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
       <div className="w-full flex justify-center py-8">
@@ -18,21 +18,21 @@ export default function HelpPage() {
         <section className="mb-12">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             <p className="text-xl text-gray-900 dark:text-gray-200 leading-relaxed font-medium">
-              Willkommen bei f0ck.org
+              Welcome to f0ck.org
             </p>
             <div className="space-y-4">
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                Entdecke eine moderne Imageboard-Plattform, die deine Privatsphäre schützt 
-                und Benutzerfreundlichkeit in den Mittelpunkt stellt.
+                Discover a modern imageboard platform that protects your privacy
+                and puts user-friendliness first.
               </p>
               <div className="flex flex-col md:flex-row gap-4 justify-center items-center text-gray-700 dark:text-gray-300">
                 <div className="flex items-center gap-2">
                   <span className="text-purple-500">✦</span>
-                  <span>Anonymes Teilen</span>
+                  <span>Anonymous Sharing</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-purple-500">✦</span>
-                  <span>Hochwertige Medieninhalte</span>
+                  <span>High-Quality Media</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-purple-500">✦</span>
@@ -67,7 +67,7 @@ export default function HelpPage() {
                     </span>
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Personalisiere deinen Nickname mit Farben, Gradienten und Animationen
+                    Personalize your nickname with colors, gradients, and animations
                   </p>
                 </div>
                 <span className="text-xs text-purple-600 dark:text-purple-400">Premium</span>
@@ -77,7 +77,7 @@ export default function HelpPage() {
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-gray-100">Enhanced Uploads 📤</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    GIFs bis 50MB und Videos in Originalqualität
+                    GIFs up to 50MB and videos in original quality
                   </p>
                 </div>
                 <span className="text-xs text-purple-600 dark:text-purple-400">Premium</span>
@@ -87,7 +87,7 @@ export default function HelpPage() {
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-gray-100">Ad-Free Experience 🚫</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Genieße f0ck.org komplett werbefrei
+                    Enjoy f0ck.org completely ad-free
                   </p>
                 </div>
                 <span className="text-xs text-purple-600 dark:text-purple-400">Premium</span>
@@ -97,7 +97,7 @@ export default function HelpPage() {
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-gray-100">Unlimited Features 🎯</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Unbegrenzte Pools, Tag-Favoriten und Privatnachrichten
+                    Unlimited pools, tag favorites, and private messages
                   </p>
                 </div>
                 <span className="text-xs text-purple-600 dark:text-purple-400">Premium</span>
@@ -107,7 +107,7 @@ export default function HelpPage() {
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-gray-100">Advanced Notifications 🔔</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Individualisierbare Benachrichtigungen und Filter
+                    Customizable notifications and filters
                   </p>
                 </div>
                 <span className="text-xs text-purple-600 dark:text-purple-400">Premium</span>
@@ -118,49 +118,49 @@ export default function HelpPage() {
           {/* Core Features Section */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
-              Basis Features
+              Core Features
             </h2>
             
             <div className="space-y-3">
               <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
-                <h3 className="font-medium text-gray-900 dark:text-gray-100">Anonymes Uploading</h3>
+                <h3 className="font-medium text-gray-900 dark:text-gray-100">Anonymous Uploading</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Upload ohne Account möglich. GIFs bis 10MB, Videos in 720p.
+                  Upload without an account. GIFs up to 10MB, videos in 720p.
                 </p>
               </div>
 
               <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
                 <h3 className="font-medium text-gray-900 dark:text-gray-100">Tag System</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Bis zu 20 Tag-Favoriten, automatische Tag-Vorschläge.
+                  Up to 20 tag favorites, automatic tag suggestions.
                 </p>
               </div>
 
-              {/* Weitere Basis Features... */}
+              {/* More Core Features... */}
             </div>
           </section>
 
           {/* Account & Privacy Section */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
-              Account & Privatsphäre
+              Account & Privacy
             </h2>
             
             <div className="space-y-4">
               <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
-                <h3 className="font-medium text-gray-900 dark:text-gray-100">Registrierung</h3>
+                <h3 className="font-medium text-gray-900 dark:text-gray-100">Registration</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  Optional und minimale Datenerfassung. Email ist optional.
+                  Optional and minimal data collection. Email is optional.
                 </p>
                 <a href="/register" className="text-sm text-purple-600 dark:text-purple-400 hover:underline">
-                  Jetzt registrieren →
+                  Register now →
                 </a>
               </div>
 
               <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
-                <h3 className="font-medium text-gray-900 dark:text-gray-100">Privatsphäre-Einstellungen</h3>
+                <h3 className="font-medium text-gray-900 dark:text-gray-100">Privacy Settings</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Volle Kontrolle über sichtbare Informationen und Interaktionen.
+                  Full control over visible information and interactions.
                 </p>
               </div>
             </div>
@@ -169,17 +169,17 @@ export default function HelpPage() {
           {/* File Support Section */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
-              Unterstützte Formate
+              Supported Formats
             </h2>
             
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
-                <h3 className="font-medium text-gray-900 dark:text-gray-100">Bilder</h3>
+                <h3 className="font-medium text-gray-900 dark:text-gray-100">Images</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">.jpg, .png, .avif, .webp</p>
               </div>
               
               <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
-                <h3 className="font-medium text-gray-900 dark:text-gray-100">Animationen</h3>
+                <h3 className="font-medium text-gray-900 dark:text-gray-100">Animations</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">.gif, .apng</p>
               </div>
               
@@ -187,6 +187,31 @@ export default function HelpPage() {
                 <h3 className="font-medium text-gray-900 dark:text-gray-100">Videos</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">.mp4, .webm, .mov</p>
               </div>
+            </div>
+          </section>
+
+          {/* Support Section */}
+          <section className="settings-card">
+            <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
+              Support & Community
+            </h2>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              <a href="https://discord.gg/SmWpwGnyrU" 
+                 className="p-4 rounded-lg bg-gray-50/80 dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
+                <h3 className="font-medium text-gray-900 dark:text-gray-100">Discord Community 💬</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Join our Discord for support and updates
+                </p>
+              </a>
+
+              <a href="https://ko-fi.com/f0ck_org"
+                 className="p-4 rounded-lg bg-gray-50/80 dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
+                <h3 className="font-medium text-gray-900 dark:text-gray-100">Support Us ❤️</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Support the project on Ko-fi
+                </p>
+              </a>
             </div>
           </section>
         </div>

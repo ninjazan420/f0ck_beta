@@ -1,138 +1,138 @@
 # f0ck.org Beta v3
 
-Eine moderne Imageboard-Plattform mit optionalen Premium-Features, entwickelt mit Next.js 14 und TailwindCSS.
+A modern imageboard platform with optional premium features, built with Next.js 14 and TailwindCSS.
 
-## 🌟 Hauptfunktionen
+## 🌟 Key Features
 
 ### Grid & Posts
-- 📱 7x4 Grid-Layout für optimale Übersicht
-- 🖼️ Intelligente Thumbnail-Vorschauen
-- 📄 Titel-Anzeige in Thumbnails
-- 🏷️ Status-Badges:
-  - 📌 PIN für wichtige Posts
-  - 💎 AD für Werbung
-  - 🔒 Safe/Sketchy/Unsafe Content-Rating
-  - 🎬 Medientyp (PIC/GIF/VIDEO)
-  - 🔊 Audio-Indikator für Videos
-- 📊 Post-Statistiken (Likes, Kommentare, Favoriten)
-- 🔄 Infinite Scroll Option
-- 📑 Klassische Seitennavigation
+- 📱 7x4 grid layout for optimal overview
+- 🖼️ Smart thumbnail previews
+- 📄 Title display in thumbnails
+- 🏷️ Status badges:
+  - 📌 PIN for important posts
+  - 💎 AD for advertisements
+  - 🔒 Safe/Sketchy/Unsafe content rating
+  - 🎬 Media type (PIC/GIF/VIDEO)
+  - 🔊 Audio indicator for videos
+- 📊 Post statistics (likes, comments, favorites)
+- 🔄 Infinite scroll option
+- 📑 Classic page navigation
 
 ### Post-Details
-- 🖼️ Große Bildansicht
-- ℹ️ Detaillierte Metadaten
-- 🔍 Reverse Image Search
-- 👤 Uploader-Informationen
-- 📊 Erweiterte Statistiken
-- ⚡ Schnelle Navigation (vor/zurück)
-- 💬 Kommentarbereich
+- 🖼️ Large image view
+- ℹ️ Detailed metadata
+- 🔍 Reverse image search
+- 👤 Uploader information
+- 📊 Advanced statistics
+- ⚡ Quick navigation (next/previous)
+- 💬 Comment section
 
-### Kommentare
-- 👤 Anonyme Kommentare möglich
-- 💫 Premium-User Highlights
-- 🔗 Direkte Post-Verlinkungen
-- ↩️ Reply-Funktion
-- 👍 Like-System
-- 🕒 Zeitstempel
-- 🔍 Filterfunktionen:
-  - Benutzername
-  - Textsuche
-  - Datum
-  - Mindest-Likes
+### Comments
+- 👤 Anonymous comments possible
+- 💫 Premium user highlights
+- 🔗 Direct post links
+- ↩️ Reply function
+- 👍 Like system
+- 🕒 Timestamps
+- 🔍 Filter functions:
+  - Username
+  - Text search
+  - Date
+  - Minimum likes
 
-### Benutzerprofile
-- 🎨 Anpassbare Profile
-- 📸 Avatar-Upload
-- 📝 Bio (140 Zeichen)
-- 📊 Aktivitätsstatistiken
-- 🔒 Privacy-Einstellungen:
-  - Profilsichtbarkeit
-  - Bio-Anzeige
-  - Kommentare
+### User Profiles
+- 🎨 Customizable profiles
+- 📸 Avatar upload
+- 📝 Bio (140 characters)
+- 📊 Activity statistics
+- 🔒 Privacy settings:
+  - Profile visibility
+  - Bio display
+  - Comments
   - Likes/Dislikes
-  - Favoriten
+  - Favorites
   - Uploads
   
 ### Premium Features 💎
-- 🎨 Farbige/animierte Nicknamen
-- 🌟 Premium-Badge
-- 📊 Erweiterte Statistiken
-- 🔔 Erweiterte Benachrichtigungen
+- 🎨 Colored/animated nicknames
+- 🌟 Premium badge
+- 📊 Advanced statistics
+- 🔔 Advanced notifications
 
-### Startseite
-- 🎯 Gepinnter Hauptpost
-- 📊 Plattform-Statistiken:
-  - Aktive Nutzer
-  - Neue Kommentare (24h)
-  - Neue Posts (24h)
-- 📢 Feature-Ankündigungen
+### Homepage
+- 🎯 Pinned main post
+- 📊 Platform statistics:
+  - Active users
+  - New comments (24h)
+  - New posts (24h)
+- 📢 Feature announcements
 
-### Technische Features
-- 🌓 Dark/Light Mode
-- 📱 Vollständig responsive
-- ⚡ Optimierte Performance
-- 🔍 SEO-optimiert
-- 🔒 Sicherheitsfeatures
+### Technical Features
+- 🌓 Dark/Light mode
+- 📱 Fully responsive
+- ⚡ Optimized performance
+- 🔍 SEO optimized
+- 🔒 Security features
 
 ## 🚀 Installation & Setup
 
-### Voraussetzungen
+### Prerequisites
 - Node.js 18+ 
-- npm oder yarn
+- npm or yarn
 - Git
 
 ### Installation
 
-1. Repository klonen
+1. Clone repository
 ```
 git clone https://github.com/f0ck-org/f0ck.git
 ```
 
-2. In das Projektverzeichnis wechseln
+2. Change to project directory
 ```
 cd f0ck
 ```
 
-3. Abhängigkeiten installieren
+3. Install dependencies
 ```
 npm install
 ```
-oder
+or
 ```
 yarn install
 ```
 
-4. Entwicklungsserver starten
+4. Start development server
 ```
 npm run dev
 ```
-oder
+or
 ```
 yarn dev
 ```
 
-5. Im Browser öffnen
+5. Open in browser
 ```
 http://localhost:3000
 ```
 
-## 🛠️ Technischer Stack
+## 🛠️ Technical Stack
 
 - **Framework**: Next.js 14
 - **Styling**: TailwindCSS
-- **Typografie**: Geist Sans & Mono
-- **Komponenten**: Custom React Components
+- **Typography**: Geist Sans & Mono
+- **Components**: Custom React Components
 - **State Management**: React Hooks
 - **Routing**: Next.js App Router
 - **Deployment**: Vercel
 
-## 🔜 Geplante Features
+## 🔜 Planned Features
 
-- 📨 Privates Messaging
-- 🏷️ Tag-System Erweiterungen
-- 📂 Pool-System
-- 🎨 Mehr Premium-Styles
-- 🔍 Erweiterte Suchfunktionen
+- 📨 Private messaging
+- 🏷️ Tag system enhancements
+- 📂 Pool system
+- 🎨 More premium styles
+- 🔍 Advanced search functions
 
 ## Support & Community
 
@@ -141,4 +141,4 @@ http://localhost:3000
 
 ## License
 
-© 2024 f0ck.org Team. Alle Rechte vorbehalten.
+© 2024 f0ck.org Team. All rights reserved.
