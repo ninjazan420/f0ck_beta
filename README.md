@@ -1,144 +1,60 @@
-# f0ck.org Beta v3
+# f0ck.org Beta v1
 
-A modern imageboard platform with optional premium features, built with Next.js 14 and TailwindCSS.
+Modern, feature-rich imageboard platform built with Next.js 14 and TailwindCSS.
 
-## 🌟 Key Features
+## ⚡ Core Features
 
-### Grid & Posts
-- 📱 7x4 grid layout for optimal overview
-- 🖼️ Smart thumbnail previews
-- 📄 Title display in thumbnails
-- 🏷️ Status badges:
-  - 📌 PIN for important posts
-  - 💎 AD for advertisements
-  - 🔒 Safe/Sketchy/Unsafe content rating
-  - 🎬 Media type (PIC/GIF/VIDEO)
-  - 🔊 Audio indicator for videos
-- 📊 Post statistics (likes, comments, favorites)
-- 🔄 Infinite scroll option
-- 📑 Classic page navigation
+### Content
+- 7x4 Grid Layout
+- Smart Previews
+- Safety Ratings
+- Media Types Support
+- Comment System
+- User Profiles
 
-### Post-Details
-- 🖼️ Large image view
-- ℹ️ Detailed metadata
-- 🔍 Reverse image search
-- 👤 Uploader information
-- 📊 Advanced statistics
-- ⚡ Quick navigation (next/previous)
-- 💬 Comment section
+### Premium 💎
+- Custom Nicknames
+- Advanced Stats
+- Priority Support
 
-### Comments
-- 👤 Anonymous comments possible
-- 💫 Premium user highlights
-- 🔗 Direct post links
-- ↩️ Reply function
-- 👍 Like system
-- 🕒 Timestamps
-- 🔍 Filter functions:
-  - Username
-  - Text search
-  - Date
-  - Minimum likes
+## 🛠️ Quick Start
 
-### User Profiles
-- 🎨 Customizable profiles
-- 📸 Avatar upload
-- 📝 Bio (140 characters)
-- 📊 Activity statistics
-- 🔒 Privacy settings:
-  - Profile visibility
-  - Bio display
-  - Comments
-  - Likes/Dislikes
-  - Favorites
-  - Uploads
-  
-### Premium Features 💎
-- 🎨 Colored/animated nicknames
-- 🌟 Premium badge
-- 📊 Advanced statistics
-- 🔔 Advanced notifications
-
-### Homepage
-- 🎯 Pinned main post
-- 📊 Platform statistics:
-  - Active users
-  - New comments (24h)
-  - New posts (24h)
-- 📢 Feature announcements
-
-### Technical Features
-- 🌓 Dark/Light mode
-- 📱 Fully responsive
-- ⚡ Optimized performance
-- 🔍 SEO optimized
-- 🔒 Security features
-
-## 🚀 Installation & Setup
-
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- Git
-
-### Installation
-
-1. Clone repository
-```
+```bash
 git clone https://github.com/f0ck-org/f0ck.git
-```
-
-2. Change to project directory
-```
 cd f0ck
-```
-
-3. Install dependencies
-```
 npm install
-```
-or
-```
-yarn install
-```
-
-4. Start development server
-```
 npm run dev
 ```
-or
-```
-yarn dev
-```
 
-5. Open in browser
-```
-http://localhost:3000
-```
+## 🔧 Tech Stack
+- Next.js 14
+- TailwindCSS
+- Geist Font Family
+- React Components
+- Vercel Deployment
 
-## 🛠️ Technical Stack
+## 🔥 Changelog
 
-- **Framework**: Next.js 14
-- **Styling**: TailwindCSS
-- **Typography**: Geist Sans & Mono
-- **Components**: Custom React Components
-- **State Management**: React Hooks
-- **Routing**: Next.js App Router
-- **Deployment**: Vercel
+### Beta v1.0.3 (Current)
+- 🎨 Redesigned grid layout (7x4)
+- 🌓 Dark/Light mode toggle
+- 🔄 Infinite scroll implementation
+- 🎯 New pinned post system
+- 🔒 Content safety ratings
 
-## 🔜 Planned Features
+### Beta v1.0.2
+- 💬 Enhanced comment system
+- 👤 User profile customization
+- 📊 Basic statistics implementation
+- 🔍 Search functionality improvements
 
-- 📨 Private messaging
-- 🏷️ Tag system enhancements
-- 📂 Pool system
-- 🎨 More premium styles
-- 🔍 Advanced search functions
+### Beta v1.0.1
+- 🖼️ Image handling optimizations
+- 📱 Responsive design improvements
+- 🚀 Performance enhancements
 
-## Support & Community
+## 🤝 Community
+- [Discord](https://discord.gg/SmWpwGnyrU)
+- [Ko-fi](https://ko-fi.com/f0ck_org)
 
-- Discord: [discord.gg/SmWpwGnyrU](https://discord.gg/SmWpwGnyrU)
-- Ko-fi: [ko-fi.com/f0ck_org](https://ko-fi.com/f0ck_org)
-
-## License
-
-© 2024 f0ck.org Team. All rights reserved.
+© 2024 f0ck.org Team
