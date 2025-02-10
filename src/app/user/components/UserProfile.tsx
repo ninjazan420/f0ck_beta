@@ -3,10 +3,25 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+interface ActivityItem {
+  id: string;
+  type: 'comment' | 'like' | 'favorite' | 'upload' | 'tag';
+  text: string;
+  date: string;
+  emoji: string;
+  post: {
+    id: string;
+    title: string;
+    imageUrl: string;
+    type: 'image' | 'video' | 'gif';
+    nsfw?: boolean;
+  };
+}
+
 interface UserData {
   username: string;
   joinDate: string;
-  lastLogin: string; // Neu hinzugefügt
+  lastLogin: string;
   premium: boolean;
   style?: {
     type: string;
@@ -19,22 +34,11 @@ interface UserData {
     favorites: number;
     likes: number;
     dislikes: number;
-    tags: number; // Neu hinzugefügt
+    tags: number;
   };
   bio: string;
   avatar: string | null;
-  recentComments: { // Angepasst an das Post-System
-    id: string;
-    text: string;
-    date: string;
-    post: {
-      id: string;
-      title: string;
-      imageUrl: string;  // Direkte URL vom Post
-      type: 'image' | 'video' | 'gif';
-      nsfw?: boolean;
-    };
-  }[];
+  recentActivity: ActivityItem[]; // Geändert von recentComments zu recentActivity
 }
 
 const MOCK_USER_DATA: { [key: string]: UserData } = {
@@ -58,38 +62,70 @@ const MOCK_USER_DATA: { [key: string]: UserData } = {
     },
     bio: 'Premium user with awesome content!',
     avatar: null,
-    recentComments: [
+    recentActivity: [
       {
         id: '1',
-        text: 'Amazing work!',
+        type: 'comment',
+        emoji: '💬',
+        text: 'Wrote a comment: "Amazing work!"',
         date: '2024-01-09',
         post: {
           id: '123',
           title: 'Sunset Photo',
-          imageUrl: 'https://picsum.photos/400/300?random=1', // Gleiche URL-Struktur wie PostGrid
+          imageUrl: 'https://picsum.photos/seed/1/400/300',
           type: 'image'
         }
       },
       {
         id: '2',
-        text: 'Love this style',
+        type: 'like',
+        emoji: '❤️',
+        text: 'Liked this post',
         date: '2024-01-08',
         post: {
           id: '124',
           title: 'Abstract Art',
-          imageUrl: 'https://picsum.photos/400/300?random=2',
+          imageUrl: 'https://picsum.photos/seed/2/400/300',
           type: 'image',
           nsfw: true
         }
       },
       {
         id: '3',
-        text: 'Great composition',
+        type: 'upload',
+        emoji: '📤',
+        text: 'Uploaded this post',
         date: '2024-01-07',
         post: {
           id: '125',
           title: 'Nature Shot',
-          imageUrl: 'https://picsum.photos/400/300?random=3',
+          imageUrl: 'https://picsum.photos/seed/3/400/300',
+          type: 'image'
+        }
+      },
+      {
+        id: '4',
+        type: 'favorite',
+        emoji: '⭐',
+        text: 'Added to favorites',
+        date: '2024-01-06',
+        post: {
+          id: '126',
+          title: 'Cool Animation',
+          imageUrl: 'https://picsum.photos/seed/4/400/300',
+          type: 'video'
+        }
+      },
+      {
+        id: '5',
+        type: 'tag',
+        emoji: '🏷️',
+        text: 'Tagged a post',
+        date: '2024-01-05',
+        post: {
+          id: '127',
+          title: 'Cityscape',
+          imageUrl: 'https://picsum.photos/seed/5/400/300',
           type: 'image'
         }
       }
@@ -109,7 +145,7 @@ const MOCK_USER_DATA: { [key: string]: UserData } = {
     },
     bio: 'Regular user enjoying the platform',
     avatar: null,
-    recentComments: []
+    recentActivity: []
   }
 };
 
@@ -259,61 +295,61 @@ export function UserProfile({ username }: { username: string }) {
           Recent Activity
         </h3>
         <div className="space-y-3">
-          {userData.recentComments.map(comment => (
-            <div key={comment.id} className="flex gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800/50">
-              {/* Comment Content */}
+          {userData.recentActivity.map(activity => (
+            <div key={activity.id} className="flex gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800/50">
+              {/* Activity Content */}
               <div className="flex-grow space-y-2">
                 <div className="flex items-start justify-between gap-4">
                   <p className="text-gray-700 dark:text-gray-300 text-sm">
-                    {comment.text}
+                    {activity.emoji} {activity.text}
                   </p>
                   <span className="text-xs text-gray-500 whitespace-nowrap">
-                    {new Date(comment.date).toLocaleDateString()}
+                    {new Date(activity.date).toLocaleDateString()}
                   </span>
                 </div>
                 <div className="text-xs text-gray-500">
                   on{' '}
                   <Link 
-                    href={`/post/${comment.post.id}`}
+                    href={`/post/${activity.post.id}`}
                     className="text-purple-600 dark:text-purple-400 hover:underline"
                   >
-                    {comment.post.title}
+                    {activity.post.title}
                   </Link>
                 </div>
               </div>
 
               {/* Thumbnail */}
               <Link 
-                href={`/post/${comment.post.id}`} // Korrigierte URL-Struktur
+                href={`/post/${activity.post.id}`} // Korrigierte URL-Struktur
                 className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden group"
               >
                 <div className={`absolute inset-0 bg-cover bg-center`}>
-                  {comment.post.imageUrl && (
+                  {activity.post.imageUrl && (
                     <Image
-                      src={comment.post.imageUrl} // Direkte Verwendung der URL ohne Proxy
-                      alt={comment.post.title}
+                      src={activity.post.imageUrl} // Direkte Verwendung der URL ohne Proxy
+                      alt={activity.post.title}
                       width={64}
                       height={64}
                       className={`object-cover w-full h-full transition-all duration-200 ${
-                        comment.post.nsfw ? 'group-hover:blur-none blur-md' : ''
+                        activity.post.nsfw ? 'group-hover:blur-none blur-md' : ''
                       }`}
                       priority
                     />
                   )}
                 </div>
-                {comment.post.type === 'video' && (
+                {activity.post.type === 'video' && (
                   <div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-black/50 flex items-center justify-center">
                     <div className="w-2 h-2 border-l-[4px] border-l-white border-y-[2px] border-y-transparent" />
                   </div>
                 )}
-                {comment.post.type === 'gif' && (
+                {activity.post.type === 'gif' && (
                   <div className="absolute bottom-1 right-1">
                     <span className="text-[8px] font-bold bg-black/50 text-white px-1 rounded">
                       GIF
                     </span>
                   </div>
                 )}
-                {comment.post.nsfw && (
+                {activity.post.nsfw && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:opacity-0">
                     <span className="text-[10px] font-bold text-white px-1.5 py-0.5 bg-red-500/80 rounded">
                       NSFW

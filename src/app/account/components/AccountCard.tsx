@@ -1,12 +1,34 @@
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface Comment {
   id: string;
   text: string;
   date: string;
-  postTitle: string;
+  post: {
+    id: string;
+    title: string;
+    imageUrl: string;
+    type: 'image' | 'video' | 'gif';
+    nsfw?: boolean;
+  };
+}
+
+interface ActivityItem {
+  id: string;
+  type: 'comment' | 'like' | 'favorite' | 'upload' | 'tag';
+  text: string;
+  date: string;
+  emoji: string;
+  post: {
+    id: string;
+    title: string;
+    imageUrl: string;
+    type: 'image' | 'video' | 'gif';
+    nsfw?: boolean;
+  };
 }
 
 interface ProfileData {
@@ -17,7 +39,6 @@ interface ProfileData {
   lastLogin: string; // Neu hinzugefügt
   uploads: number;
   favorites: number;
-  comments: Comment[];
   likedPosts: number;
   dislikedPosts: number;
   privacySettings: {
@@ -29,6 +50,7 @@ interface ProfileData {
     showFavorites: boolean;
     showUploads: boolean;
   };
+  recentActivity: ActivityItem[];
 }
 
 export function AccountCard() {
@@ -40,13 +62,6 @@ export function AccountCard() {
     lastLogin: '2024-01-10T15:45:00', // Neu hinzugefügt
     uploads: 42,
     favorites: 123,
-    comments: [
-      { id: '1', text: 'Nice post!', date: '2023-12-24', postTitle: 'Awesome Picture' },
-      { id: '2', text: 'Great work', date: '2023-12-23', postTitle: 'Cool Animation' },
-      { id: '3', text: 'Love this!', date: '2023-12-22', postTitle: 'Amazing Art' },
-      { id: '4', text: 'Interesting...', date: '2023-12-21', postTitle: 'Weird Stuff' },
-      { id: '5', text: 'Perfect!', date: '2023-12-20', postTitle: 'Beautiful Scene' },
-    ],
     likedPosts: 256,
     dislikedPosts: 12,
     privacySettings: {
@@ -57,7 +72,74 @@ export function AccountCard() {
       showDislikes: true,
       showFavorites: true,
       showUploads: true,
-    }
+    },
+    recentActivity: [
+      { 
+        id: '1',
+        type: 'comment',
+        emoji: '💬',
+        text: 'Wrote a comment: "Nice post!"',
+        date: '2023-12-24',
+        post: {
+          id: '1',
+          title: 'Awesome Picture',
+          imageUrl: 'https://picsum.photos/seed/1/400/300',
+          type: 'image'
+        }
+      },
+      {
+        id: '2',
+        type: 'like',
+        emoji: '❤️',
+        text: 'Liked this post',
+        date: '2023-12-23',
+        post: {
+          id: '2',
+          title: 'Cool Animation',
+          imageUrl: 'https://picsum.photos/seed/2/400/300',
+          type: 'video'
+        }
+      },
+      {
+        id: '3',
+        type: 'favorite',
+        emoji: '⭐',
+        text: 'Added to favorites',
+        date: '2023-12-22',
+        post: {
+          id: '3',
+          title: 'Amazing Art',
+          imageUrl: 'https://picsum.photos/seed/3/400/300',
+          type: 'image'
+        }
+      },
+      {
+        id: '4',
+        type: 'upload',
+        emoji: '📤',
+        text: 'Uploaded this post',
+        date: '2023-12-21',
+        post: {
+          id: '4',
+          title: 'My New Upload',
+          imageUrl: 'https://picsum.photos/seed/4/400/300',
+          type: 'image'
+        }
+      },
+      {
+        id: '5',
+        type: 'tag',
+        emoji: '🏷️',
+        text: 'Added tags to this post',
+        date: '2023-12-20',
+        post: {
+          id: '5',
+          title: 'Tagged Post',
+          imageUrl: 'https://picsum.photos/seed/5/400/300',
+          type: 'image'
+        }
+      },
+    ],
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -230,32 +312,13 @@ export function AccountCard() {
             </div>
             <div className="text-center">
               <div className="text-xs text-gray-500 mb-1">comments</div>
-              <div className="font-medium text-gray-900 dark:text-gray-100">{profile.comments.length}</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">{profile.recentActivity.filter(activity => activity.type === 'comment').length}</div>
             </div>
             <div className="text-center">
               <div className="text-xs text-gray-500 mb-1">tags</div>
               <div className="font-medium text-gray-900 dark:text-gray-100">42</div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Recent Activity - Tabs Layout */}
-      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400 mb-3">
-          Recent Activity
-        </h3>
-        <div className="space-y-2">
-          {profile.comments.map(comment => (
-            <div key={comment.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-100 dark:bg-gray-800/50 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-700 dark:text-gray-300">{comment.text}</span>
-                <span className="text-gray-500">on</span>
-                <span className="text-gray-700 dark:text-gray-300">{comment.postTitle}</span>
-              </div>
-              <span className="text-xs text-gray-500 whitespace-nowrap">{comment.date}</span>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -295,6 +358,80 @@ export function AccountCard() {
                 </span>
               </label>
             ))}
+        </div>
+      </div>
+
+      {/* Recent Activity mit verschiedenen Aktivitätstypen */}
+      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400 mb-3">
+          Recent Activity
+        </h3>
+        <div className="space-y-3">
+          {profile.recentActivity.map(activity => (
+            <div key={activity.id} className="flex gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800/50">
+              {/* Activity Content */}
+              <div className="flex-grow space-y-2">
+                <div className="flex items-start justify-between gap-4">
+                  <p className="text-gray-700 dark:text-gray-300 text-sm">
+                    <span className="mr-2">{activity.emoji}</span>
+                    {activity.text}
+                  </p>
+                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                    {new Date(activity.date).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500">
+                  on{' '}
+                  <Link 
+                    href={`/post/${activity.post.id}`}
+                    className="text-purple-600 dark:text-purple-400 hover:underline"
+                  >
+                    {activity.post.title}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Thumbnail */}
+              <Link 
+                href={`/post/${activity.post.id}`}
+                className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden group"
+              >
+                <div className={`absolute inset-0 bg-cover bg-center`}>
+                  {activity.post.imageUrl && (
+                    <Image
+                      src={activity.post.imageUrl}
+                      alt={activity.post.title}
+                      width={64}
+                      height={64}
+                      className={`object-cover w-full h-full transition-all duration-200 ${
+                        activity.post.nsfw ? 'group-hover:blur-none blur-md' : ''
+                      }`}
+                      priority
+                    />
+                  )}
+                </div>
+                {activity.post.type === 'video' && (
+                  <div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-black/50 flex items-center justify-center">
+                    <div className="w-2 h-2 border-l-[4px] border-l-white border-y-[2px] border-y-transparent" />
+                  </div>
+                )}
+                {activity.post.type === 'gif' && (
+                  <div className="absolute bottom-1 right-1">
+                    <span className="text-[8px] font-bold bg-black/50 text-white px-1 rounded">
+                      GIF
+                    </span>
+                  </div>
+                )}
+                {activity.post.nsfw && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:opacity-0">
+                    <span className="text-[10px] font-bold text-white px-1.5 py-0.5 bg-red-500/80 rounded">
+                      NSFW
+                    </span>
+                  </div>
+                )}
+              </Link>
+            </div>
+          ))}
         </div>
       </div>
     </div>

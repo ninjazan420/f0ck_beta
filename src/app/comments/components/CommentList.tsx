@@ -39,11 +39,10 @@ interface CommentData {
 const MOCK_COMMENTS: CommentData[] = Array.from({ length: 20 }, (_, i) => ({
   id: `comment-${i}`,
   user: {
-    id: i % 3 === 0 ? null : `user${i % 5}`,  // Geändert von user-${i % 5} zu user${i % 5}
+    id: i % 3 === 0 ? null : `user${i % 5}`,
     name: i % 3 === 0 ? 'Anonymous' : `User${i % 5}`,
     avatar: null,
     isAnonymous: i % 3 === 0,
-    // Premium Style für User1
     style: i % 5 === 1 ? {
       type: 'gradient',
       gradient: ['purple-400', 'pink-600'],
@@ -51,23 +50,23 @@ const MOCK_COMMENTS: CommentData[] = Array.from({ length: 20 }, (_, i) => ({
     } : undefined
   },
   text: i % 3 === 0 
-    ? "This is a longer comment that shows how multiple lines would look like in the comment section. It might contain some interesting thoughts about the post."
+    ? "This is a longer comment that shows how multiple lines would look like in the comment section."
     : "Nice post!",
   post: {
-    id: `${i % 4}`,  // Entferne "post-" prefix
-    title: `Amazing Artwork ${i % 4 + 1}`,
-    imageUrl: `https://picsum.photos/400/300?random=${i}`, // Gleiche URL-Struktur wie PostGrid
-    type: 'image' as const,
+    id: `${Math.floor(i / 4)}`,  // Deterministischer Post-ID
+    title: `Amazing Artwork ${Math.floor(i / 4) + 1}`,
+    imageUrl: `https://picsum.photos/seed/${i}/400/300`, // Deterministisches Bild mit seed
+    type: 'image',
     nsfw: i % 3 === 0
   },
-  likes: Math.floor(Math.random() * 50),
-  createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
+  likes: i * 5, // Deterministische Like-Anzahl
+  createdAt: new Date(2024, 0, 1, 0, i * 30).toISOString(), // Deterministische Dates
   ...(i % 4 === 0 ? {
     replyTo: {
       id: `comment-${i-1}`,
       user: { 
-        name: `User${((i-1) % 5) || 5}`, // Vermeidet negative Zahlen, wenn i=0
-        isAnonymous: (i-1) % 3 === 0  // Entsprechend auch für Replies
+        name: `User${((i-1) % 5) || 5}`,
+        isAnonymous: (i-1) % 3 === 0
       },
       preview: "This is the original comment that was replied to..."
     }
@@ -96,8 +95,6 @@ export function CommentList({ filters, infiniteScroll }: CommentListProps) {
   // Simuliere API-Call mit Pagination
   const fetchComments = async (pageNum: number, filters: CommentListProps['filters']) => {
     setIsLoading(true);
-    
-    // Simuliere Netzwerklatenz
     await new Promise(resolve => setTimeout(resolve, 500));
 
     const startIndex = (pageNum - 1) * CHUNK_SIZE;
