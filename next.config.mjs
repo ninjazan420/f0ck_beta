@@ -6,6 +6,12 @@ const nextConfig = {
       type: 'asset/resource'
     });
     return config;
+  },
+  experimental: {
+    turbopack: true
+  },
+  env: {
+    PORT: 3001
   }
 };
 

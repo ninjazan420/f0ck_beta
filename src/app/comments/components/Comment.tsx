@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 interface CommentProps {
   data: {
     id: string;
@@ -72,9 +74,12 @@ export function Comment({ data }: CommentProps) {
             {data.replyTo.user.isAnonymous ? (
               <span className="text-gray-600 dark:text-gray-400">Anonymous</span>
             ) : (
-              <a href={`/user/${data.replyTo.user.name}`} className="text-purple-600 hover:underline">
+              <Link 
+                href={getUserUrl(data.replyTo.user.name)} 
+                className="text-purple-600 hover:underline"
+              >
                 {data.replyTo.user.name}
-              </a>
+              </Link>
             )}:
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-300 font-[family-name:var(--font-geist-sans)] line-clamp-1">
@@ -92,7 +97,7 @@ export function Comment({ data }: CommentProps) {
             </div>
           </div>
         ) : (
-          <a href={getUserUrl(data.user.name)} className="block">
+          <Link href={getUserUrl(data.user.name)} className="block">
             <div className={`w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0 
               transition-all duration-300
               ${data.user.style ? getAvatarStyle(data.user.style) : 'hover:ring-2 hover:ring-purple-400 dark:hover:ring-purple-600'}`}
@@ -109,7 +114,7 @@ export function Comment({ data }: CommentProps) {
                 </div>
               )}
             </div>
-          </a>
+          </Link>
         )}
 
         {/* Comment Content */}
@@ -122,10 +127,12 @@ export function Comment({ data }: CommentProps) {
                 </span>
               ) : (
                 <>
-                  <a href={getUserUrl(data.user.name)} 
-                     className={`font-medium hover:opacity-80 transition-opacity ${getNickStyle(data.user.style)}`}>
+                  <Link
+                    href={getUserUrl(data.user.name)} 
+                    className={`font-medium hover:opacity-80 transition-opacity ${getNickStyle(data.user.style)}`}
+                  >
                     {data.user.name}
-                  </a>
+                  </Link>
                   {data.user.style && (
                     <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
                       PREMIUM
@@ -135,23 +142,32 @@ export function Comment({ data }: CommentProps) {
               )}
               <span className="text-sm text-gray-500">
                 on{' '}
-                <a href={`/post/${data.post.id}`} className="hover:text-purple-600 dark:hover:text-purple-400">
+                <Link 
+                  href={`/post/${data.post.id}`}
+                  className="hover:text-purple-600 dark:hover:text-purple-400"
+                >
                   {data.post.title}
-                </a>
+                </Link>
               </span>
             </div>
             <div className="flex items-center gap-4">
-              <a href={`/comments/${data.id}`} className="text-sm text-gray-500 hover:text-purple-600 dark:hover:text-purple-400">
+              <Link 
+                href={`/comments/${data.id}`}
+                className="text-sm text-gray-500 hover:text-purple-600 dark:hover:text-purple-400"
+              >
                 {formattedDate}
-              </a>
-              <a href={`/comments/${data.id}/likes`} className="flex items-center gap-1 group">
+              </Link>
+              <Link 
+                href={`/comments/${data.id}/likes`}
+                className="flex items-center gap-1 group"
+              >
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">
                   {data.likes}
                 </span>
                 <span className="text-xs text-gray-500 group-hover:text-purple-600 dark:group-hover:text-purple-400">
                   likes
                 </span>
-              </a>
+              </Link>
             </div>
           </div>
 
