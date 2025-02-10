@@ -22,8 +22,8 @@ export function PostsPage() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col p-4">
-      <div className="container mx-auto max-w-[1600px] flex-grow space-y-4">
+    <div className="min-h-screen flex flex-col">
+      <div className="container mx-auto px-4 flex-grow space-y-2">
         <PostFilter 
           filters={filters} 
           onFilterChange={setFilters}
@@ -36,6 +36,9 @@ export function PostsPage() {
           infiniteScroll={infiniteScroll} 
         />
       </div>
+      <footer className="mt-2">
+        <Footer />
+      </footer>
     </div>
   );
 }

@@ -15,23 +15,32 @@ interface Post {
   isPinned: boolean; // Added isPinned status
   mediaType: 'image' | 'gif' | 'video'; // Added mediaType
   hasAudio: boolean; // Added hasAudio
+  isAd?: boolean; // Optional flag for ads
+  isSponsored?: boolean; // Optional flag for sponsored content
 }
 
-// Mock data generator
+let postIdCounter = 0; // Counter für eindeutige IDs
+
+// Mock data generator mit vereinfachten IDs
 const generateMockPosts = (count: number): Post[] => 
-  Array.from({ length: count }, (_, i) => ({
-    id: `post-${i}`,
-    title: `Amazing Artwork ${i + 1}`,
-    thumbnail: `https://picsum.photos/400/300?random=${i}`,
-    likes: Math.floor(Math.random() * 1000),
-    comments: Math.floor(Math.random() * 100),
-    favorites: Math.floor(Math.random() * 500),
-    contentRating: ['safe', 'sketchy', 'unsafe'][Math.floor(Math.random() * 3)] as ContentRating,
-    createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-    isPinned: i % 12 === 0, // Jeder 12. Post ist gepinnt
-    mediaType: ['image', 'gif', 'video'][Math.floor(Math.random() * 3)] as 'image' | 'gif' | 'video',
-    hasAudio: Math.random() > 0.3, // 70% der Videos haben Ton
-  }));
+  Array.from({ length: count }, (_, i) => {
+    const uniqueId = `post-${postIdCounter++}`; // Vereinfachte ID ohne Seitennummer
+    return {
+      id: uniqueId,
+      title: `Amazing Artwork ${postIdCounter}`,
+      thumbnail: `https://picsum.photos/400/300?random=${postIdCounter}`,
+      likes: Math.floor(Math.random() * 1000),
+      comments: Math.floor(Math.random() * 100),
+      favorites: Math.floor(Math.random() * 500),
+      contentRating: ['safe', 'sketchy', 'unsafe'][Math.floor(Math.random() * 3)] as ContentRating,
+      createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
+      isPinned: i % 12 === 0, // Jeder 12. Post ist gepinnt
+      mediaType: ['image', 'gif', 'video'][Math.floor(Math.random() * 3)] as 'image' | 'gif' | 'video',
+      hasAudio: Math.random() > 0.3, // 70% der Videos haben Ton
+      isAd: i > 0 && i % 7 === 0, // Jeder 7. Post ist eine Werbung (außer erster Post)
+      isSponsored: i > 0 && i % 7 === 0, // Interner Flag für Ads
+    };
+  });
 
 export function PostGrid({ filters, infiniteScroll }) {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -58,24 +67,6 @@ export function PostGrid({ filters, infiniteScroll }) {
         if (filters.dateTo && new Date(post.createdAt) > new Date(filters.dateTo)) return false;
         return true;
       });
-
-    // Ads nach jeweils 7 Posts
-    if (showAds) {
-      const withAds = [];
-      for (let i = 0; i < newPosts.length; i++) {
-        if (i > 0 && i % 7 === 0 && withAds.length < 28) { // Maximal 28 Posts + Ads
-          withAds.push({
-            ...generateMockPosts(1)[0],
-            isAd: true,
-            title: 'Sponsored Content'
-          });
-        }
-        if (withAds.length < 28) { // Begrenze auf maximal 28 Posts
-          withAds.push(newPosts[i]);
-        }
-      }
-      newPosts = withAds;
-    }
 
     setIsLoading(false);
     return {
