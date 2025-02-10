@@ -1,4 +1,8 @@
 export const Footer = () => {
+  // Konstante Build-Informationen mit der letzten Commit-ID
+  const BUILD_ID = 'e741671a9f7d607f7e1e8086d312ee446c670cdb';
+  const BUILD_DATE = '10 Feb 2024';
+
   return (
     <footer className="w-full py-8 mt-auto">
       <div className="container mx-auto px-4">
@@ -15,7 +19,14 @@ export const Footer = () => {
         </ul>
         
         <div className="mt-4 text-center text-xs text-gray-500 dark:text-gray-500">
-          <p>Latest build: {/* Link entfernt, da private Repository */} 27 Jan 2024</p>
+          <p>Latest build: <a 
+            href={`https://github.com/ninjazan420/f0ck_beta/commit/${BUILD_ID}`}
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="hover:underline"
+          >
+            {BUILD_ID.substring(0, 7)} {/* Zeigt nur die ersten 7 Zeichen der Commit-ID */}
+          </a> ({BUILD_DATE})</p>
           <p className="mt-2">Made with ♥ and ☕</p>
         </div>
       </div>

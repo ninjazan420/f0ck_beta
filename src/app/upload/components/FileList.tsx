@@ -88,15 +88,31 @@ export function FileList({
     }
   };
 
+  const isValidTag = (tag: string): boolean => {
+    // Erlaubt: Buchstaben (inkl. Umlaute), Zahlen, Bindestriche
+    const tagRegex = /^[a-zA-ZäöüÄÖÜß0-9-]+$/;
+    return tagRegex.test(tag);
+  };
+
   const addTag = (id: string, tag: string) => {
+    const cleanTag = tag.trim();
+    if (!cleanTag) return;
+
+    if (!isValidTag(cleanTag)) {
+      setItems(prev => prev.map(item =>
+        item.id === id ? 
+          { ...item, error: 'Tags can only contain letters, numbers and hyphens' } 
+          : item
+      ));
+      return;
+    }
+
     setItems(prev => prev.map(item => {
       if (item.id === id) {
-        // Prüfe maximale Anzahl der Tags
         if (item.tags.length >= 10) {
           return { ...item, error: 'Maximum of 10 tags per upload reached' };
         }
-        // Setze error zurück wenn Tags hinzugefügt werden können
-        return { ...item, tags: [...item.tags, tag], error: undefined };
+        return { ...item, tags: [...item.tags, cleanTag], error: undefined };
       }
       return item;
     }));
@@ -120,13 +136,19 @@ export function FileList({
     const input = e.currentTarget;
     const value = input.value.trim();
 
-    if ((e.key === 'Enter' || e.key === ',') && value) {
-      // Entferne das Komma am Ende, falls vorhanden
-      const tag = value.endsWith(',') ? value.slice(0, -1) : value;
+    if ((e.key === 'Enter' || e.key === ',' || e.key === ' ') && value) {
+      // Entferne Komma und Leerzeichen am Ende
+      const tag = value.replace(/[,\s]+$/, '');
       addTag(id, tag);
       input.value = '';
-      e.preventDefault(); // Verhindert das Hinzufügen des Kommas
+      e.preventDefault(); // Verhindert das Hinzufügen des Trennzeichens
     }
+  };
+
+  const clearAllTags = (id: string) => {
+    setItems(prev => prev.map(item =>
+      item.id === id ? { ...item, tags: [], error: undefined } : item
+    ));
   };
 
   return (
@@ -195,11 +217,19 @@ export function FileList({
               </div>
 
               <div className="mt-3 flex flex-col gap-2">
-                {item.error && (
+                <div className="flex items-center justify-between">
                   <div className="text-sm text-red-500 dark:text-red-400">
                     {item.error}
                   </div>
-                )}
+                  {item.tags.length > 0 && (
+                    <button
+                      onClick={() => clearAllTags(item.id)}
+                      className="px-4 py-2 text-sm rounded-lg text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    >
+                      Clear All Tags
+                    </button>
+                  )}
+                </div>
                 <div className="flex gap-2 flex-wrap">
                   {item.tags.map((tag, tagIndex) => (
                     <span 
