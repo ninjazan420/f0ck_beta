@@ -48,7 +48,7 @@ const MOCK_POST: PostData = {
   title: "Amazing Artwork #1",
   description: "This is a beautiful piece of art that I found.",
   imageUrl: "https://placehold.co/1200x800",
-  thumbnailUrl: "https://placehold.co/1200x800",
+  thumbnailUrl: "https://placehold.co/1200x800.jpg",
   uploadDate: "2023-12-24T12:00:00Z",
   uploader: {
     id: "user1",
