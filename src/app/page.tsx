@@ -2,6 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { getRandomLogo } from "@/lib/utils";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "f0ck beta v1",
+  description: "Welcome to f0ck.org",
+  icons: {
+    icon: '/favicon.ico'
+  }
+};
 
 export default function Home() {
   const logoSrc = getRandomLogo();
