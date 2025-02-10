@@ -1,17 +1,18 @@
 # f0ck.org Beta v1
 
-Eine moderne Community-Plattform für Catmemes, Shitposts, Girls und mehr, entwickelt mit Next.js 14.
+f0ck.org ist eine anonyme Imageboard-Plattform, entwickelt in TypeScript und TailwindCSS. Basierend auf szurubooru, Danbooru und anderen Imageboards, bietet es hohe Privatsphäre mit optionalen Benutzerkonten und minimaler Moderation.
 
 ## Features
 
-- 🎨 Modernes, responsives Design mit Tailwind CSS
-- 🖼️ Zufälliges Logo-System
-- 📊 Vorbereitung für Statistik-Integration
-- 🔗 Integration mit f0ck.org Ökosystem
-- 🚀 Optimierte Performance durch Next.js
-- 📜 Umfassende Regeln und Richtlinien
-- 🔍 SEO-optimierte Metadaten
-- 🎯 Responsive Navigation mit intuitiver Benutzerführung
+- 🔒 Vollständig anonym nutzbar
+- 👤 Optionale Benutzerkonten für erweiterte Features
+- 🎨 Modernes, responsives Design mit TailwindCSS
+- 🚀 Hochperformante Next.js 14 Architektur
+- 🔍 Fortschrittliches Tag-System
+- 🌓 Dark/Light Mode
+- 🖼️ Unterstützung für verschiedene Medienformate
+- 🛡️ Fokus auf Privatsphäre
+- 📱 Mobile-First Ansatz
 
 ## Neue Features & Updates
 
