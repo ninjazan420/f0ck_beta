@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
 import { CommentFilter } from "./CommentFilter";
 import { CommentList } from "./CommentList";
@@ -31,12 +30,7 @@ export function CommentsPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
-      {/* Logo Section */}
-      <div className="w-full flex justify-center py-8">
-        <RandomLogo />
-      </div>
-      
+    <div className="min-h-[calc(100vh-36.8px)] flex flex-col">      
       <div className="container mx-auto px-4 py-4 max-w-4xl flex-grow">
         {showFeedback && (
           <div 

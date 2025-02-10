@@ -33,10 +33,10 @@ interface CommentData {
 }
 
 // Dummy-Daten für die Vorschau
-const MOCK_COMMENTS: CommentData[] = Array.from({ length: 15 }, (_, i) => ({
+const MOCK_COMMENTS: CommentData[] = Array.from({ length: 20 }, (_, i) => ({
   id: `comment-${i}`,
   user: {
-    id: i % 3 === 0 ? null : `user-${i % 5}`,  // Jeder dritte Kommentar ist anonym
+    id: i % 3 === 0 ? null : `user${i % 5}`,  // Geändert von user-${i % 5} zu user${i % 5}
     name: i % 3 === 0 ? 'Anonymous' : `User${i % 5}`,
     avatar: null,
     isAnonymous: i % 3 === 0,
@@ -60,7 +60,7 @@ const MOCK_COMMENTS: CommentData[] = Array.from({ length: 15 }, (_, i) => ({
     replyTo: {
       id: `comment-${i-1}`,
       user: { 
-        name: `User${(i-1) % 5}`,
+        name: `User${((i-1) % 5) || 5}`, // Vermeidet negative Zahlen, wenn i=0
         isAnonymous: (i-1) % 3 === 0  // Entsprechend auch für Replies
       },
       preview: "This is the original comment that was replied to..."

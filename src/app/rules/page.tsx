@@ -1,12 +1,12 @@
 'use client';
-import { getRandomLogo } from "@/lib/utils";
+import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
 
 export default function Rules() {
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
       <div className="w-full flex justify-center py-8">
-        <img src={getRandomLogo()} alt="Random Logo" className="h-12" />
+        <RandomLogo />
       </div>
 
       <div className="container mx-auto px-4 py-4 max-w-4xl flex-grow">
