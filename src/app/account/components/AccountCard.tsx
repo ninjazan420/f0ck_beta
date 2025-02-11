@@ -307,29 +307,38 @@ export function AccountCard() {
           </div>
           
           {/* Edit Profile Button unter Avatar */}
-          {!isEditing ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="w-full py-1.5 px-3 text-xs rounded-lg text-center bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white transition-all duration-200"
+          <div className="space-y-1">
+            {!isEditing ? (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="w-full py-1.5 px-3 text-xs rounded-lg text-center bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white transition-all duration-200"
+              >
+                Edit Profile
+              </button>
+            ) : (
+              <div className="flex gap-1 mb-1">
+                <button
+                  onClick={handleReset}
+                  className="flex-1 py-1.5 px-2 text-xs rounded-lg text-red-600 hover:text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="flex-1 py-1.5 px-2 text-xs rounded-lg bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  Save
+                </button>
+              </div>
+            )}
+            <Link
+              href="/premium"
+              className="w-full py-1.5 px-3 text-xs rounded-lg text-center bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-1"
             >
-              Edit Profile
-            </button>
-          ) : (
-            <div className="flex gap-1">
-              <button
-                onClick={handleReset}
-                className="flex-1 py-1.5 px-2 text-xs rounded-lg text-red-600 hover:text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="flex-1 py-1.5 px-2 text-xs rounded-lg bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                Save
-              </button>
-            </div>
-          )}
+              Buy Premium <span className="text-yellow-500">⭐</span>
+            </Link>
+          </div>
+
         </div>
 
         {/* Profile Info */}

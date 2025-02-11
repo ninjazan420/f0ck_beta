@@ -127,7 +127,10 @@ export default function SettingsClient() {
                 Premium Features 💎
               </h2>
               {!settings.premium.isActive && (
-                <a href="/premium" className="px-3 py-1.5 text-sm rounded-lg bg-purple-600 hover:bg-purple-700 text-white">
+                <a
+                  href="/premium"
+                  className="px-3 py-1.5 text-sm rounded-lg bg-purple-600 hover:bg-purple-700 text-white"
+                >
                   Upgrade
                 </a>
               )}
@@ -140,17 +143,29 @@ export default function SettingsClient() {
                     GIF Upload Size
                   </span>
                   <span className="text-xs text-gray-500">
-                    {settings.premium.maxGifSize ? 'Up to 50MB' : 'Up to 10MB (50MB with premium)'}
+                    {settings.premium.maxGifSize
+                      ? "Up to 50MB"
+                      : "Up to 10MB (50MB with premium)"}
                   </span>
                 </div>
-                <label className={`toggle-switch ${!settings.premium.isActive && 'opacity-50 cursor-not-allowed'}`}>
-                  <input 
+                <label
+                  className={`toggle-switch ${
+                    !settings.premium.isActive &&
+                    "opacity-50 cursor-not-allowed"
+                  }`}
+                >
+                  <input
                     type="checkbox"
                     checked={settings.premium.maxGifSize}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      premium: { ...prev.premium, maxGifSize: e.target.checked }
-                    }))}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        premium: {
+                          ...prev.premium,
+                          maxGifSize: e.target.checked,
+                        },
+                      }))
+                    }
                     disabled={!settings.premium.isActive}
                   />
                   <div className="toggle-switch-background">
@@ -165,17 +180,29 @@ export default function SettingsClient() {
                     Original Video Quality
                   </span>
                   <span className="text-xs text-gray-500">
-                    {settings.premium.keepOriginalVideoQuality ? 'Keep original resolution' : 'Rendered down to 720p | Premium keep original resolution'}
+                    {settings.premium.keepOriginalVideoQuality
+                      ? "Keep original resolution"
+                      : "Rendered down to 720p | Premium keep original resolution"}
                   </span>
                 </div>
-                <label className={`toggle-switch ${!settings.premium.isActive && 'opacity-50 cursor-not-allowed'}`}>
-                  <input 
+                <label
+                  className={`toggle-switch ${
+                    !settings.premium.isActive &&
+                    "opacity-50 cursor-not-allowed"
+                  }`}
+                >
+                  <input
                     type="checkbox"
                     checked={settings.premium.keepOriginalVideoQuality}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      premium: { ...prev.premium, keepOriginalVideoQuality: e.target.checked }
-                    }))}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        premium: {
+                          ...prev.premium,
+                          keepOriginalVideoQuality: e.target.checked,
+                        },
+                      }))
+                    }
                     disabled={!settings.premium.isActive}
                   />
                   <div className="toggle-switch-background">
@@ -189,16 +216,25 @@ export default function SettingsClient() {
                   <span className="font-[family-name:var(--font-geist-mono)] text-gray-900 dark:text-gray-400">
                     Hide Advertisements
                   </span>
-                  <span className="text-xs text-gray-500">Remove all ads from the site</span>
+                  <span className="text-xs text-gray-500">
+                    Remove all ads from the site
+                  </span>
                 </div>
-                <label className={`toggle-switch ${!settings.premium.isActive && 'opacity-50 cursor-not-allowed'}`}>
-                  <input 
+                <label
+                  className={`toggle-switch ${
+                    !settings.premium.isActive &&
+                    "opacity-50 cursor-not-allowed"
+                  }`}
+                >
+                  <input
                     type="checkbox"
                     checked={settings.premium.hideAds}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      premium: { ...prev.premium, hideAds: e.target.checked }
-                    }))}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        premium: { ...prev.premium, hideAds: e.target.checked },
+                      }))
+                    }
                     disabled={!settings.premium.isActive}
                   />
                   <div className="toggle-switch-background">
@@ -217,21 +253,28 @@ export default function SettingsClient() {
                     Create unlimited public & private pools
                   </span>
                 </div>
-                <label className={`toggle-switch ${!settings.premium.isActive && 'opacity-50 cursor-not-allowed'}`}>
-                  <input 
+                <label
+                  className={`toggle-switch ${
+                    !settings.premium.isActive &&
+                    "opacity-50 cursor-not-allowed"
+                  }`}
+                >
+                  <input
                     type="checkbox"
                     checked={settings.premium.pools.enabled}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      premium: { 
-                        ...prev.premium, 
-                        pools: {
-                          ...prev.premium.pools,
-                          enabled: e.target.checked,
-                          privatePools: e.target.checked
-                        }
-                      }
-                    }))}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        premium: {
+                          ...prev.premium,
+                          pools: {
+                            ...prev.premium.pools,
+                            enabled: e.target.checked,
+                            privatePools: e.target.checked,
+                          },
+                        },
+                      }))
+                    }
                     disabled={!settings.premium.isActive}
                   />
                   <div className="toggle-switch-background">
@@ -249,21 +292,28 @@ export default function SettingsClient() {
                     Unlimited tag favorites & custom categories
                   </span>
                 </div>
-                <label className={`toggle-switch ${!settings.premium.isActive && 'opacity-50 cursor-not-allowed'}`}>
-                  <input 
+                <label
+                  className={`toggle-switch ${
+                    !settings.premium.isActive &&
+                    "opacity-50 cursor-not-allowed"
+                  }`}
+                >
+                  <input
                     type="checkbox"
                     checked={settings.premium.tags.favorites}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      premium: {
-                        ...prev.premium,
-                        tags: {
-                          ...prev.premium.tags,
-                          favorites: e.target.checked,
-                          customCategories: e.target.checked
-                        }
-                      }
-                    }))}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        premium: {
+                          ...prev.premium,
+                          tags: {
+                            ...prev.premium.tags,
+                            favorites: e.target.checked,
+                            customCategories: e.target.checked,
+                          },
+                        },
+                      }))
+                    }
                     disabled={!settings.premium.isActive}
                   />
                   <div className="toggle-switch-background">
@@ -281,23 +331,30 @@ export default function SettingsClient() {
                     Custom filters & advanced alerts
                   </span>
                 </div>
-                <label className={`toggle-switch ${!settings.premium.isActive && 'opacity-50 cursor-not-allowed'}`}>
-                  <input 
+                <label
+                  className={`toggle-switch ${
+                    !settings.premium.isActive &&
+                    "opacity-50 cursor-not-allowed"
+                  }`}
+                >
+                  <input
                     type="checkbox"
                     checked={settings.premium.notifications.customFilters}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      premium: {
-                        ...prev.premium,
-                        notifications: {
-                          ...prev.premium.notifications,
-                          customFilters: e.target.checked,
-                          mentionAlerts: e.target.checked,
-                          tagUpdates: e.target.checked,
-                          poolUpdates: e.target.checked
-                        }
-                      }
-                    }))}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        premium: {
+                          ...prev.premium,
+                          notifications: {
+                            ...prev.premium.notifications,
+                            customFilters: e.target.checked,
+                            mentionAlerts: e.target.checked,
+                            tagUpdates: e.target.checked,
+                            poolUpdates: e.target.checked,
+                          },
+                        },
+                      }))
+                    }
                     disabled={!settings.premium.isActive}
                   />
                   <div className="toggle-switch-background">
@@ -315,22 +372,29 @@ export default function SettingsClient() {
                     Unlimited conversations & attachments
                   </span>
                 </div>
-                <label className={`toggle-switch ${!settings.premium.isActive && 'opacity-50 cursor-not-allowed'}`}>
-                  <input 
+                <label
+                  className={`toggle-switch ${
+                    !settings.premium.isActive &&
+                    "opacity-50 cursor-not-allowed"
+                  }`}
+                >
+                  <input
                     type="checkbox"
                     checked={settings.premium.messaging.enabled}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      premium: {
-                        ...prev.premium,
-                        messaging: {
-                          ...prev.premium.messaging,
-                          enabled: e.target.checked,
-                          attachments: e.target.checked,
-                          groupChats: e.target.checked
-                        }
-                      }
-                    }))}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        premium: {
+                          ...prev.premium,
+                          messaging: {
+                            ...prev.premium.messaging,
+                            enabled: e.target.checked,
+                            attachments: e.target.checked,
+                            groupChats: e.target.checked,
+                          },
+                        },
+                      }))
+                    }
                     disabled={!settings.premium.isActive}
                   />
                   <div className="toggle-switch-background">
@@ -352,20 +416,27 @@ export default function SettingsClient() {
                       Customize your nickname appearance
                     </span>
                   </div>
-                  <label className={`toggle-switch ${!settings.premium.isActive && 'opacity-50 cursor-not-allowed'}`}>
-                    <input 
+                  <label
+                    className={`toggle-switch ${
+                      !settings.premium.isActive &&
+                      "opacity-50 cursor-not-allowed"
+                    }`}
+                  >
+                    <input
                       type="checkbox"
                       checked={settings.premium.nickname.enabled}
-                      onChange={(e) => setSettings(prev => ({
-                        ...prev,
-                        premium: {
-                          ...prev.premium,
-                          nickname: {
-                            ...prev.premium.nickname,
-                            enabled: e.target.checked
-                          }
-                        }
-                      }))}
+                      onChange={(e) =>
+                        setSettings((prev) => ({
+                          ...prev,
+                          premium: {
+                            ...prev.premium,
+                            nickname: {
+                              ...prev.premium.nickname,
+                              enabled: e.target.checked,
+                            },
+                          },
+                        }))
+                      }
                       disabled={!settings.premium.isActive}
                     />
                     <div className="toggle-switch-background">
@@ -382,19 +453,22 @@ export default function SettingsClient() {
                       </label>
                       <select
                         value={settings.premium.nickname.style.type}
-                        onChange={(e) => setSettings(prev => ({
-                          ...prev,
-                          premium: {
-                            ...prev.premium,
-                            nickname: {
-                              ...prev.premium.nickname,
-                              style: {
-                                ...prev.premium.nickname.style,
-                                type: e.target.value as typeof settings.premium.nickname.style.type
-                              }
-                            }
-                          }
-                        }))}
+                        onChange={(e) =>
+                          setSettings((prev) => ({
+                            ...prev,
+                            premium: {
+                              ...prev.premium,
+                              nickname: {
+                                ...prev.premium.nickname,
+                                style: {
+                                  ...prev.premium.nickname.style,
+                                  type: e.target
+                                    .value as typeof settings.premium.nickname.style.type,
+                                },
+                              },
+                            },
+                          }))
+                        }
                         className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
                       >
                         <option value="solid">Solid Color</option>
@@ -403,59 +477,70 @@ export default function SettingsClient() {
                       </select>
                     </div>
 
-                    {settings.premium.nickname.style.type === 'solid' ? (
+                    {settings.premium.nickname.style.type === "solid" ? (
                       <div className="grid grid-cols-3 gap-2">
-                        {nicknameStyles.solid.map(color => (
+                        {nicknameStyles.solid.map((color) => (
                           <button
                             key={color.value}
-                            onClick={() => setSettings(prev => ({
-                              ...prev,
-                              premium: {
-                                ...prev.premium,
-                                nickname: {
-                                  ...prev.premium.nickname,
-                                  style: {
-                                    ...prev.premium.nickname.style,
-                                    color: color.value
-                                  }
-                                }
-                              }
-                            }))}
+                            onClick={() =>
+                              setSettings((prev) => ({
+                                ...prev,
+                                premium: {
+                                  ...prev.premium,
+                                  nickname: {
+                                    ...prev.premium.nickname,
+                                    style: {
+                                      ...prev.premium.nickname.style,
+                                      color: color.value,
+                                    },
+                                  },
+                                },
+                              }))
+                            }
                             className={`p-2 rounded-lg border-2 ${
-                              settings.premium.nickname.style.color === color.value
-                                ? 'border-purple-500'
-                                : 'border-transparent'
+                              settings.premium.nickname.style.color ===
+                              color.value
+                                ? "border-purple-500"
+                                : "border-transparent"
                             }`}
                           >
-                            <span className={`text-${color.value}`}>{color.label}</span>
+                            <span className={`text-${color.value}`}>
+                              {color.label}
+                            </span>
                           </button>
                         ))}
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
-                        {nicknameStyles.gradient.map(gradient => (
+                        {nicknameStyles.gradient.map((gradient) => (
                           <button
-                            key={gradient.value.join('-')}
-                            onClick={() => setSettings(prev => ({
-                              ...prev,
-                              premium: {
-                                ...prev.premium,
-                                nickname: {
-                                  ...prev.premium.nickname,
-                                  style: {
-                                    ...prev.premium.nickname.style,
-                                    gradient: gradient.value
-                                  }
-                                }
-                              }
-                            }))}
+                            key={gradient.value.join("-")}
+                            onClick={() =>
+                              setSettings((prev) => ({
+                                ...prev,
+                                premium: {
+                                  ...prev.premium,
+                                  nickname: {
+                                    ...prev.premium.nickname,
+                                    style: {
+                                      ...prev.premium.nickname.style,
+                                      gradient: gradient.value,
+                                    },
+                                  },
+                                },
+                              }))
+                            }
                             className={`p-2 rounded-lg border-2 ${
-                              settings.premium.nickname.style.gradient?.join('-') === gradient.value.join('-')
-                                ? 'border-purple-500'
-                                : 'border-transparent'
+                              settings.premium.nickname.style.gradient?.join(
+                                "-"
+                              ) === gradient.value.join("-")
+                                ? "border-purple-500"
+                                : "border-transparent"
                             }`}
                           >
-                            <span className={`bg-gradient-to-r from-${gradient.value[0]} to-${gradient.value[1]} bg-clip-text text-transparent`}>
+                            <span
+                              className={`bg-gradient-to-r from-${gradient.value[0]} to-${gradient.value[1]} bg-clip-text text-transparent`}
+                            >
                               {gradient.label}
                             </span>
                           </button>
@@ -465,11 +550,22 @@ export default function SettingsClient() {
 
                     {/* Preview */}
                     <div className="mt-4 p-4 rounded-lg bg-white dark:bg-gray-900 text-center">
-                      <span className={`text-lg font-medium ${
-                        settings.premium.nickname.style.type === 'solid'
-                          ? `text-${settings.premium.nickname.style.color}`
-                          : `${settings.premium.nickname.style.type === 'animated' ? 'animate-pulse' : ''} bg-gradient-to-r from-${settings.premium.nickname.style.gradient?.[0]} to-${settings.premium.nickname.style.gradient?.[1]} bg-clip-text text-transparent`
-                      }`}>
+                      <span
+                        className={`text-lg font-medium ${
+                          settings.premium.nickname.style.type === "solid"
+                            ? `text-${settings.premium.nickname.style.color}`
+                            : `${
+                                settings.premium.nickname.style.type ===
+                                "animated"
+                                  ? "animate-pulse"
+                                  : ""
+                              } bg-gradient-to-r from-${
+                                settings.premium.nickname.style.gradient?.[0]
+                              } to-${
+                                settings.premium.nickname.style.gradient?.[1]
+                              } bg-clip-text text-transparent`
+                        }`}
+                      >
                         Your Nickname
                       </span>
                     </div>
@@ -486,7 +582,7 @@ export default function SettingsClient() {
               <div className="absolute inset-0 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-10">
                 <div className="text-center">
                   <span className="px-4 py-2 bg-purple-600/10 rounded-full text-sm text-purple-600 dark:text-purple-400 font-medium">
-                    Available with Premium 💎
+                    Custom nickname styling available with Premium 💎
                   </span>
                 </div>
               </div>
@@ -513,30 +609,54 @@ export default function SettingsClient() {
                 {/* Color/Effect Options */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {settings.premium.nickname.style.type === 'animated' ? 'Effect' : 'Color Style'}
+                    {settings.premium.nickname.style.type === "animated"
+                      ? "Effect"
+                      : "Color Style"}
                   </label>
-                  <div className={`grid ${settings.premium.nickname.style.type === 'gradient' ? 'grid-cols-2' : 'grid-cols-3'} gap-2`}>
-                    {(settings.premium.nickname.style.type === 'animated' 
-                      ? nicknameStyles.animated 
-                      : settings.premium.nickname.style.type === 'gradient'
-                        ? nicknameStyles.gradient
-                        : nicknameStyles.solid
-                    ).map(style => (
+                  <div
+                    className={`grid ${
+                      settings.premium.nickname.style.type === "gradient"
+                        ? "grid-cols-2"
+                        : "grid-cols-3"
+                    } gap-2`}
+                  >
+                    {(settings.premium.nickname.style.type === "animated"
+                      ? nicknameStyles.animated
+                      : settings.premium.nickname.style.type === "gradient"
+                      ? nicknameStyles.gradient
+                      : nicknameStyles.solid
+                    ).map((style) => (
                       <button
-                        key={typeof style.value === 'string' ? style.value : style.value.join('-')}
+                        key={
+                          typeof style.value === "string"
+                            ? style.value
+                            : style.value.join("-")
+                        }
                         className={`p-2 rounded-lg border-2 transition-all
-                          ${settings.premium.isActive ? 'hover:bg-gray-50 dark:hover:bg-gray-800/50' : 'cursor-not-allowed'}
-                          ${settings.premium.nickname.style.color === style.value ? 'border-purple-500' : 'border-transparent'}
+                          ${
+                            settings.premium.isActive
+                              ? "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                              : "cursor-not-allowed"
+                          }
+                          ${
+                            settings.premium.nickname.style.color ===
+                            style.value
+                              ? "border-purple-500"
+                              : "border-transparent"
+                          }
                         `}
                         disabled={!settings.premium.isActive}
                       >
-                        <span className={
-                          settings.premium.nickname.style.type === 'gradient'
-                            ? `bg-gradient-to-r from-${style.value[0]} to-${style.value[1]} bg-clip-text text-transparent`
-                            : settings.premium.nickname.style.type === 'animated'
+                        <span
+                          className={
+                            settings.premium.nickname.style.type === "gradient"
+                              ? `bg-gradient-to-r from-${style.value[0]} to-${style.value[1]} bg-clip-text text-transparent`
+                              : settings.premium.nickname.style.type ===
+                                "animated"
                               ? `animate-${style.value} bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent`
                               : `text-${style.value}`
-                        }>
+                          }
+                        >
                           {style.label}
                         </span>
                       </button>
@@ -548,13 +668,15 @@ export default function SettingsClient() {
               {/* Preview */}
               <div className="w-1/3 p-4 rounded-lg bg-white dark:bg-gray-900/50 flex flex-col items-center justify-center">
                 <span className="text-sm text-gray-500 mb-2">Preview</span>
-                <span className={`text-lg font-medium ${
-                  settings.premium.nickname.style.type === 'animated'
-                    ? `animate-${settings.premium.nickname.style.animation} bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent`
-                    : settings.premium.nickname.style.type === 'gradient'
+                <span
+                  className={`text-lg font-medium ${
+                    settings.premium.nickname.style.type === "animated"
+                      ? `animate-${settings.premium.nickname.style.animation} bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent`
+                      : settings.premium.nickname.style.type === "gradient"
                       ? `bg-gradient-to-r from-${settings.premium.nickname.style.gradient?.[0]} to-${settings.premium.nickname.style.gradient?.[1]} bg-clip-text text-transparent`
                       : `text-${settings.premium.nickname.style.color}`
-                }`}>
+                  }`}
+                >
                   Your Nickname
                 </span>
               </div>
@@ -566,15 +688,15 @@ export default function SettingsClient() {
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Appearance
             </h2>
-            
+
             <div className="settings-row">
               <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
                 Dark Mode
               </span>
               <label className="toggle-switch">
-                <input  
-                  type="checkbox" 
-                  checked={theme === 'dark'}
+                <input
+                  type="checkbox"
+                  checked={theme === "dark"}
                   onChange={toggleTheme}
                 />
                 <div className="toggle-switch-background">
@@ -588,41 +710,10 @@ export default function SettingsClient() {
                 Blur NSFW Content
               </span>
               <label className="toggle-switch">
-                <input 
+                <input
                   type="checkbox"
                   checked={settings.blurNsfw}
-                  onChange={handleSettingChange('blurNsfw')}
-                />
-                <div className="toggle-switch-background">
-                  <div className="toggle-switch-handle"></div>
-                </div>
-              </label>
-            </div>
-          </section>
-
-          {/* Content Safety Section - Neu */}
-          <section className="settings-card">
-            <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
-              Content Safety
-            </h2>
-            
-            <div className="settings-row">
-              <div className="flex flex-col">
-                <span className="font-[family-name:var(--font-geist-mono)] text-gray-900 dark:text-gray-400">
-                  Blur NSFW Content
-                </span>
-                <span className="text-xs text-gray-500">
-                  Automatically blur NSFW images and thumbnails
-                </span>
-              </div>
-              <label className="toggle-switch">
-                <input 
-                  type="checkbox"
-                  checked={settings.blurNsfw}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    blurNsfw: e.target.checked
-                  }))}
+                  onChange={handleSettingChange("blurNsfw")}
                 />
                 <div className="toggle-switch-background">
                   <div className="toggle-switch-handle"></div>
@@ -636,16 +727,16 @@ export default function SettingsClient() {
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Account
             </h2>
-            
+
             <div className="settings-row">
               <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
                 Show Email in Profile
               </span>
               <label className="toggle-switch">
-                <input 
+                <input
                   type="checkbox"
                   checked={settings.showEmail}
-                  onChange={handleSettingChange('showEmail')}
+                  onChange={handleSettingChange("showEmail")}
                 />
                 <div className="toggle-switch-background">
                   <div className="toggle-switch-handle"></div>
@@ -658,10 +749,10 @@ export default function SettingsClient() {
                 Allow Direct Messages
               </span>
               <label className="toggle-switch">
-                <input 
+                <input
                   type="checkbox"
                   checked={settings.allowDm}
-                  onChange={handleSettingChange('allowDm')}
+                  onChange={handleSettingChange("allowDm")}
                 />
                 <div className="toggle-switch-background">
                   <div className="toggle-switch-handle"></div>
@@ -675,16 +766,16 @@ export default function SettingsClient() {
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Content Preferences
             </h2>
-            
+
             <div className="settings-row">
               <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
                 Auto-play GIFs
               </span>
               <label className="toggle-switch">
-                <input 
+                <input
                   type="checkbox"
                   checked={settings.autoplayGifs}
-                  onChange={handleSettingChange('autoplayGifs')}
+                  onChange={handleSettingChange("autoplayGifs")}
                 />
                 <div className="toggle-switch-background">
                   <div className="toggle-switch-handle"></div>
@@ -697,10 +788,10 @@ export default function SettingsClient() {
                 High-Quality Thumbnails
               </span>
               <label className="toggle-switch">
-                <input 
+                <input
                   type="checkbox"
                   checked={settings.highQualityThumbs}
-                  onChange={handleSettingChange('highQualityThumbs')}
+                  onChange={handleSettingChange("highQualityThumbs")}
                 />
                 <div className="toggle-switch-background">
                   <div className="toggle-switch-handle"></div>
@@ -713,10 +804,15 @@ export default function SettingsClient() {
                 Autoplay Videos
               </span>
               <label className="toggle-switch">
-                <input 
+                <input
                   type="checkbox"
                   checked={settings.autoplayVideos}
-                  onChange={(e) => setSettings(prev => ({ ...prev, autoplayVideos: e.target.checked }))}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      autoplayVideos: e.target.checked,
+                    }))
+                  }
                 />
                 <div className="toggle-switch-background">
                   <div className="toggle-switch-handle"></div>
@@ -729,10 +825,15 @@ export default function SettingsClient() {
                 Mute Autoplay Videos
               </span>
               <label className="toggle-switch">
-                <input 
+                <input
                   type="checkbox"
                   checked={settings.muteAutoplay}
-                  onChange={(e) => setSettings(prev => ({ ...prev, muteAutoplay: e.target.checked }))}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      muteAutoplay: e.target.checked,
+                    }))
+                  }
                 />
                 <div className="toggle-switch-background">
                   <div className="toggle-switch-handle"></div>
@@ -746,7 +847,7 @@ export default function SettingsClient() {
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Layout Preferences
             </h2>
-            
+
             <div className="space-y-4">
               <div className="settings-row">
                 <div className="flex flex-col">
@@ -758,13 +859,18 @@ export default function SettingsClient() {
                   </span>
                 </div>
                 <label className="toggle-switch">
-                  <input 
+                  <input
                     type="checkbox"
                     checked={settings.gridLayout.customLayout}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      gridLayout: { ...prev.gridLayout, customLayout: e.target.checked }
-                    }))}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        gridLayout: {
+                          ...prev.gridLayout,
+                          customLayout: e.target.checked,
+                        },
+                      }))
+                    }
                   />
                   <div className="toggle-switch-background">
                     <div className="toggle-switch-handle"></div>
@@ -784,10 +890,15 @@ export default function SettingsClient() {
                         min="4"
                         max="14"
                         value={settings.gridLayout.columns}
-                        onChange={(e) => setSettings(prev => ({
-                          ...prev,
-                          gridLayout: { ...prev.gridLayout, columns: parseInt(e.target.value) }
-                        }))}
+                        onChange={(e) =>
+                          setSettings((prev) => ({
+                            ...prev,
+                            gridLayout: {
+                              ...prev.gridLayout,
+                              columns: parseInt(e.target.value),
+                            },
+                          }))
+                        }
                         className="w-full"
                       />
                     </div>
@@ -800,16 +911,22 @@ export default function SettingsClient() {
                         min="1"
                         max="8"
                         value={settings.gridLayout.rows}
-                        onChange={(e) => setSettings(prev => ({
-                          ...prev,
-                          gridLayout: { ...prev.gridLayout, rows: parseInt(e.target.value) }
-                        }))}
+                        onChange={(e) =>
+                          setSettings((prev) => ({
+                            ...prev,
+                            gridLayout: {
+                              ...prev.gridLayout,
+                              rows: parseInt(e.target.value),
+                            },
+                          }))
+                        }
                         className="w-full"
                       />
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 text-center">
-                    Total posts per page: {settings.gridLayout.columns * settings.gridLayout.rows}
+                    Total posts per page:{" "}
+                    {settings.gridLayout.columns * settings.gridLayout.rows}
                   </div>
                 </div>
               )}
@@ -824,16 +941,16 @@ export default function SettingsClient() {
                 onChange={(e) => {
                   const newSize = e.target.value as typeof settings.gridSize;
                   const columns = {
-                    '28': '7',
-                    '42': '7',
-                    '63': '9',
-                    '88': '11'
+                    "28": "7",
+                    "42": "7",
+                    "63": "9",
+                    "88": "11",
                   }[newSize] as typeof settings.gridColumns;
-                  
-                  setSettings(prev => ({ 
-                    ...prev, 
+
+                  setSettings((prev) => ({
+                    ...prev,
                     gridSize: newSize,
-                    gridColumns: columns
+                    gridColumns: columns,
                   }));
                 }}
                 className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
@@ -855,38 +972,20 @@ export default function SettingsClient() {
             <div className="space-y-4">
               <div className="settings-row">
                 <span className="font-[family-name:var(--font-geist-mono)] text-gray-900 dark:text-gray-400">
-                  Default Privacy
-                </span>
-                <select
-                  value={settings.uploadSettings.defaultPrivacy}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    uploadSettings: {
-                      ...prev.uploadSettings,
-                      defaultPrivacy: e.target.value as typeof settings.uploadSettings.defaultPrivacy
-                    }
-                  }))}
-                  className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-                >
-                  <option value="public">Public</option>
-                  <option value="unlisted">Unlisted</option>
-                  <option value="private">Private</option>
-                </select>
-              </div>
-
-              <div className="settings-row">
-                <span className="font-[family-name:var(--font-geist-mono)] text-gray-900 dark:text-gray-400">
                   Default Content Rating
                 </span>
                 <select
                   value={settings.uploadSettings.defaultContentRating}
-                  onChange={(e) => setSettings(prev => ({
-                    ...prev,
-                    uploadSettings: {
-                      ...prev.uploadSettings,
-                      defaultContentRating: e.target.value as typeof settings.uploadSettings.defaultContentRating
-                    }
-                  }))}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      uploadSettings: {
+                        ...prev.uploadSettings,
+                        defaultContentRating: e.target
+                          .value as typeof settings.uploadSettings.defaultContentRating,
+                      },
+                    }))
+                  }
                   className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
                 >
                   <option value="safe">Safe</option>
@@ -898,7 +997,7 @@ export default function SettingsClient() {
           </section>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );
