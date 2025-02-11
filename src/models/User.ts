@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 interface IUser extends mongoose.Document {
   email: string;
   name: string;
+  username: string;  // Neues Feld
   password: string;
   createdAt: Date;
   updatedAt: Date;
@@ -12,12 +13,17 @@ interface IUser extends mongoose.Document {
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: [true, 'Email ist erforderlich'],
+    required: [false, 'Email ist erforderlich'],
     unique: true,
   },
   name: {
     type: String,
     required: [true, 'Name ist erforderlich'], 
+  },
+  username: {          // Neues Feld
+    type: String,
+    required: [true, 'Username ist erforderlich'],
+    unique: true,
   },
   password: {
     type: String,
