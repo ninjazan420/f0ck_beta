@@ -39,7 +39,7 @@ interface UserData {
   bio: string;
   avatar: string | null;
   recentActivity: ActivityItem[];
-  role: 'user' | 'premium' | 'moderator' | 'admin';
+  role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
 }
 
 export function UserProfile({ username }: { username: string }) {
@@ -89,6 +89,12 @@ export function UserProfile({ username }: { username: string }) {
 
   const getRoleBadge = (role: string) => {
     switch(role) {
+      case 'banned':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-black/40 text-white border border-black/50">
+            BANNED ✝
+          </span>
+        );
       case 'admin':
         return (
           <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-red-500/40 text-white border border-red-500/50">

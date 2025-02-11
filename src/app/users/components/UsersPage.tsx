@@ -4,7 +4,7 @@ import { UserList } from './UserList';
 import { UserFilter } from './UserFilter';
 import { Footer } from "@/components/Footer";
 
-export type UserRole = 'member' | 'moderator' | 'admin';
+export type UserRole = 'member' | 'moderator' | 'admin' | 'banned';
 export type SortBy = 'newest' | 'most_active' | 'most_posts' | 'most_likes';
 
 export interface Filters {

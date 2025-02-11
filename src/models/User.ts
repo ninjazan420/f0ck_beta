@@ -10,7 +10,7 @@ interface IUser extends mongoose.Document {
   createdAt: Date;
   lastSeen: Date;
   updatedAt: Date;
-  role: 'user' | 'premium' | 'moderator' | 'admin';
+  role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
   isPremium: boolean;
   isAdmin: boolean;
   isModerator: boolean;
@@ -69,7 +69,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'premium', 'moderator', 'admin'],
+    enum: ['user', 'premium', 'moderator', 'admin', 'banned'],
     default: 'user',
     index: true // Für schnellere Abfragen
   },

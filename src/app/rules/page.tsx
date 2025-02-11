@@ -166,13 +166,17 @@ export default function Rules() {
                 <li>2FA recommended</li>
                 <li>Maximum security settings for NSFW access</li>
               </ul>
+              <div className="mt-3 p-2 rounded bg-amber-50/50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30">
+                <p className="text-sm text-amber-600 dark:text-amber-400">
+                  ⚠️ Important: Accounts created without an email address CANNOT be recovered if the password is lost. This is a strict policy with no exceptions - choose wisely during registration! You can always add an email address later in your account settings while logged in.
+                </p>
+              </div>
             </div>
 
             <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
               <h3 className="font-medium text-gray-900 dark:text-gray-100">Age Restrictions</h3>
               <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
                 <li>Minimum age: 18 years</li>
-                <li>Age verification for NSFW content</li>
                 <li>No underage users</li>
                 <li>Account suspension upon suspicion</li>
               </ul>

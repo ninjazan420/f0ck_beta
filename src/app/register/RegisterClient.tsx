@@ -91,6 +91,9 @@ export default function RegisterClient() {
                     placeholder="Email (optional)"
                     className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
                   />
+                  <p className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/20 p-2 rounded border border-amber-100 dark:border-amber-900/30">
+                    ⚠️ Warning: Without an email address, there is absolutely no way to recover your password or account if lost - no exceptions! You can add an email address later in your account settings while logged in.
+                  </p>
                 </div>
 
                 {error && (

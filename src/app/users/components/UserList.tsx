@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Filters } from './UsersPage';
 
 interface UserListProps {
@@ -16,7 +15,7 @@ interface User {
   createdAt: string;
   lastSeen: string;
   premium?: boolean;
-  role: 'user' | 'moderator' | 'admin';
+  role: 'user' | 'moderator' | 'admin' | 'banned';
   stats: {
     uploads?: number;
     comments?: number;
@@ -91,11 +90,13 @@ export function UserList({ filters, page, onPageChange }: UserListProps) {
                   <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
                     user.role === 'admin' ? 'bg-red-500/40 text-white border border-red-500/50' :
                     user.role === 'moderator' ? 'bg-blue-500/40 text-white border border-blue-500/50' :
+                    user.role === 'banned' ? 'bg-gray-900/80 text-white border border-gray-700/50' :
                     user.premium ? 'bg-purple-500/40 text-white border border-purple-500/50' :
                     'bg-gray-500/40 text-white border border-gray-500/50'
                   }`}>
                     {user.role === 'admin' ? 'ADMIN' :
                      user.role === 'moderator' ? 'MOD' :
+                     user.role === 'banned' ? 'BANNED' :
                      user.premium ? 'PREMIUM' : 'MEMBER'}
                   </span>
                 </div>
