@@ -2,6 +2,15 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/mongodb';
 import User from '@/models/User';
 
+interface UserQuery {
+  $or?: Array<{
+    username?: { $regex: string, $options: string },
+    bio?: { $regex: string, $options: string },
+    role?: string,
+  }>;
+  isPremium?: boolean;
+}
+
 export async function GET(request: Request) {
   try {
     await dbConnect();
@@ -15,7 +24,7 @@ export async function GET(request: Request) {
     const isPremium = searchParams.get('isPremium');
 
     // Query bauen
-    let query: any = {};
+    const query: UserQuery = {};
     
     // Suchfilter
     if (search) {

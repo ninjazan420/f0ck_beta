@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack -p 3001",
+    "dev": "next dev --turbopack -p 3000",
     "build": "next build",
-    "start": "next start -p 3001",
+    "start": "next start -p 3000",
     "lint": "next lint"
   },
   "dependencies": {
@@ -17,8 +17,7 @@
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-dropzone": "^14.3.5",
-    "next-image": "^1.0.0"
+    "react-dropzone": "^14.3.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

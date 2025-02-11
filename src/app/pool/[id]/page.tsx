@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import { Metadata } from 'next';
 import { PoolDetails } from "./PoolDetails";
 import { PoolNavigation } from "../components/PoolNavigation";
 
@@ -8,7 +8,6 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  
   return {
     title: `Pool #${id} - f0ck beta v1`,
     description: `View collection #${id} and its contents.`,

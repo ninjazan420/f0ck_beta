@@ -1,11 +1,17 @@
-import { Metadata } from "next";
+import { Metadata } from 'next';
 import { CommentsPage } from "./components/CommentsPage";
 
 export const metadata: Metadata = {
-  title: "Recent Comments - f0ck beta v1",
-  description: "Recent comments on f0ck.org",
-  icons: {
-    icon: '/favicon.ico'
+  title: 'Recent Comments - f0ck beta v1',
+  description: 'Recent comments on f0ck.org',
+  openGraph: {
+    title: 'Recent Comments - f0ck beta v1',
+    description: 'Recent comments on f0ck.org',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Recent Comments - f0ck beta v1',
+    description: 'Recent comments on f0ck.org',
   }
 };
 

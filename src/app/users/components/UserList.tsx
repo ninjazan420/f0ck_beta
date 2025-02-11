@@ -3,9 +3,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Filters } from './UsersPage';
 
-interface UserListProps {
+export interface UserListProps {
   filters: Filters;
   page: number;
+  totalPages: number;
   onPageChange: (page: number) => void;
 }
 
@@ -25,11 +26,10 @@ interface User {
   };
 }
 
-export function UserList({ filters, page, onPageChange }: UserListProps) {
+export function UserList({ filters, page, totalPages, onPageChange }: UserListProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -49,7 +49,6 @@ export function UserList({ filters, page, onPageChange }: UserListProps) {
         
         const data = await response.json();
         setUsers(data.users);
-        setTotalPages(data.pagination.pages);
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
@@ -150,19 +149,23 @@ export function UserList({ filters, page, onPageChange }: UserListProps) {
 
       {/* Pagination */}
       <div className="flex justify-center gap-2 mt-6">
-        {Array.from({ length: totalPages }, (_, i) => (
-          <button
-            key={i + 1}
-            onClick={() => onPageChange(i + 1)}
-            className={`px-3 py-1 rounded ${
-              page === i + 1
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800'
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
+        <button 
+          onClick={() => onPageChange(page - 1)}
+          disabled={page <= 1}
+          className="px-4 py-2 rounded bg-gray-200 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="px-4 py-2">
+          Page {page} of {totalPages}
+        </span>
+        <button 
+          onClick={() => onPageChange(page + 1)}
+          disabled={page >= totalPages}
+          className="px-4 py-2 rounded bg-gray-200 disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
   );

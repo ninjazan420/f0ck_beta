@@ -1,6 +1,20 @@
-'use client';
+import { Metadata } from 'next';
 import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: 'Rules & Policies - f0ck beta v1',
+  description: 'Community guidelines, content policies, and account rules for f0ck.org',
+  openGraph: {
+    title: 'Rules & Policies - f0ck beta v1',
+    description: 'Learn about our community guidelines and content policies.',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Rules & Policies - f0ck beta v1',
+    description: 'Community guidelines, content policies, and account rules for f0ck.org',
+  }
+};
 
 export default function Rules() {
   return (
@@ -198,6 +212,14 @@ export default function Rules() {
                 <li>Temporary ban for repeated violations</li>
                 <li>Permanent ban for severe violations</li>
                 <li>Immediate deletion of illegal content</li>
+              </ul>
+            </div>
+
+            <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">Moderation Actions</h3>
+              <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
+                <li>Content removal without notice</li>
+                <li>Account restrictions</li>
               </ul>
             </div>
 

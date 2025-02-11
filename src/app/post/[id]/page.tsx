@@ -26,14 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     openGraph: {
       title: post.title,
       description: post.description,
-      images: [
-        {
-          url: post.imageUrl,
-          width: 1200,
-          height: 800,
-          alt: post.title,
-        },
-      ],
+      images: [{ url: post.imageUrl, width: 1200, height: 800 }],
       type: 'article',
       authors: [post.uploader.name],
     },
@@ -57,7 +50,6 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           <PostDetails postId={id} />
         </div>
       </div>
-      
       <Footer />
     </div>
   );
