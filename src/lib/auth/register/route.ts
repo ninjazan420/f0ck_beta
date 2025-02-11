@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/mongodb';
 import User from '@/models/User';
+import { hash } from 'bcryptjs';
 
 class CustomError extends Error {
   status?: number;
@@ -11,28 +12,63 @@ export async function POST(req: Request) {
     await dbConnect();
     const { username, email, password } = await req.json();
 
-    // Check ob User existiert
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
+    // Validation
+    if (!username || !password) {
       return NextResponse.json(
-        { error: 'Username bereits vergeben' },
+        { error: 'Username and password are required' },
         { status: 400 }
       );
     }
 
-    // Neuen User erstellen
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: 'Password must be at least 6 characters long' },
+        { status: 400 }
+      );
+    }
+
+    // Optional email validation
+    if (email && !/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email)) {
+      return NextResponse.json(
+        { error: 'Invalid email address' },
+        { status: 400 }
+      );
+    }
+
+    // Check if user exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'Username already taken' },
+        { status: 400 }
+      );
+    }
+
+    // Optional email check
+    if (email) {
+      const emailExists = await User.findOne({ email });
+      if (emailExists) {
+        return NextResponse.json(
+          { error: 'Email already registered' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Hash password and create user
+    const hashedPassword = await hash(password, 12);
     const user = await User.create({
       username,
-      email,
-      password
+      ...(email && { email }), // Email nur hinzufügen wenn vorhanden
+      password: hashedPassword
     });
 
     return NextResponse.json({
-      message: 'User erfolgreich erstellt',
+      message: 'User created successfully',
       user: {
         id: user._id,
         username: user.username,
-        email: user.email
+        ...(user.email && { email: user.email })
       }
     });
 

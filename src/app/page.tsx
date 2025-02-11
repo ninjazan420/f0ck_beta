@@ -1,21 +1,14 @@
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { getRandomLogo } from "@/lib/utils";
-import { Metadata } from "next";
+import { useEffect, useState } from "react";
 
-export const metadata: Metadata = {
-  title: "Home - f0ck beta v1",
-  description: "Welcome to f0ck beta v1 - A modern imageboard platform.",
-  icons: [
-    {
-      rel: 'icon',
-      url: '/favicon.ico',
-    },
-  ],
-};
+// Remove metadata since this is now a client component
+// Metadata should be moved to a separate layout.tsx file
 
-// Mock pinned post data
 const PINNED_POST = {
   id: 'post-1',
   title: 'Welcome to f0ck.org',
@@ -29,21 +22,27 @@ const PINNED_POST = {
 };
 
 export default function Home() {
-  const logoSrc = getRandomLogo();
-  
+  const [logoSrc, setLogoSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLogoSrc(getRandomLogo());
+  }, []);
+
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col items-center">
       <div className="flex-1 flex flex-col items-center w-full">
         {/* Top Section - Logo and Welcome */}
         <div className="flex flex-col items-center gap-4 pt-12 pb-8">
           <Link href="/" className="relative w-[411px] h-[84px]">
-            <Image
-              src={logoSrc}
-              alt="f0ck.org Logo"
-              fill
-              priority
-              className="object-contain"
-            />
+            {logoSrc && (
+              <Image
+                src={logoSrc}
+                alt="f0ck.org Logo"
+                fill
+                priority
+                className="object-contain"
+              />
+            )}
           </Link>
 
           <div className="text-center space-y-2">

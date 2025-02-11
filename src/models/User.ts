@@ -1,25 +1,30 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+interface IUser extends mongoose.Document {
+  email: string;
+  name: string;
+  password: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const userSchema = new mongoose.Schema({
-  username: {
+  email: {
     type: String,
-    required: true,
-    unique: true
+    required: [true, 'Email ist erforderlich'],
+    unique: true,
   },
-  email: String,
+  name: {
+    type: String,
+    required: [true, 'Name ist erforderlich'], 
+  },
   password: {
     type: String,
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  isPremium: {
-    type: Boolean,
-    default: false
+    required: [true, 'Passwort ist erforderlich'],
   }
+}, {
+  timestamps: true
 });
 
 // Password Hashing
@@ -28,3 +33,8 @@ userSchema.pre('save', async function(next) {
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
+
+// Prüfen ob das Model bereits existiert um Fehler zu vermeiden
+const User = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
+
+export default User;
