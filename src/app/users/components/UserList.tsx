@@ -148,23 +148,44 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center gap-2 mt-6">
+      <div className="flex items-center justify-between mt-6">
         <button 
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="px-4 py-2 rounded bg-gray-200 disabled:opacity-50"
+          className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 ${
+            page <= 1 ? 'pointer-events-none opacity-50' : ''
+          }`}
         >
-          Previous
+          ← Previous
         </button>
-        <span className="px-4 py-2">
-          Page {page} of {totalPages}
-        </span>
+
+        <div className="flex items-center gap-2">
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            const pageNum = i + 1;
+            return (
+              <button
+                key={pageNum}
+                onClick={() => onPageChange(pageNum)}
+                className={`px-3 py-1 rounded-lg ${
+                  pageNum === page
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
+                }`}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+        </div>
+
         <button 
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="px-4 py-2 rounded bg-gray-200 disabled:opacity-50"
+          className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 ${
+            page >= totalPages ? 'pointer-events-none opacity-50' : ''
+          }`}
         >
-          Next
+          Next →
         </button>
       </div>
     </div>

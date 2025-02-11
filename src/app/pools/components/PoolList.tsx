@@ -171,43 +171,43 @@ export function PoolList({ filters, page, totalPages, onPageChange }: PoolListPr
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center items-center gap-2 pt-4">
-        <button
-          onClick={() => onPageChange(Math.max(1, page - 1))}
-          disabled={page === 1}
-          className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 text-sm"
+      <div className="flex items-center justify-between mt-4">
+        <Link 
+          href={page > 1 ? `/pools?page=${page - 1}` : '#'}
+          className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 ${
+            page === 1 ? 'pointer-events-none opacity-50' : ''
+          }`}
         >
           ← Previous
-        </button>
-        
-        <div className="flex items-center gap-1">
+        </Link>
+
+        <div className="flex items-center gap-2">
           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            const pageNum = page + i - 2;
-            if (pageNum < 1 || pageNum > totalPages) return null;
+            const pageNum = i + 1;
             return (
-              <button
+              <Link
                 key={pageNum}
-                onClick={() => onPageChange(pageNum)}
-                className={`w-8 h-8 rounded-lg text-sm ${
-                  page === pageNum
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-purple-100 dark:hover:bg-purple-900/30'
+                href={`/pools?page=${pageNum}`}
+                className={`px-3 py-1 rounded-lg ${
+                  pageNum === page
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}
               >
                 {pageNum}
-              </button>
+              </Link>
             );
           })}
-          {page < totalPages - 2 && <span className="text-gray-500">...</span>}
         </div>
 
-        <button
-          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-          disabled={page === totalPages}
-          className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 text-sm"
+        <Link 
+          href={page < totalPages ? `/pools?page=${page + 1}` : '#'}
+          className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 ${
+            page === totalPages ? 'pointer-events-none opacity-50' : ''
+          }`}
         >
           Next →
-        </button>
+        </Link>
       </div>
     </div>
   );
