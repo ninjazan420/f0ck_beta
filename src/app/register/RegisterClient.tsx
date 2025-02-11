@@ -1,10 +1,50 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { RandomLogo } from "@/components/RandomLogo";
 
 export default function RegisterClient() {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      username: formData.get('username'),
+      password: formData.get('password'),
+      email: formData.get('email') || undefined
+    };
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || 'Ein Fehler ist aufgetreten');
+      }
+
+      // Nach erfolgreicher Registrierung zum Login weiterleiten
+      router.push('/login?registered=true');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
       {/* Logo Section */}
@@ -22,47 +62,62 @@ export default function RegisterClient() {
                 Create Account
               </h2>
               
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  placeholder="Username"
-                  className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <input
-                  type="password"
-                  placeholder="Password (5+ Characters)"
-                  className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <input
-                  type="email"
-                  placeholder="Email (optional)"
-                  className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-                />
-              </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    name="username"
+                    placeholder="Username"
+                    required
+                    className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Password (5+ Characters)"
+                    required
+                    minLength={5}
+                    className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Email (optional)"
+                    className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+                  />
+                </div>
 
-              {/* Register Button */}
-              <button className="relative h-12 w-full mt-6 rounded-lg overflow-hidden transition-all duration-500 group">
-                <div className="absolute inset-0 rounded-lg p-[2px] bg-gradient-to-b from-[#654358] via-[#17092A] to-[#2F0D64]">
-                  <div className="absolute inset-0 bg-[#170928] rounded-lg opacity-90"></div>
-                </div>
-                <div className="absolute inset-[2px] bg-[#170928] rounded-lg opacity-95"></div>
-                <div className="absolute inset-[2px] bg-gradient-to-r from-[#170928] via-[#1d0d33] to-[#170928] rounded-lg opacity-90"></div>
-                <div className="absolute inset-[2px] bg-gradient-to-b from-[#654358]/40 via-[#1d0d33] to-[#2F0D64]/30 rounded-lg opacity-80"></div>
-                <div className="absolute inset-[2px] bg-gradient-to-br from-[#C787F6]/10 via-[#1d0d33] to-[#2A1736]/50 rounded-lg"></div>
-                <div className="absolute inset-[2px] shadow-[inset_0_0_15px_rgba(199,135,246,0.15)] rounded-lg"></div>
-                <div className="relative flex items-center justify-center gap-2">
-                  <span className="text-lg font-normal bg-gradient-to-b from-[#D69DDE] to-[#B873F8] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(199,135,246,0.4)] tracking-tighter">
-                    Register
-                  </span>
-                </div>
-                <div className="absolute inset-[2px] opacity-0 transition-opacity duration-300 bg-gradient-to-r from-[#2A1736]/20 via-[#C787F6]/10 to-[#2A1736]/20 group-hover:opacity-100 rounded-lg"></div>
-              </button>
+                {error && (
+                  <div className="text-red-500 text-sm">{error}</div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="relative h-12 w-full mt-6 rounded-lg overflow-hidden transition-all duration-500 group"
+                >
+                  <div className="absolute inset-0 rounded-lg p-[2px] bg-gradient-to-b from-[#654358] via-[#17092A] to-[#2F0D64]">
+                    <div className="absolute inset-0 bg-[#170928] rounded-lg opacity-90"></div>
+                  </div>
+                  <div className="absolute inset-[2px] bg-[#170928] rounded-lg opacity-95"></div>
+                  <div className="absolute inset-[2px] bg-gradient-to-r from-[#170928] via-[#1d0d33] to-[#170928] rounded-lg opacity-90"></div>
+                  <div className="absolute inset-[2px] bg-gradient-to-b from-[#654358]/40 via-[#1d0d33] to-[#2F0D64]/30 rounded-lg opacity-80"></div>
+                  <div className="absolute inset-[2px] bg-gradient-to-br from-[#C787F6]/10 via-[#1d0d33] to-[#2A1736]/50 rounded-lg"></div>
+                  <div className="absolute inset-[2px] shadow-[inset_0_0_15px_rgba(199,135,246,0.15)] rounded-lg"></div>
+                  <div className="relative flex items-center justify-center gap-2">
+                    <span className="text-lg font-normal bg-gradient-to-b from-[#D69DDE] to-[#B873F8] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(199,135,246,0.4)] tracking-tighter">
+                      {loading ? 'Registrierung...' : 'Register'}
+                    </span>
+                  </div>
+                  <div className="absolute inset-[2px] opacity-0 transition-opacity duration-300 bg-gradient-to-r from-[#2A1736]/20 via-[#C787F6]/10 to-[#2A1736]/20 group-hover:opacity-100 rounded-lg"></div>
+                </button>
+              </form>
             </div>
 
             {/* Right Column - Features List */}

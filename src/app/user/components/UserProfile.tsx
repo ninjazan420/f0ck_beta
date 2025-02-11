@@ -39,139 +39,82 @@ interface UserData {
   bio: string;
   avatar: string | null;
   recentActivity: ActivityItem[]; // Geändert von recentComments zu recentActivity
+  role: 'user' | 'premium' | 'moderator' | 'admin';
 }
-
-const MOCK_USER_DATA: { [key: string]: UserData } = {
-  'user1': {
-    username: 'User1',
-    joinDate: '2023-01-15',
-    lastLogin: '2024-01-10T15:45:00', // Neu
-    premium: true,
-    style: {
-      type: 'gradient',
-      gradient: ['purple-400', 'pink-600'],
-      animate: true
-    },
-    stats: {
-      uploads: 42,
-      comments: 156,
-      favorites: 89,
-      likes: 234,
-      dislikes: 12,
-      tags: 42
-    },
-    bio: 'Premium user with awesome content!',
-    avatar: null,
-    recentActivity: [
-      {
-        id: '1',
-        type: 'comment',
-        emoji: '💬',
-        text: 'Wrote a comment: "Amazing work!"',
-        date: '2024-01-09',
-        post: {
-          id: '123',
-          title: 'Sunset Photo',
-          imageUrl: 'https://picsum.photos/seed/1/400/300',
-          type: 'image'
-        }
-      },
-      {
-        id: '2',
-        type: 'like',
-        emoji: '❤️',
-        text: 'Liked this post',
-        date: '2024-01-08',
-        post: {
-          id: '124',
-          title: 'Abstract Art',
-          imageUrl: 'https://picsum.photos/seed/2/400/300',
-          type: 'image',
-          nsfw: true
-        }
-      },
-      {
-        id: '3',
-        type: 'upload',
-        emoji: '📤',
-        text: 'Uploaded this post',
-        date: '2024-01-07',
-        post: {
-          id: '125',
-          title: 'Nature Shot',
-          imageUrl: 'https://picsum.photos/seed/3/400/300',
-          type: 'image'
-        }
-      },
-      {
-        id: '4',
-        type: 'favorite',
-        emoji: '⭐',
-        text: 'Added to favorites',
-        date: '2024-01-06',
-        post: {
-          id: '126',
-          title: 'Cool Animation',
-          imageUrl: 'https://picsum.photos/seed/4/400/300',
-          type: 'video'
-        }
-      },
-      {
-        id: '5',
-        type: 'tag',
-        emoji: '🏷️',
-        text: 'Tagged a post',
-        date: '2024-01-05',
-        post: {
-          id: '127',
-          title: 'Cityscape',
-          imageUrl: 'https://picsum.photos/seed/5/400/300',
-          type: 'image'
-        }
-      }
-    ]
-  },
-  'user2': {
-    username: 'User2',
-    joinDate: '2023-03-22',
-    lastLogin: '2024-01-15T10:30:00', // Hinzugefügtes Feld
-    premium: false,
-    stats: {
-      uploads: 15,
-      comments: 45,
-      favorites: 32,
-      likes: 67,
-      dislikes: 5,
-      tags: 0
-    },
-    bio: 'Regular user enjoying the platform',
-    avatar: null,
-    recentActivity: []
-  }
-};
-
-const DEFAULT_AVATAR = '/images/defaultavatar.png';
 
 export function UserProfile({ username }: { username: string }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    // Simuliere API-Call
-    const fetchUserData = () => {
-      const lowercaseUsername = username.toLowerCase();
-      const data = MOCK_USER_DATA[lowercaseUsername];
-      
-      if (data) {
-        setUserData(data);
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`/api/users/${username}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setNotFound(true);
+          return;
+        }
+
+        setUserData({
+          username: data.username,
+          joinDate: data.createdAt,
+          lastLogin: data.lastSeen,
+          bio: data.bio || '',
+          premium: false, // Später implementieren
+          avatar: null,  // Später implementieren
+          stats: {
+            uploads: 0,  // Später implementieren
+            comments: 0,
+            favorites: 0,
+            likes: 0,
+            dislikes: 0,
+            tags: 0
+          },
+          recentActivity: [], // Später implementieren
+          role: 'user' // Später implementieren
+        });
         setNotFound(false);
-      } else {
+      } catch (error) {
+        console.error('Error fetching user:', error);
         setNotFound(true);
       }
     };
 
-    fetchUserData();
+    if (username) {
+      fetchUserData();
+    }
   }, [username]);
+
+  const getRoleBadge = (role: string) => {
+    switch(role) {
+      case 'premium':
+        return (
+          <span className="px-2 py-0.5 rounded text-sm font-medium bg-purple-500/40 text-white border border-purple-500/50">
+            PREMIUM
+          </span>
+        );
+      case 'moderator':
+        return (
+          <span className="px-2 py-0.5 rounded text-sm font-medium bg-blue-500/40 text-white border border-blue-500/50">
+            MOD
+          </span>
+        );
+      case 'admin':
+        return (
+          <span className="px-2 py-0.5 rounded text-sm font-medium bg-red-500/40 text-white border border-red-500/50">
+            ADMIN
+          </span>
+        );
+      default:
+        return (
+          <span className="px-2 py-0.5 rounded text-sm font-medium bg-gray-500/40 text-white border border-gray-500/50">
+            MEMBER
+          </span>
+        );
+    }
+  };
 
   if (notFound) {
     return (
@@ -211,24 +154,12 @@ export function UserProfile({ username }: { username: string }) {
           {/* Avatar Section */}
           <div className="w-32 md:w-32 flex-shrink-0">
             <div className={`w-32 h-32 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center
-              ${userData.premium ? 'ring-2 ring-purple-400 dark:ring-purple-600' : ''}`}>
-              {userData.avatar ? (
-                <Image 
-                  src={userData.avatar} 
-                  alt={`${userData.username}'s avatar`}
-                  width={128}
-                  height={128}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <Image
-                  src={DEFAULT_AVATAR}
-                  alt={`${userData.username}'s default avatar`}
-                  width={128}
-                  height={128}
-                  className="w-full h-full object-contain"
-                />
-              )}
+              ${userData?.premium ? 'ring-2 ring-purple-400 dark:ring-purple-600' : ''}`}>
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-4xl text-gray-400">
+                  {userData?.username?.[0]?.toUpperCase()}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -242,11 +173,7 @@ export function UserProfile({ username }: { username: string }) {
               }`}>
                 {userData.username}
               </h1>
-              {userData.premium && (
-                <span className="px-2 py-0.5 rounded text-sm font-medium bg-purple-500/40 text-white border border-purple-500/50">
-                  PREMIUM
-                </span>
-              )}
+              {userData.role && getRoleBadge(userData.role)}
             </div>
             
             <p className="text-gray-600 dark:text-gray-400">

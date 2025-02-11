@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';  // Am Anfang der Datei importieren
 
 interface ActivityItem {
   id: string;
@@ -38,11 +39,16 @@ interface ProfileData {
     showUploads: boolean;
   };
   recentActivity: ActivityItem[]; 
+  email: string;
+  createdAt: string;
+  lastSeen: string;
 }
 
 export function AccountCard() {
+  const { data: session, update: updateSession } = useSession();  // data hinzugefügt
+
   const [profile, setProfile] = useState<ProfileData>({
-    nickname: 'User123',
+    nickname: '',  // Leer initialisieren
     bio: '',
     avatarUrl: null,
     joinDate: '2023-12-24',
@@ -127,7 +133,44 @@ export function AccountCard() {
         }
       },
     ],
+    email: '',
+    createdAt: new Date().toISOString(),
+    lastSeen: new Date().toISOString(),
   });
+
+  // Lade Benutzerdaten beim Komponenten-Mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch('/api/user');
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('Fetched user data:', userData); // Debug-Log
+          setProfile(prev => ({
+            ...prev,
+            nickname: userData.username,
+            bio: userData.bio || '', // Bio aus DB laden
+            email: userData.email || '',
+            createdAt: userData.createdAt,
+            lastSeen: userData.lastSeen,
+            uploads: userData.stats?.uploads || 0,
+            favorites: userData.stats?.favorites || 0,
+            likedPosts: userData.stats?.likes || 0,
+            dislikedPosts: userData.stats?.dislikes || 0,
+            comments: userData.stats?.comments || 0,
+            tags: userData.stats?.tags || 0
+            // Weitere Statistiken werden hier gesetzt wenn verfügbar
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    if (session?.user) {
+      fetchUserData();
+    }
+  }, [session]); // Abhängigkeit von der Session hinzugefügt
 
   const [isEditing, setIsEditing] = useState(false);
   const [newAvatar, setNewAvatar] = useState<File | null>(null);
@@ -145,17 +188,58 @@ export function AccountCard() {
     }
   };
 
-  const handleSave = () => {
-    // Hier würde die API-Logik implementiert
-    if (newAvatar) {
-      // Here you would upload the newAvatar file to your server
-      // For now, just update the local avatarUrl with the preview
+  const handleSave = async () => {
+    try {
+      // Avatar-Update Logik...
+      if (newAvatar) {
+        setProfile(prev => ({
+          ...prev,
+          avatarUrl: previewUrl
+        }));
+      }
+
+      // Update Benutzerdaten
+      const updateData = {
+        username: profile.nickname,
+        name: profile.nickname,
+        bio: profile.bio,
+        email: profile.email
+      };
+      
+      console.log('Sending update:', updateData);
+
+      const response = await fetch('/api/user', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Fehler beim Speichern');
+      }
+
+      const updatedData = await response.json();
+      console.log('Received update response:', updatedData);
+
+      // Zuerst das Profil aktualisieren
       setProfile(prev => ({
         ...prev,
-        avatarUrl: previewUrl
+        nickname: updatedData.username,
+        email: updatedData.email,
+        bio: updatedData.bio || ''
       }));
+
+      // Dann die Session aktualisieren
+      await updateSession({
+        username: updatedData.username,
+        email: updatedData.email
+      });
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
     }
-    setIsEditing(false);
   };
 
   const handleReset = () => {
@@ -192,7 +276,7 @@ export function AccountCard() {
             {(previewUrl || profile.avatarUrl) ? (
               <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
                 <Image 
-                  src={previewUrl || profile.avatarUrl || '/images/defaultavatar.png'} // FDFlback hinzugefügt
+                  src={previewUrl || profile.avatarUrl || '/images/defaultavatar.png'} // Fallback hinzugefügt
                   alt={`${profile.nickname}'s avatar`}
                   width={128}
                   height={128}
@@ -260,6 +344,20 @@ export function AccountCard() {
           </div>
 
           <div>
+            <label className="block text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">
+              Email
+            </label>
+            <input
+              type="email"
+              value={profile.email}
+              onChange={e => setProfile({ ...profile, email: e.target.value })}
+              disabled={!isEditing}
+              className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+              placeholder="Enter your email"
+            />
+          </div>
+
+          <div>
             <div className="flex justify-between items-center">
               <label className="block text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">Bio</label>
               <span className="text-xs text-gray-400">{profile.bio.length}/140</span>
@@ -278,10 +376,10 @@ export function AccountCard() {
           {/* Member Info */}
           <div className="text-sm space-y-1">
             <div className="text-gray-500">
-              Member since {new Date(profile.joinDate).toLocaleDateString()}
+              Member since {new Date(profile.createdAt).toLocaleDateString()}
             </div>
             <div className="text-gray-500">
-              Last seen {new Date(profile.lastLogin).toLocaleString()}
+              Last seen {new Date(profile.lastSeen).toLocaleString()}
             </div>
           </div>
 
@@ -301,11 +399,11 @@ export function AccountCard() {
             </div>
             <div className="text-center">
               <div className="text-xs text-gray-500 mb-1">comments</div>
-              <div className="font-medium text-gray-900 dark:text-gray-100">{profile.recentActivity.filter(activity => activity.type === 'comment').length}</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">{profile.comments}</div>
             </div>
             <div className="text-center">
               <div className="text-xs text-gray-500 mb-1">tags</div>
-              <div className="font-medium text-gray-900 dark:text-gray-100">42</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">{profile.tags}</div>
             </div>
           </div>
         </div>
@@ -385,7 +483,6 @@ export function AccountCard() {
                   </Link>
                 </div>
               </div>
-
               {/* Thumbnail */}
               <Link 
                 href={`/post/${activity.post.id}`}

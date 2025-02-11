@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { ensureIndexes } from './ensureIndexes';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -32,7 +33,11 @@ async function dbConnect() {
       autoIndex: true,
     }
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => mongoose.connection)
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then(async (mongoose) => {
+      // Prüfe/erstelle Indizes nach erfolgreicher Verbindung
+      await ensureIndexes();
+      return mongoose.connection;
+    })
   }
   
   try {

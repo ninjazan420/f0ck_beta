@@ -12,7 +12,8 @@ type MenuItem = {
 );
 
 export const Navbar = () => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated';
 
   const leftMenuItems: MenuItem[] = [
     { type: 'link', label: 'Home', href: '/' },
@@ -24,35 +25,48 @@ export const Navbar = () => {
     { type: 'link', label: 'Users', href: '/users' },
   ];
 
-  const rightMenuItems: MenuItem[] = [
-    {
-      type: 'avatar',
-      label: 'Avatar',
-      component: (
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
-            <div className="text-xs text-gray-400">
-              {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
-            </div>
-          </div>
-          <Link href="/account" className="font-mono">
-            {session?.user?.username ?? 'User'}
-          </Link>
-        </div>
-      )
-    },
-    { type: 'link', label: 'Settings', href: '/settings' },
+  // Gemeinsame Menüpunkte für alle Benutzer
+  const commonMenuItems: MenuItem[] = [
     { type: 'link', label: 'Help', href: '/help' },
     { type: 'link', label: 'Rules', href: '/rules' },
+    { type: 'link', label: 'Settings', href: '/settings' },
     { type: 'link', label: 'Premium', href: '/premium' },
-    { type: 'link', label: 'Login', href: '/login' },
-    { type: 'link', label: 'Register', href: '/register' },
-    {
-      type: 'button',
-      label: 'Logout',
-      onClick: () => signOut({ callbackUrl: '/' })
-    }
   ];
+
+  const getAuthMenuItems = (): MenuItem[] => {
+    if (isAuthenticated) {
+      return [
+        {
+          type: 'avatar',
+          label: 'Avatar',
+          component: (
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
+                <div className="text-xs text-gray-400">
+                 {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
+                </div>
+              </div>
+              <Link href="/account" className="font-mono">
+                {session?.user?.username ?? 'User'}
+              </Link>
+            </div>
+          )
+        },
+        ...commonMenuItems,
+        {
+          type: 'button',
+          label: 'Logout',
+          onClick: () => signOut({ callbackUrl: '/' })
+        }
+      ];
+    } else {
+      return [
+        ...commonMenuItems,
+        { type: 'link', label: 'Login', href: '/login' },
+        { type: 'link', label: 'Register', href: '/register' },
+      ];
+    }
+  };
 
   return (
     <nav className="w-full h-[36.8px] border-b border-gray-200 dark:border-gray-800">
@@ -74,7 +88,7 @@ export const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-6">
-            {rightMenuItems.map((item) => {
+            {getAuthMenuItems().map((item) => {
               switch (item.type) {
                 case 'avatar':
                   return <div key={item.label}>{item.component}</div>;
