@@ -1,5 +1,7 @@
 # f0ck.org Beta v1
 
+> ⚠️ **Development Notice**: This project is currently under active development. A public live version is not yet available.
+
 Modern, next-generation imageboard platform built with Next.js 14 and TailwindCSS.
 
 ## ⚡ Main Features
