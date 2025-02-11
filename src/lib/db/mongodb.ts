@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-const MONGODB_URI = process.env.MONGODB_URI
+const MONGODB_URI = process.env.MONGODB_URI!
 
 if (!MONGODB_URI) {
   throw new Error('MongoDB URI nicht definiert')
@@ -27,7 +27,7 @@ async function dbConnect() {
   }
 
   if (!cached.promise) {
-    const opts = {
+    const opts: mongoose.ConnectOptions = {
       bufferCommands: false,
       autoCreate: true,
       autoIndex: true,

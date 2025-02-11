@@ -29,6 +29,8 @@ interface ProfileData {
   favorites: number;
   likedPosts: number;
   dislikedPosts: number;
+  comments: number; // Added this property
+  tags: number; // Added this property
   privacySettings: {
     isProfilePrivate: boolean;
     showBio: boolean;
@@ -57,6 +59,8 @@ export function AccountCard() {
     favorites: 123,
     likedPosts: 256,
     dislikedPosts: 12,
+    comments: 0, // Initialize with 0
+    tags: 0, // Initialize with 0
     privacySettings: {
       isProfilePrivate: false,
       showBio: true,

@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
 import User from '../../models/User';
+import { CreateIndexesOptions } from 'mongodb';
 
 interface IndexInfo {
   name: string;
   fields: { [key: string]: 1 | -1 };
-  options: mongoose.IndexOptions;
+  options: CreateIndexesOptions;
 }
 
 const REQUIRED_INDEXES: IndexInfo[] = [
@@ -78,10 +78,13 @@ export async function ensureIndexes() {
     for (const index of REQUIRED_INDEXES) {
       if (!existingIndexNames.includes(index.name)) {
         console.log(`Creating missing index: ${index.name}`);
-        await collection.createIndex(index.fields, {
-          ...index.options,
-          name: index.name
-        });
+        await collection.createIndex(
+          index.fields,
+          { 
+            name: index.name,
+            ...index.options 
+          } as CreateIndexesOptions
+        );
       }
     }
 

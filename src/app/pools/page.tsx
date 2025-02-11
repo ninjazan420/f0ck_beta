@@ -4,6 +4,9 @@ import { PoolsPage } from "./components/PoolsPage";
 export const metadata: Metadata = {
   title: "Pools - f0ck beta v1",
   description: "Browse curated collections and albums. Discover themed galleries and series.",
+  icons: {
+    icon: '/favicon.ico'
+  },
   keywords: ["pools", "collections", "albums", "galleries", "series", "curated"],
   openGraph: {
     title: "Image Pools - f0ck beta v1",

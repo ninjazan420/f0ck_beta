@@ -1,8 +1,27 @@
-import { AuthOptions } from 'next-auth';
+import { AuthOptions, DefaultSession } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import dbConnect from './db/mongodb';
-import User from '../models/User'; // Korrigierter Pfad mit korrekter Schreibweise
+import User from '../models/User';
 import bcrypt from 'bcryptjs';
+
+// Extend the built-in session types
+declare module 'next-auth' {
+  interface Session extends DefaultSession {
+    user: {
+      id: string;
+      username?: string;
+    } & DefaultSession['user']
+  }
+}
+
+// Extend the built-in JWT types
+declare module 'next-auth/jwt' {
+  interface JWT {
+    id: string;
+    username?: string;
+    email?: string | null;
+  }
+}
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -52,10 +71,10 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, user, trigger, session }) {
       if (user) {
+        token.id = user.id;
         token.username = user.username;
-        token.email = user.email;
+        token.email = user.email || null;
       }
-      // Update token wenn Session aktualisiert wird
       if (trigger === "update" && session) {
         token.username = session.username || token.username;
         token.email = session.email || token.email;
@@ -63,9 +82,10 @@ export const authOptions: AuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
+        session.user.id = token.id;
         session.user.username = token.username;
-        session.user.email = token.email;
+        session.user.email = token.email || undefined;
       }
       return session;
     }
