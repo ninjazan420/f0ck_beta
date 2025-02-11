@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 declare global {
   // eslint-disable-next-line no-var
   var mongoose: {
-    conn: typeof mongoose | null
-    promise: Promise<typeof mongoose> | null
+    conn: mongoose.Connection | null
+    promise: Promise<mongoose.Connection> | null
   }
 }
 
@@ -32,7 +32,7 @@ async function dbConnect() {
       autoIndex: true,
     }
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts)
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => mongoose.connection)
   }
   
   try {

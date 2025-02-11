@@ -25,9 +25,18 @@ interface PostGridProps {
   loading?: boolean;
   filters?: {
     contentRating?: ContentRating[];
+    searchText?: string;
+    tags?: string[];
+    uploader?: string;
+    commenter?: string;
+    minLikes?: number;
+    dateFrom?: string;
+    dateTo?: string;
+    sortBy?: string;
   };
   infiniteScroll?: boolean;
   page?: number;
+  poolId?: string;
 }
 
 export function PostGrid({ loading = false, filters = {}, page = 1 }: PostGridProps) {

@@ -13,21 +13,21 @@ interface IUser extends mongoose.Document {
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: [false, 'Email ist erforderlich'],
+    required: [false, 'Email is optional'],
     unique: true,
   },
   name: {
     type: String,
-    required: [true, 'Name ist erforderlich'], 
+    required: [true, 'Name is required'], 
   },
   username: {          // Neues Feld
     type: String,
-    required: [true, 'Username ist erforderlich'],
+    required: [true, 'Username is required'],
     unique: true,
   },
   password: {
     type: String,
-    required: [true, 'Passwort ist erforderlich'],
+    required: [true, 'Passwort is required'],
   }
 }, {
   timestamps: true

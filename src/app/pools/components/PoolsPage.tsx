@@ -28,7 +28,7 @@ export function PoolsPage() {
     timeRange: 'all'
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(20); // Mock value
+  const totalPages = 20; // Changed from useState to constant since setter is unused
 
   return (
     <div className="min-h-screen flex flex-col">

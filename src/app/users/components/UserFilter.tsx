@@ -6,9 +6,9 @@ interface UserFilterProps {
     roles: UserRole[];
     isPremium: boolean | null;
     sortBy: SortBy;
-    timeRange: string;
+    timeRange: 'all' | 'day' | 'week' | 'month' | 'year';
   };
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: UserFilterProps['filters']) => void;
 }
 
 export function UserFilter({ filters, onFilterChange }: UserFilterProps) {

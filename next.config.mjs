@@ -7,14 +7,7 @@ const nextConfig = {
     });
     return config;
   },
-  experimental: {
-    turbopack: true
-  },
-  env: {
-    PORT: 3001
-  },
   images: {
-    domains: ['picsum.photos', 'placehold.co'],  // Alternative zu remotePatterns
     remotePatterns: [
       {
         protocol: 'https',

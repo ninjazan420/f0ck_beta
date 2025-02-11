@@ -1,14 +1,14 @@
 import { Metadata } from "next";
-import { PoolDetails } from "../components/PoolDetails";
+import { PoolDetails } from "./PoolDetails";
+import { PoolNavigation } from "../components/PoolNavigation";
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // Warte auf die params
-  const id = (await params).id;
-
+  const { id } = await params;
+  
   return {
     title: `Pool #${id} - f0ck beta v1`,
     description: `View collection #${id} and its contents.`,
@@ -16,11 +16,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Pool({ params }: Props) {
-  // Warte auf die params
-  const id = (await params).id;
+  const { id } = await params;
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <PoolNavigation currentId={id} />
       <PoolDetails poolId={id} />
     </div>
   );

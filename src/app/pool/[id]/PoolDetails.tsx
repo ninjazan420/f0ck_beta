@@ -42,7 +42,10 @@ export function PoolDetails({ poolId }: { poolId: string }) {
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = view === 'grid' ? 24 : 12;
-  const [pool] = useState(MOCK_POOL_DETAILS);
+  const [pool] = useState({
+    ...MOCK_POOL_DETAILS,
+    id: poolId
+  });
 
   const startIdx = (currentPage - 1) * itemsPerPage;
   const currentItems = pool.items.slice(startIdx, startIdx + itemsPerPage);

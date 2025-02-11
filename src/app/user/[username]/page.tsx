@@ -1,7 +1,5 @@
 import { Metadata } from 'next';
-import { RandomLogo } from "@/components/RandomLogo";
-import { Footer } from "@/components/Footer";
-import { UserProfile } from "../components/UserProfile";
+import { UserDetails } from './components/UserDetails';
 
 async function getUser(username: string) {
   const mockUser = {
@@ -28,9 +26,9 @@ async function getUser(username: string) {
   return mockUser;
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ username: string }> | { username: string } }): Promise<Metadata> {
-  const resolvedParams = await params;
-  const user = await getUser(resolvedParams.username);
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params;
+  const user = await getUser(username);
   
   // Ersten Buchstaben groß schreiben
   const formattedUsername = user.username.charAt(0).toUpperCase() + user.username.slice(1);
@@ -60,9 +58,7 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
         },
       ],
       type: 'profile',
-      profile: {
-        username: user.username,
-      },
+      firstName: user.username, // Use firstName instead of nested profile object
     },
     twitter: {
       card: 'summary',
@@ -80,20 +76,8 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   };
 }
 
-export default async function UserPage({ params }: { params: Promise<{ username: string }> | { username: string } }) {
-  const resolvedParams = await params;
+export default async function UserPage({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params;
   
-  return (
-    <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
-      <div className="w-full flex justify-center py-8">
-        <RandomLogo />
-      </div>
-      
-      <div className="container mx-auto px-4 py-4 max-w-4xl flex-grow">
-        <UserProfile username={resolvedParams.username} />
-      </div>
-      
-      <Footer />
-    </div>
-  );
+  return <UserDetails username={username} />;
 }

@@ -3,19 +3,6 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-interface Comment {
-  id: string;
-  text: string;
-  date: string;
-  post: {
-    id: string;
-    title: string;
-    imageUrl: string;
-    type: 'image' | 'video' | 'gif';
-    nsfw?: boolean;
-  };
-}
-
 interface ActivityItem {
   id: string;
   type: 'comment' | 'like' | 'favorite' | 'upload' | 'tag';
@@ -50,7 +37,7 @@ interface ProfileData {
     showFavorites: boolean;
     showUploads: boolean;
   };
-  recentActivity: ActivityItem[];
+  recentActivity: ActivityItem[]; 
 }
 
 export function AccountCard() {
@@ -267,6 +254,8 @@ export function AccountCard() {
               onChange={e => setProfile({ ...profile, nickname: e.target.value })}
               disabled={!isEditing}
               className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+              placeholder="Enter your nickname"
+              title="Nickname input field"
             />
           </div>
 
@@ -334,6 +323,9 @@ export function AccountCard() {
               className="sr-only peer"
               checked={profile.privacySettings.isProfilePrivate}
               onChange={() => togglePrivacySetting('isProfilePrivate')}
+              id="privacy-toggle"
+              aria-label="Toggle private profile"
+              title="Toggle private profile"
             />
             <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
           </label>
@@ -350,8 +342,11 @@ export function AccountCard() {
                   onChange={() => togglePrivacySetting(key as keyof ProfileData['privacySettings'])}
                   disabled={profile.privacySettings.isProfilePrivate}
                   className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 
-                    text-purple-600 focus:ring-purple-500 dark:focus:ring-purple-600
-                    dark:bg-gray-700 transition-colors cursor-pointer"
+                      text-purple-600 focus:ring-purple-500 dark:focus:ring-purple-600
+                      dark:bg-gray-700 transition-colors cursor-pointer"
+                  aria-label={`Show ${key.replace('show', '')}`}
+                  title={`Toggle visibility of ${key.replace('show', '')}`}
+                  id={`privacy-${key}`}
                 />
                 <span className="text-gray-600 dark:text-gray-400">
                   Show {key.replace('show', '')}

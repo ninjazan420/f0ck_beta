@@ -12,6 +12,9 @@ interface Filters {
   types: TagType[];
   minPosts: number;
   sortBy: SortBy;
+  author: string;
+  usedBy: string;
+  timeRange: 'all' | 'day' | 'week' | 'month' | 'year';
 }
 
 export function TagsPage() {
@@ -19,7 +22,10 @@ export function TagsPage() {
     search: '',
     types: ['general', 'character', 'copyright', 'artist', 'meta'],
     minPosts: 0,
-    sortBy: 'most_used'
+    sortBy: 'most_used',
+    author: '',
+    usedBy: '',
+    timeRange: 'all'
   });
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 20; // Mock value

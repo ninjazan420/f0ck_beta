@@ -7,7 +7,7 @@ import { Footer } from "@/components/Footer";
 export type UserRole = 'member' | 'moderator' | 'admin';
 export type SortBy = 'newest' | 'most_active' | 'most_posts' | 'most_likes';
 
-interface Filters {
+export interface Filters {
   search: string;
   roles: UserRole[];
   isPremium: boolean | null;
@@ -24,7 +24,7 @@ export function UsersPage() {
     timeRange: 'all'
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(20);
+  const [totalPages] = useState(20);
 
   return (
     <div className="min-h-screen flex flex-col">

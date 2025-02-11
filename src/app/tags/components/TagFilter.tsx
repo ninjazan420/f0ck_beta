@@ -10,7 +10,7 @@ interface TagFilterProps {
     usedBy: string;
     timeRange: 'all' | 'day' | 'week' | 'month' | 'year';
   };
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: TagFilterProps['filters']) => void;
 }
 
 export function TagFilter({ filters, onFilterChange }: TagFilterProps) {
@@ -130,10 +130,11 @@ export function TagFilter({ filters, onFilterChange }: TagFilterProps) {
 
           {/* Min Posts Compact Version */}
           <div className="flex items-center gap-4">
-            <label className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+            <label htmlFor="minPosts" className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
               Min. posts:
             </label>
             <select
+              id="minPosts"
               value={filters.minPosts}
               onChange={(e) => onFilterChange({ ...filters, minPosts: Number(e.target.value) })}
               className="flex-1 px-3 py-1.5 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm"

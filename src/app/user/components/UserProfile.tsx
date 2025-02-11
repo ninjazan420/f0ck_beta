@@ -134,6 +134,7 @@ const MOCK_USER_DATA: { [key: string]: UserData } = {
   'user2': {
     username: 'User2',
     joinDate: '2023-03-22',
+    lastLogin: '2024-01-15T10:30:00', // Hinzugefügtes Feld
     premium: false,
     stats: {
       uploads: 15,

@@ -1,4 +1,4 @@
-import { UserRole, SortBy } from './UsersPage';
+import { UserRole, Filters } from './UsersPage'; // SortBy entfernt, da nicht direkt verwendet
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -50,13 +50,7 @@ const MOCK_USERS: User[] = Array.from({ length: 50 }, (_, i) => ({
 }));
 
 interface UserListProps {
-  filters: {
-    search: string;
-    roles: UserRole[];
-    isPremium: boolean | null;
-    sortBy: SortBy;
-    timeRange: string;
-  };
+  filters: Filters;
   page: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -151,8 +145,24 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center items-center gap-2 pt-4">
-        {/* ...existing pagination code from PoolList... */}
+      <div className="mt-4 flex justify-center gap-2">
+        <button
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 1}
+          className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="px-3 py-1">
+          Page {page} of {totalPages}
+        </span>
+        <button
+          onClick={() => onPageChange(page + 1)}
+          disabled={page === totalPages}
+          className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
   );

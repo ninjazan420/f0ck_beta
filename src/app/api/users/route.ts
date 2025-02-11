@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import dbConnect from '@/lib/db/mongodb';
 import User from '@/models/User';
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await getServerSession();
     if (!session) {
@@ -14,7 +14,8 @@ export async function GET(req: Request) {
     const users = await User.find({}).select('-password');
     
     return NextResponse.json(users);
-  } catch (error) {
+  } catch (err) {
+    console.error('Error fetching users:', err);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }

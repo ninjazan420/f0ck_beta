@@ -24,7 +24,7 @@ export const Navbar = () => {
     { type: 'link', label: 'Users', href: '/users' },
   ];
 
-  const rightMenuItems: MenuItem[] = session ? [
+  const rightMenuItems: MenuItem[] = [
     {
       type: 'avatar',
       label: 'Avatar',
@@ -32,24 +32,26 @@ export const Navbar = () => {
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
             <div className="text-xs text-gray-400">
-              {session.user?.username?.[0]?.toUpperCase() ?? '?'}
+              {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
             </div>
           </div>
           <Link href="/account" className="font-mono">
-            {session.user?.username ?? 'User'}
+            {session?.user?.username ?? 'User'}
           </Link>
         </div>
       )
     },
     { type: 'link', label: 'Settings', href: '/settings' },
+    { type: 'link', label: 'Help', href: '/help' },
+    { type: 'link', label: 'Rules', href: '/rules' },
+    { type: 'link', label: 'Premium', href: '/premium' },
+    { type: 'link', label: 'Login', href: '/login' },
+    { type: 'link', label: 'Register', href: '/register' },
     {
       type: 'button',
       label: 'Logout',
       onClick: () => signOut({ callbackUrl: '/' })
     }
-  ] : [
-    { type: 'link', label: 'Login', href: '/login' },
-    { type: 'link', label: 'Register', href: '/register' }
   ];
 
   return (
@@ -57,15 +59,18 @@ export const Navbar = () => {
       <div className="container mx-auto px-4 h-full">
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center gap-6">
-            {leftMenuItems.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="font-mono text-[1em] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              >
-                {item.label}
-              </Link>
-            ))}
+            {leftMenuItems.map((item) => {
+              if (item.type !== 'link') return null;
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="font-mono text-[1em] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>
 
           <div className="flex items-center gap-6">

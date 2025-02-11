@@ -16,9 +16,9 @@ async function getPost(id: string) {
   };
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> | { id: string } }): Promise<Metadata> {
-  const resolvedParams = await params;
-  const post = await getPost(resolvedParams.id);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const post = await getPost(id);
   
   return {
     title: `${post.title} - f0ck beta v1`,
@@ -46,15 +46,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-export default async function PostPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
-  const resolvedParams = await params;
+export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   
   return (
     <div className="min-h-screen flex flex-col">
       <div className="container mx-auto px-4 py-4 max-w-6xl flex-grow">
-        <PostNavigation currentId={resolvedParams.id} />
+        <PostNavigation currentId={id} />
         <div className="mt-6">
-          <PostDetails postId={resolvedParams.id} />
+          <PostDetails postId={id} />
         </div>
       </div>
       

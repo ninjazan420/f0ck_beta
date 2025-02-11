@@ -10,7 +10,7 @@ interface PoolFilterProps {
     sortBy: SortBy;
     timeRange: 'all' | 'day' | 'week' | 'month' | 'year';
   };
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: PoolFilterProps['filters']) => void;
 }
 
 export function PoolFilter({ filters, onFilterChange }: PoolFilterProps) {
@@ -134,10 +134,11 @@ export function PoolFilter({ filters, onFilterChange }: PoolFilterProps) {
 
           {/* Min Items Select */}
           <div className="flex items-center gap-4">
-            <label className="text-sm text-gray-600 dark:text-gray-400">
+            <label htmlFor="min-items" className="text-sm text-gray-600 dark:text-gray-400">
               Min. items:
             </label>
             <select
+              id="min-items"
               value={filters.minItems}
               onChange={(e) => onFilterChange({ ...filters, minItems: Number(e.target.value) })}
               className="px-3 py-1.5 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm"
