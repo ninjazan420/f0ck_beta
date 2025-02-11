@@ -38,7 +38,7 @@ interface UserData {
   };
   bio: string;
   avatar: string | null;
-  recentActivity: ActivityItem[]; // Geändert von recentComments zu recentActivity
+  recentActivity: ActivityItem[];
   role: 'user' | 'premium' | 'moderator' | 'admin';
 }
 
@@ -62,18 +62,18 @@ export function UserProfile({ username }: { username: string }) {
           joinDate: data.createdAt,
           lastLogin: data.lastSeen,
           bio: data.bio || '',
-          premium: false, // Später implementieren
-          avatar: null,  // Später implementieren
+          premium: data.premium || false,
+          avatar: data.avatar || null,
           stats: {
-            uploads: 0,  // Später implementieren
-            comments: 0,
-            favorites: 0,
-            likes: 0,
-            dislikes: 0,
-            tags: 0
+            uploads: data.stats?.uploads || 0,
+            comments: data.stats?.comments || 0,
+            favorites: data.stats?.favorites || 0,
+            likes: data.stats?.likes || 0,
+            dislikes: data.stats?.dislikes || 0,
+            tags: data.stats?.tags || 0
           },
-          recentActivity: [], // Später implementieren
-          role: 'user' // Später implementieren
+          recentActivity: data.recentActivity || [],
+          role: data.role || 'user'
         });
         setNotFound(false);
       } catch (error) {
@@ -89,27 +89,27 @@ export function UserProfile({ username }: { username: string }) {
 
   const getRoleBadge = (role: string) => {
     switch(role) {
-      case 'premium':
+      case 'admin':
         return (
-          <span className="px-2 py-0.5 rounded text-sm font-medium bg-purple-500/40 text-white border border-purple-500/50">
-            PREMIUM
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-red-500/40 text-white border border-red-500/50">
+            ADMIN
           </span>
         );
       case 'moderator':
         return (
-          <span className="px-2 py-0.5 rounded text-sm font-medium bg-blue-500/40 text-white border border-blue-500/50">
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/40 text-white border border-blue-500/50">
             MOD
           </span>
         );
-      case 'admin':
+      case 'premium':
         return (
-          <span className="px-2 py-0.5 rounded text-sm font-medium bg-red-500/40 text-white border border-red-500/50">
-            ADMIN
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
+            PREMIUM
           </span>
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded text-sm font-medium bg-gray-500/40 text-white border border-gray-500/50">
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-500/40 text-white border border-gray-500/50">
             MEMBER
           </span>
         );
@@ -153,12 +153,17 @@ export function UserProfile({ username }: { username: string }) {
         <div className="flex gap-6">
           {/* Avatar Section */}
           <div className="w-32 md:w-32 flex-shrink-0">
-            <div className={`w-32 h-32 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center
-              ${userData?.premium ? 'ring-2 ring-purple-400 dark:ring-purple-600' : ''}`}>
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-4xl text-gray-400">
-                  {userData?.username?.[0]?.toUpperCase()}
-                </span>
+            <div className={`relative ${
+              userData?.premium ? 'before:absolute before:inset-0 before:rounded-lg before:p-[2px] before:bg-gradient-to-r before:from-purple-400 before:to-pink-600' : ''
+            }`}>
+              <div className={`relative ${userData?.premium ? 'p-[2px]' : ''}`}>
+                <div className="w-32 h-32 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-4xl text-gray-400">
+                      {userData?.username?.[0]?.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -173,7 +178,7 @@ export function UserProfile({ username }: { username: string }) {
               }`}>
                 {userData.username}
               </h1>
-              {userData.role && getRoleBadge(userData.role)}
+              {getRoleBadge(userData.role)}
             </div>
             
             <p className="text-gray-600 dark:text-gray-400">
@@ -248,13 +253,13 @@ export function UserProfile({ username }: { username: string }) {
 
               {/* Thumbnail */}
               <Link 
-                href={`/post/${activity.post.id}`} // Korrigierte URL-Struktur
+                href={`/post/${activity.post.id}`}
                 className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden group"
               >
                 <div className={`absolute inset-0 bg-cover bg-center`}>
                   {activity.post.imageUrl && (
                     <Image
-                      src={activity.post.imageUrl} // Direkte Verwendung der URL ohne Proxy
+                      src={activity.post.imageUrl}
                       alt={activity.post.title}
                       width={64}
                       height={64}
