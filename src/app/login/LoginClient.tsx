@@ -6,11 +6,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Footer } from "@/components/Footer";
 import { RandomLogo } from "@/components/RandomLogo";
+import { StatusBanner } from '@/components/StatusBanner';
 
 export default function LoginClient() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showLoginBanner, setShowLoginBanner] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,6 +30,8 @@ export default function LoginClient() {
       setError(res.error);
       setLoading(false);
     } else {
+      setShowLoginBanner(true);
+      await new Promise(resolve => setTimeout(resolve, 1000));
       router.push('/');
       router.refresh();
     }
@@ -35,6 +39,7 @@ export default function LoginClient() {
 
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
+      <StatusBanner show={showLoginBanner} message="Logging in..." />
       <div className="w-full flex justify-center py-8">
         <RandomLogo />
       </div>

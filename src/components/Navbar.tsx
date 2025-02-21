@@ -2,6 +2,9 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
+import { LogoutBanner } from './LogoutBanner';
+import { StatusBanner } from './StatusBanner';
+import { useState } from 'react';
 
 type MenuItem = {
   label: string;
@@ -14,6 +17,8 @@ type MenuItem = {
 export const Navbar = () => {
   const { data: session, status } = useSession();
   const isAuthenticated = status === 'authenticated';
+  const [showLogoutBanner, setShowLogoutBanner] = useState(false);
+  const [showSuccessLogout, setShowSuccessLogout] = useState(false);
 
   const leftMenuItems: MenuItem[] = [
     { type: 'link', label: 'Home', href: '/' },
@@ -32,6 +37,14 @@ export const Navbar = () => {
     { type: 'link', label: 'Settings', href: '/settings' },
     { type: 'link', label: 'Premium', href: '/premium' },
   ];
+
+  const handleLogout = async () => {
+    setShowLogoutBanner(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setShowLogoutBanner(false);
+    setShowSuccessLogout(true);
+    signOut({ redirect: true, callbackUrl: '/' });
+  };
 
   const getAuthMenuItems = (): MenuItem[] => {
     if (isAuthenticated) {
@@ -56,7 +69,7 @@ export const Navbar = () => {
         {
           type: 'button',
           label: 'Logout',
-          onClick: () => signOut({ callbackUrl: '/' })
+          onClick: handleLogout
         }
       ];
     } else {
@@ -69,54 +82,58 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="w-full h-[36.8px] border-b border-gray-200 dark:border-gray-800">
-      <div className="container mx-auto px-4 h-full">
-        <div className="flex items-center justify-between h-full">
-          <div className="flex items-center gap-6">
-            {leftMenuItems.map((item) => {
-              if (item.type !== 'link') return null;
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="font-mono text-[1em] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
+    <>
+      <StatusBanner show={showLogoutBanner} message="Logging out..." type="default" />
+      <StatusBanner show={showSuccessLogout} message="Successfully logged out!" type="success" />
+      <nav className="w-full h-[36.8px] border-b border-gray-200 dark:border-gray-800">
+        <div className="container mx-auto px-4 h-full">
+          <div className="flex items-center justify-between h-full">
+            <div className="flex items-center gap-6">
+              {leftMenuItems.map((item) => {
+                if (item.type !== 'link') return null;
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="font-mono text-[1em] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
 
-          <div className="flex items-center gap-6">
-            {getAuthMenuItems().map((item) => {
-              switch (item.type) {
-                case 'avatar':
-                  return <div key={item.label}>{item.component}</div>;
-                case 'button':
-                  return (
-                    <button
-                      key={item.label}
-                      onClick={item.onClick}
-                      className="font-mono text-[1em] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    >
-                      {item.label}
-                    </button>
-                  );
-                case 'link':
-                  return (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className="font-mono text-[1em] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    >
-                      {item.label}
-                    </Link>
-                  );
-              }
-            })}
+            <div className="flex items-center gap-6">
+              {getAuthMenuItems().map((item) => {
+                switch (item.type) {
+                  case 'avatar':
+                    return <div key={item.label}>{item.component}</div>;
+                  case 'button':
+                    return (
+                      <button
+                        key={item.label}
+                        onClick={item.onClick}
+                        className="font-mono text-[1em] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  case 'link':
+                    return (
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        className="font-mono text-[1em] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                }
+              })}
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };

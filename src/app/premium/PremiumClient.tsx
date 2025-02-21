@@ -105,9 +105,9 @@ export default function PremiumClient() {
               </h3>
             </div>
             <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-              <li>• Farbiger Nickname mit Gradienten</li>
-              <li>• Animierte Avatarrahmen</li>
-              <li>• Custom Profildesign</li>
+              <li>• Colored nickname with gradients</li>
+              <li>• Animated avatar frames</li>
+              <li>• Custom profile design</li>
             </ul>
           </div>
 
@@ -119,9 +119,9 @@ export default function PremiumClient() {
               </h3>
             </div>
             <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-              <li>• GIFs bis 50MB (statt 10MB)</li>
-              <li>• Videos in Originalqualität</li>
-              <li>• Unbegrenzte Uploads pro Tag</li>
+              <li>• GIFs up to 50MB (instead of 10MB)</li>
+              <li>• Videos in original quality</li>
+              <li>• Unlimited uploads per day</li>
             </ul>
           </div>
 
@@ -133,9 +133,9 @@ export default function PremiumClient() {
               </h3>
             </div>
             <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-              <li>• Unbegrenzte private Pools</li>
-              <li>• Unbegrenzte Tag-Favoriten</li>
-              <li>• Custom Tag-Kategorien</li>
+              <li>• Unlimited private pools</li>
+              <li>• Unlimited tag favorites</li>
+              <li>• Custom tag categories</li>
             </ul>
           </div>
 
@@ -147,9 +147,9 @@ export default function PremiumClient() {
               </h3>
             </div>
             <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-              <li>• Komplett werbefrei</li>
-              <li>• Early Access zu neuen Features</li>
-              <li>• Premium Support</li>
+              <li>• Completely ad-free</li>
+              <li>• Early access to new features</li>
+              <li>• Premium support</li>
             </ul>
           </div>
         </div>
@@ -157,34 +157,79 @@ export default function PremiumClient() {
         {/* FAQ Section */}
         <section className="mb-12">
           <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-6 text-black dark:text-gray-400">
-            Häufige Fragen
+            Frequently Asked Questions
           </h2>
           
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
               <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Wie kann ich bezahlen?
+                What payment methods do you accept?
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Wir akzeptieren alle gängigen Kreditkarten, PayPal und Cryptocurrency.
+                We accept all major credit cards, PayPal, and cryptocurrency.
               </p>
             </div>
 
             <div className="p-4 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
               <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Kann ich jederzeit kündigen?
+                Can I cancel anytime?
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Ja, du kannst dein Premium-Abo jederzeit kündigen. Die Vorteile bleiben bis zum Ende der Laufzeit erhalten.
+                Yes, you can cancel your premium subscription at any time. Benefits will remain active until the end of your billing period.
               </p>
             </div>
 
             <div className="p-4 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
               <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Gibt es eine Geld-zurück-Garantie?
+                Is there a money-back guarantee?
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Wir bieten eine 7-tägige Geld-zurück-Garantie, falls du mit Premium nicht zufrieden sein solltest.
+                We offer a 7-day money-back guarantee if you're not satisfied with your premium experience.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                Can I switch between monthly and yearly plans?
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Yes, you can switch plans at any time. If you switch to yearly, we'll prorate your existing subscription.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                What happens to my uploaded content if I cancel?
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                All your uploaded content remains accessible, but new uploads will be subject to free tier limitations.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                Do you offer team or family plans?
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Currently, we only offer individual premium subscriptions. Team plans are coming soon!
+              </p>
+            </div>
+
+            <div className="p-4 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                Is premium available worldwide?
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Yes, our premium features are available to users worldwide with region-adjusted pricing.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                How fast is premium support?
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Premium members receive priority support with guaranteed response times within 24 hours.
               </p>
             </div>
           </div>
