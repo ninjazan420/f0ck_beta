@@ -36,7 +36,6 @@ export default function RegisterClient() {
         throw new Error(result.error || 'Ein Fehler ist aufgetreten');
       }
 
-      // Nach erfolgreicher Registrierung zum Login weiterleiten
       router.push('/login?registered=true');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
@@ -115,7 +114,7 @@ export default function RegisterClient() {
                   <div className="absolute inset-[2px] shadow-[inset_0_0_15px_rgba(199,135,246,0.15)] rounded-lg"></div>
                   <div className="relative flex items-center justify-center gap-2">
                     <span className="text-lg font-normal bg-gradient-to-b from-[#D69DDE] to-[#B873F8] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(199,135,246,0.4)] tracking-tighter">
-                      {loading ? 'Registrierung...' : 'Register'}
+                      {loading ? 'Register...' : 'Register'}
                     </span>
                   </div>
                   <div className="absolute inset-[2px] opacity-0 transition-opacity duration-300 bg-gradient-to-r from-[#2A1736]/20 via-[#C787F6]/10 to-[#2A1736]/20 group-hover:opacity-100 rounded-lg"></div>

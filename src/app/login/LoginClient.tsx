@@ -8,7 +8,11 @@ import { Footer } from "@/components/Footer";
 import { RandomLogo } from "@/components/RandomLogo";
 import { StatusBanner } from '@/components/StatusBanner';
 
-export default function LoginClient() {
+interface LoginClientProps {
+  registered?: boolean;
+}
+
+export default function LoginClient({ registered }: LoginClientProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -39,7 +43,15 @@ export default function LoginClient() {
 
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
-      <StatusBanner show={showLoginBanner} message="Logging in..." />
+      <StatusBanner 
+        show={showLoginBanner} 
+        message="Logging in..." 
+      />
+      <StatusBanner 
+        show={!!registered} 
+        message="Registration successful! Please log in." 
+        type="default" 
+      />
       <div className="w-full flex justify-center py-8">
         <RandomLogo />
       </div>
