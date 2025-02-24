@@ -101,7 +101,7 @@ userSchema.pre('save', async function(next) {
 
 // Middleware um Rollen-Flags automatisch zu setzen
 userSchema.pre('save', function(next) {
-  this.isPremium = this.role === 'premium';
+  this.isPremium = this.role === 'premium';  // Dies stellt sicher, dass isPremium mit der role synchron ist
   this.isAdmin = this.role === 'admin';
   this.isModerator = this.role === 'moderator';
   next();

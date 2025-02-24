@@ -3,9 +3,8 @@ import { useState } from 'react';
 import { UserList } from './UserList';
 import { UserFilter } from './UserFilter';
 import { Footer } from "@/components/Footer";
-import Link from 'next/link'
 
-export type UserRole = 'member' | 'moderator' | 'admin' | 'banned';
+export type UserRole = 'member' | 'premium' | 'moderator' | 'admin' | 'banned';
 export type SortBy = 'newest' | 'most_active' | 'most_posts' | 'most_likes';
 
 export interface Filters {
@@ -19,7 +18,7 @@ export interface Filters {
 export function UsersPage() {
   const [filters, setFilters] = useState<Filters>({
     search: '',
-    roles: ['member', 'moderator', 'admin'],
+    roles: ['member', 'premium', 'moderator', 'admin'], // Premium hinzugefügt
     isPremium: null,
     sortBy: 'most_active',
     timeRange: 'all'

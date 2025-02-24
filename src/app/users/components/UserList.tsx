@@ -90,13 +90,13 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
                     user.role === 'admin' ? 'bg-red-500/40 text-white border border-red-500/50' :
                     user.role === 'moderator' ? 'bg-blue-500/40 text-white border border-blue-500/50' :
                     user.role === 'banned' ? 'bg-gray-900/80 text-white border border-gray-700/50' :
-                    user.premium ? 'bg-purple-500/40 text-white border border-purple-500/50' :
+                    user.role === 'premium' ? 'bg-purple-500/40 text-white border border-purple-500/50' :
                     'bg-gray-500/40 text-white border border-gray-500/50'
                   }`}>
                     {user.role === 'admin' ? 'ADMIN' :
                      user.role === 'moderator' ? 'MOD' :
                      user.role === 'banned' ? 'BANNED' :
-                     user.premium ? 'PREMIUM' : 'MEMBER'}
+                     user.role === 'premium' ? 'PREMIUM' : 'MEMBER'}
                   </span>
                 </div>
                 
