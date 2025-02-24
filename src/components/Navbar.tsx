@@ -45,6 +45,11 @@ export const Navbar = () => {
     signOut({ redirect: true, callbackUrl: '/' });
   };
 
+  const truncateUsername = (username: string | undefined | null): string => {
+    if (!username) return 'User';
+    return username.length > 12 ? username.substring(0, 12) + '...' : username;
+  };
+
   const getAuthMenuItems = (): MenuItem[] => {
     if (isAuthenticated) {
       return [
@@ -59,7 +64,7 @@ export const Navbar = () => {
                 </div>
               </div>
               <Link href="/account" className="font-mono">
-                {session?.user?.username ?? 'User'}
+                {truncateUsername(session?.user?.username)}
               </Link>
             </div>
           )

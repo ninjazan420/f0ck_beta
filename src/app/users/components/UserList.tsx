@@ -82,7 +82,6 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
               <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                 <span className="text-xl">{user.username[0].toUpperCase()}</span>
               </div>
-              
               <div className="flex-grow">
                 <div className="flex items-center gap-2">
                   <h3 className="font-medium">{user.username}</h3>
@@ -138,9 +137,11 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
                   </div>
                 </div>
                 
-                <div className="mt-2 text-xs text-gray-400">
-                  Last seen: {new Date(user.lastSeen).toLocaleDateString()}
+                <div className="mt-2 space-y-0.5 text-xs text-gray-400">
+                  <div>Member since: {new Date(user.createdAt).toLocaleDateString()}</div>
+                  <div>Last seen: {new Date(user.lastSeen).toLocaleDateString()}</div>
                 </div>
+
               </div>
             </div>
           </Link>
