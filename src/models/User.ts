@@ -87,7 +87,12 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
     index: true
-  }
+  },
+  uploads: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Upload',
+    index: true,
+  }]
 }, {
   timestamps: true // Dies erstellt automatisch createdAt und updatedAt
 });
@@ -106,6 +111,21 @@ userSchema.pre('save', function(next) {
   this.isModerator = this.role === 'moderator';
   next();
 });
+
+// Virtuals für die Statistiken
+userSchema.virtual('stats').get(function() {
+  return {
+    uploads: this.uploads?.length || 0,
+    comments: this.comments?.length || 0,
+    favorites: this.favorites?.length || 0,
+    likes: this.likes?.length || 0,
+    tags: this.tags?.length || 0
+  };
+});
+
+// Stellen Sie sicher, dass virtuals in JSON enthalten sind
+userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toObject', { virtuals: true });
 
 // Prüfen ob das Model bereits existiert um Fehler zu vermeiden
 const User = mongoose.models.User || mongoose.model<IUser>('User', userSchema);

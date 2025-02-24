@@ -55,10 +55,10 @@ export function AccountCard() {
     avatarUrl: null,
     joinDate: '2023-12-24',
     lastLogin: '2024-01-10T15:45:00', // Neu hinzugefügt
-    uploads: 42,
-    favorites: 123,
-    likedPosts: 256,
-    dislikedPosts: 12,
+    uploads: 0,
+    favorites: 0,
+    likedPosts: 0,
+    dislikedPosts: 0,
     comments: 0, // Initialize with 0
     tags: 0, // Initialize with 0
     privacySettings: {
@@ -70,102 +70,43 @@ export function AccountCard() {
       showFavorites: true,
       showUploads: true,
     },
-    recentActivity: [
-      { 
-        id: '1',
-        type: 'comment',
-        emoji: '💬',
-        text: 'Wrote a comment: "Nice post!"',
-        date: '2023-12-24',
-        post: {
-          id: '1',
-          title: 'Awesome Picture',
-          imageUrl: 'https://picsum.photos/seed/1/400/300',
-          type: 'image'
-        }
-      },
-      {
-        id: '2',
-        type: 'like',
-        emoji: '❤️',
-        text: 'Liked this post',
-        date: '2023-12-23',
-        post: {
-          id: '2',
-          title: 'Cool Animation',
-          imageUrl: 'https://picsum.photos/seed/2/400/300',
-          type: 'video'
-        }
-      },
-      {
-        id: '3',
-        type: 'favorite',
-        emoji: '⭐',
-        text: 'Added to favorites',
-        date: '2023-12-22',
-        post: {
-          id: '3',
-          title: 'Amazing Art',
-          imageUrl: 'https://picsum.photos/seed/3/400/300',
-          type: 'image'
-        }
-      },
-      {
-        id: '4',
-        type: 'upload',
-        emoji: '📤',
-        text: 'Uploaded this post',
-        date: '2023-12-21',
-        post: {
-          id: '4',
-          title: 'My New Upload',
-          imageUrl: 'https://picsum.photos/seed/4/400/300',
-          type: 'image'
-        }
-      },
-      {
-        id: '5',
-        type: 'tag',
-        emoji: '🏷️',
-        text: 'Added tags to this post',
-        date: '2023-12-20',
-        post: {
-          id: '5',
-          title: 'Tagged Post',
-          imageUrl: 'https://picsum.photos/seed/5/400/300',
-          type: 'image'
-        }
-      },
-    ],
+    recentActivity: [],
     email: '',
     createdAt: new Date().toISOString(),
     lastSeen: new Date().toISOString(),
   });
 
-  // Lade Benutzerdaten beim Komponenten-Mount
+  // Verbesserte useEffect für Datenabruf
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await fetch('/api/user');
-        if (response.ok) {
-          const userData = await response.json();
-          console.log('Fetched user data:', userData); // Debug-Log
-          setProfile(prev => ({
-            ...prev,
-            nickname: userData.username,
-            bio: userData.bio || '', // Bio aus DB laden
-            email: userData.email || '',
-            createdAt: userData.createdAt,
-            lastSeen: userData.lastSeen,
-            uploads: userData.stats?.uploads || 0,
-            favorites: userData.stats?.favorites || 0,
-            likedPosts: userData.stats?.likes || 0,
-            dislikedPosts: userData.stats?.dislikes || 0,
-            comments: userData.stats?.comments || 0,
-            tags: userData.stats?.tags || 0
-            // Weitere Statistiken werden hier gesetzt wenn verfügbar
-          }));
+        if (response.status === 401) {
+          console.log('Not authenticated, redirecting...');
+          // Optional: Hier Redirect zur Login-Seite
+          return;
         }
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+
+        const userData = await response.json();
+        console.log('Fetched user data:', userData);
+        
+        setProfile(prev => ({
+          ...prev,
+          nickname: userData.username || userData.name || '',
+          bio: userData.bio || '',
+          email: userData.email || '',
+          createdAt: userData.createdAt || new Date().toISOString(),
+          lastSeen: userData.lastSeen || new Date().toISOString(),
+          uploads: userData.stats?.uploads || 0,
+          favorites: userData.stats?.favorites || 0,
+          likedPosts: userData.stats?.likes || 0,
+          comments: userData.stats?.comments || 0,
+          tags: userData.stats?.tags || 0
+        }));
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
@@ -174,7 +115,7 @@ export function AccountCard() {
     if (session?.user) {
       fetchUserData();
     }
-  }, [session]); // Abhängigkeit von der Session hinzugefügt
+  }, [session]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [newAvatar, setNewAvatar] = useState<File | null>(null);
@@ -192,17 +133,14 @@ export function AccountCard() {
     }
   };
 
+  // Verbesserte handleSave Funktion
   const handleSave = async () => {
     try {
-      // Avatar-Update Logik...
-      if (newAvatar) {
-        setProfile(prev => ({
-          ...prev,
-          avatarUrl: previewUrl
-        }));
+      if (!session?.user) {
+        console.error('No session found');
+        return;
       }
 
-      // Update Benutzerdaten
       const updateData = {
         username: profile.nickname,
         name: profile.nickname,
@@ -226,7 +164,6 @@ export function AccountCard() {
       const updatedData = await response.json();
       console.log('Received update response:', updatedData);
 
-      // Zuerst das Profil aktualisieren
       setProfile(prev => ({
         ...prev,
         nickname: updatedData.username,
@@ -234,10 +171,13 @@ export function AccountCard() {
         bio: updatedData.bio || ''
       }));
 
-      // Dann die Session aktualisieren
       await updateSession({
-        username: updatedData.username,
-        email: updatedData.email
+        ...session,
+        user: {
+          ...session.user,
+          name: updatedData.username,
+          email: updatedData.email
+        }
       });
 
       setIsEditing(false);
@@ -347,7 +287,7 @@ export function AccountCard() {
             <label className="block text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">Nickname</label>
             <input
               type="text"
-              value={profile.nickname}
+              value={profile.nickname || ''} // Stelle sicher, dass der Wert nie undefined ist
               onChange={e => setProfile({ ...profile, nickname: e.target.value })}
               disabled={!isEditing}
               className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
@@ -362,7 +302,7 @@ export function AccountCard() {
             </label>
             <input
               type="email"
-              value={profile.email}
+              value={profile.email || ''} // Stelle sicher, dass der Wert nie undefined ist
               onChange={e => setProfile({ ...profile, email: e.target.value })}
               disabled={!isEditing}
               className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
