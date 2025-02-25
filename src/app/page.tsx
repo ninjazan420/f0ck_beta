@@ -23,9 +23,22 @@ const PINNED_POST = {
 
 export default function Home() {
   const [logoSrc, setLogoSrc] = useState<string | null>(null);
+  const [stats, setStats] = useState({ activeUsers: 0, newPosts: 0, newComments: 0 });
 
   useEffect(() => {
     setLogoSrc(getRandomLogo());
+
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/stats');
+        const data = await response.json();
+        setStats(data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    }
+
+    fetchStats();
   }, []);
 
   return (
@@ -94,16 +107,19 @@ export default function Home() {
         {/* Bottom Section - Stats and Coming Soon */}
         <div className="w-full max-w-2xl mx-auto px-4 space-y-8 mb-8">
           <div className="grid grid-cols-3 gap-4">
-            {['Aktive Nutzer', 'Kommentare (24h)', 'Neue Posts (24h)'].map((stat, index) => (
-              <div key={index} className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 text-center">
-                <div className="text-2xl font-light tracking-tight text-gray-900 dark:text-gray-400">0</div>
-                <div className="text-[13px] font-medium tracking-wide text-gray-500 dark:text-gray-500">
-                  {stat}
-                </div>
-              </div>
-            ))}
+            <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 text-center">
+              <div className="text-2xl font-light tracking-tight text-gray-900 dark:text-gray-400">{stats.activeUsers}</div>
+              <div className="text-[13px] font-medium tracking-wide text-gray-500 dark:text-gray-500">Aktive Nutzer</div>
+            </div>
+            <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 text-center">
+              <div className="text-2xl font-light tracking-tight text-gray-900 dark:text-gray-400">{stats.newComments}</div>
+              <div className="text-[13px] font-medium tracking-wide text-gray-500 dark:text-gray-500">Kommentare (24h)</div>
+            </div>
+            <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 text-center">
+              <div className="text-2xl font-light tracking-tight text-gray-900 dark:text-gray-400">{stats.newPosts}</div>
+              <div className="text-[13px] font-medium tracking-wide text-gray-500 dark:text-gray-500">Neue Posts (24h)</div>
+            </div>
           </div>
-
           <div className="text-center text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">
             Weitere Features folgen...
           </div>
