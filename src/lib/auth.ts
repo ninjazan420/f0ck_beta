@@ -11,6 +11,7 @@ declare module 'next-auth' {
     user: {
       id: string;
       username?: string;
+      role?: string;
     } & DefaultSession['user']
   }
 }
@@ -21,6 +22,7 @@ declare module 'next-auth/jwt' {
     id: string;
     username?: string;
     email?: string | null;
+    role?: string;
   }
 }
 
@@ -59,7 +61,8 @@ export const authOptions: AuthOptions = {
             id: user._id.toString(),
             email: user.email,
             username: user.username,
-            name: user.name
+            name: user.name,
+            role: user.role
           };
         } catch (error) {
           throw new Error('Authentication failed');
@@ -79,10 +82,12 @@ export const authOptions: AuthOptions = {
         token.id = user.id;
         token.username = user.username;
         token.email = user.email || null;
+        token.role = user.role;
       }
       if (trigger === "update" && session) {
         token.username = session.username || token.username;
         token.email = session.email || token.email;
+        token.role = session.role || token.role;
       }
       return token;
     },
@@ -91,6 +96,7 @@ export const authOptions: AuthOptions = {
         session.user.id = token.id;
         session.user.username = token.username;
         session.user.email = token.email || undefined;
+        session.user.role = token.role;
       }
       return session;
     }

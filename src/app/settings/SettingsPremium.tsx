@@ -3,7 +3,7 @@ import { ChangeEvent } from 'react';
 interface PremiumProps {
   settings: any;
   setSettings: (settings: any) => void;
-  userRole?: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
+  userRole: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
 }
 
 const nicknameStyles = {
@@ -28,9 +28,9 @@ const nicknameStyles = {
   ]
 };
 
-export function SettingsPremium({ settings, setSettings, userRole = 'user' }: PremiumProps) {
-  const hasPremiumAccess = userRole === 'premium' || userRole === 'moderator' || userRole === 'admin';
-
+export function SettingsPremium({ settings, setSettings, userRole }: PremiumProps) {
+  const hasPremiumAccess = ['premium', 'moderator', 'admin'].includes(userRole);
+  
   return (
     <section className="settings-card bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10">
       <div className="flex items-center justify-between mb-4">
@@ -55,7 +55,8 @@ export function SettingsPremium({ settings, setSettings, userRole = 'user' }: Pr
               {hasPremiumAccess ? "Up to 50MB" : "Up to 10MB (50MB with premium)"}
             </span>
           </div>
-          <label className={`toggle-switch ${!hasPremiumAccess && "opacity-50 cursor-not-allowed"}`}>
+          {/* Entferne die Bedingung aus der className, da sie möglicherweise Probleme verursacht */}
+          <label className="toggle-switch">
             <input
               type="checkbox"
               checked={settings.premium.maxGifSize}
@@ -65,7 +66,7 @@ export function SettingsPremium({ settings, setSettings, userRole = 'user' }: Pr
               }))}
               disabled={!hasPremiumAccess}
             />
-            <div className="toggle-switch-background">
+            <div className={`toggle-switch-background ${!hasPremiumAccess ? 'opacity-50' : ''}`}>
               <div className="toggle-switch-handle"></div>
             </div>
           </label>

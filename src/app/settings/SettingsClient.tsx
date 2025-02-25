@@ -5,7 +5,11 @@ import { RandomLogo } from "@/components/RandomLogo";
 import { useState, ChangeEvent } from 'react';
 import { SettingsPremium } from './SettingsPremium';
 
-export default function SettingsClient() {
+interface SettingsClientProps {
+  userRole: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
+}
+
+export default function SettingsClient({ userRole = 'user' }: SettingsClientProps) {
   const { theme, toggleTheme } = useTheme();
   const [settings, setSettings] = useState({
     blurNsfw: true, // Default-Wert auf true gesetzt
@@ -121,11 +125,13 @@ export default function SettingsClient() {
         </h1>
 
         <div className="space-y-6">
-          {/* Premium Features */}
-          <SettingsPremium settings={settings} setSettings={setSettings} />
+          <SettingsPremium 
+            settings={settings} 
+            setSettings={setSettings} 
+            userRole={userRole}
+          />
 
-          {/* Regular Settings Sections */}
-          {/* Appearance Settings Section */}
+          {/* Appearance Settings */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Appearance
@@ -164,7 +170,7 @@ export default function SettingsClient() {
             </div>
           </section>
 
-          {/* Account Settings Section */}
+          {/* Account Settings */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Account
@@ -203,7 +209,7 @@ export default function SettingsClient() {
             </div>
           </section>
 
-          {/* Content Preferences Section */}
+          {/* Content Preferences */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Content Preferences
@@ -284,13 +290,14 @@ export default function SettingsClient() {
             </div>
           </section>
 
-          {/* Layout Settings Section */}
+          {/* Layout Settings */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Layout Preferences
             </h2>
 
             <div className="space-y-4">
+              {/* Custom Grid Layout Toggle */}
               <div className="settings-row">
                 <div className="flex flex-col">
                   <span className="font-[family-name:var(--font-geist-mono)] text-gray-900 dark:text-gray-400">
@@ -374,6 +381,7 @@ export default function SettingsClient() {
               )}
             </div>
 
+            {/* Grid Layout Size Selector */}
             <div className="settings-row">
               <span className="font-[family-name:var(--font-geist-mono)] text-gray-900 dark:text-gray-400">
                 Grid Layout
@@ -405,7 +413,7 @@ export default function SettingsClient() {
             </div>
           </section>
 
-          {/* Upload Settings Section */}
+          {/* Upload Settings */}
           <section className="settings-card">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
               Upload Settings

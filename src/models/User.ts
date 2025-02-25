@@ -11,9 +11,6 @@ interface IUser extends mongoose.Document {
   lastSeen: Date;
   updatedAt: Date;
   role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
-  isPremium: boolean;
-  isAdmin: boolean;
-  isModerator: boolean;
 }
 
 const userSchema = new mongoose.Schema({
@@ -73,21 +70,6 @@ const userSchema = new mongoose.Schema({
     default: 'user',
     index: true // Für schnellere Abfragen
   },
-  isPremium: {
-    type: Boolean,
-    default: false,
-    index: true
-  },
-  isAdmin: {
-    type: Boolean,
-    default: false,
-    index: true
-  },
-  isModerator: {
-    type: Boolean,
-    default: false,
-    index: true
-  },
   uploads: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Upload',
@@ -104,14 +86,6 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-// Middleware um Rollen-Flags automatisch zu setzen
-userSchema.pre('save', function(next) {
-  this.isPremium = this.role === 'premium';  // Dies stellt sicher, dass isPremium mit der role synchron ist
-  this.isAdmin = this.role === 'admin';
-  this.isModerator = this.role === 'moderator';
-  next();
-});
-
 // Virtuals für die Statistiken
 userSchema.virtual('stats').get(function() {
   return {
@@ -124,7 +98,16 @@ userSchema.virtual('stats').get(function() {
 });
 
 // Stellen Sie sicher, dass virtuals in JSON enthalten sind
-userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toJSON', { 
+  virtuals: true,
+  transform: function(doc, ret) {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.__v;
+    delete ret.password;
+    return ret;
+  }
+});
 userSchema.set('toObject', { virtuals: true });
 
 // Prüfen ob das Model bereits existiert um Fehler zu vermeiden
