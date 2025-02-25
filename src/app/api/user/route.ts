@@ -3,12 +3,9 @@ import User from '@/models/User';
 
 export async function GET() {
   return withAuth(async (session) => {
-    const user = await User.findOne({
-      $or: [
-        { email: session.user.email },
-        { username: session.user.name }
-      ]
-    }).select('username email name bio createdAt lastSeen stats');
+    // Nutze die user.id aus der Session statt email/name
+    const user = await User.findById(session.user.id)
+      .select('username email name bio createdAt lastSeen stats');
 
     if (!user) {
       return createErrorResponse('Benutzer nicht gefunden', 404);
@@ -39,12 +36,12 @@ export async function PUT(req: Request) {
   return withAuth(async (session) => {
     const { username, name, bio, email } = await req.json();
 
-    let user = await User.findOne({
-      $or: [
-        { email: session.user.email },
-        { username: session.user.name }
-      ]
-    });
+    // Nutze auch hier die session.user.id
+    let user = await User.findById(session.user.id);
+
+    if (!user) {
+      return createErrorResponse('Benutzer nicht gefunden', 404);
+    }
 
     // Prüfe Username-Verfügbarkeit
     if (username && username !== user.username) {
@@ -56,7 +53,7 @@ export async function PUT(req: Request) {
 
     // Update existierenden Benutzer
     user = await User.findByIdAndUpdate(
-      user._id,
+      session.user.id,
       {
         $set: {
           username: username || user.username,
