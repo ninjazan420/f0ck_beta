@@ -3,32 +3,59 @@ import dbConnect from '@/lib/db/mongodb';
 import User from '@/models/User';
 import { rateLimit } from '@/lib/rateLimit';
 
+// Username validation regex
+const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,20}$/;
+// Email validation regex
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function POST(req: Request) {
   try {
-    // Apply rate limiting - 5 requests per minute per IP
     const ip = req.headers.get('x-forwarded-for') || 'anonymous';
     const rateLimitResult = rateLimit(`register_${ip}`, 5, 60);
     if (rateLimitResult) return rateLimitResult;
 
     await dbConnect();
-    const { username, email, password } = await req.json();
+    const body = await req.json();
+    
+    // Input validation
+    const { username, email, password } = body;
 
-    // Validierung
+    // Validate required fields
     if (!username || !password) {
       return NextResponse.json(
-        { error: 'Username und Passwort sind erforderlich' },
+        { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    if (password.length < 6) {
+    // Validate username format
+    if (!USERNAME_REGEX.test(username)) {
       return NextResponse.json(
-        { error: 'Passwort muss mindestens 6 Zeichen lang sein' },
+        { error: 'Invalid username format' },
         { status: 400 }
       );
     }
 
-    // Prüfen ob Benutzer bereits existiert
+    // Validate password strength
+    if (password.length < 8 || 
+        !/[A-Z]/.test(password) || 
+        !/[a-z]/.test(password) || 
+        !/[0-9]/.test(password)) {
+      return NextResponse.json(
+        { error: 'Password does not meet requirements' },
+        { status: 400 }
+      );
+    }
+
+    // Validate email if provided
+    if (email && !EMAIL_REGEX.test(email)) {
+      return NextResponse.json(
+        { error: 'Invalid email format' },
+        { status: 400 }
+      );
+    }
+
+    // Check existing user (without revealing specific reason)
     const existingUser = await User.findOne({ 
       $or: [
         { username },
@@ -38,39 +65,34 @@ export async function POST(req: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Username oder Email bereits vergeben' },
+        { error: 'Registration not possible with provided details' },
         { status: 400 }
       );
     }
 
-    // Benutzer erstellen
+    // Create user
     const now = new Date();
     const user = await User.create({
       username,
-      name: username, // Username als initialer Name
-      password, // Wird durch das pre-save Hook in models/User.ts gehasht
+      name: username,
+      password,
       email,
       lastSeen: now,
       createdAt: now,
       bio: '',
     });
 
+    // Return minimal success response
     return NextResponse.json({
-      message: 'Registrierung erfolgreich',
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        createdAt: user.createdAt,
-        lastSeen: user.lastSeen
-      }
+      message: 'Registration successful',
+      userId: user._id
     });
 
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(
-      { error: 'Ein Fehler ist bei der Registrierung aufgetreten' },
-      { status: 500 }
+      { error: 'Registration failed' },
+        { status: 500 }
     );
   }
 }

@@ -6,10 +6,11 @@ export const metadata: Metadata = {
   description: 'Login to your f0ck.org account.',
 };
 
-export default function Login({
+export default async function Login({
   searchParams,
 }: {
   searchParams: { registered?: string };
 }) {
-  return <LoginClient registered={searchParams.registered === 'true'} />;
+  const isRegistered = searchParams?.registered === 'true';
+  return <LoginClient registered={isRegistered} />;
 }

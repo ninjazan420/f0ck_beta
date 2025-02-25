@@ -38,30 +38,23 @@ export const authOptions: AuthOptions = {
           const ip = req?.headers?.['x-forwarded-for'] || 'anonymous';
           const rateLimitResult = rateLimit(`login_${ip}`, 5, 60);
           if (rateLimitResult) {
-            throw new Error('Too many login attempts. Please try again later.');
+            throw new Error('Please try again later');
           }
 
           if (!credentials?.username || !credentials?.password) {
-            throw new Error('Username und Passwort erforderlich');
+            throw new Error('Invalid credentials');
           }
 
           await dbConnect();
           
-          // Suche nach Benutzer
+          // Find user and validate password
           const user = await User.findOne({ username: credentials.username });
           
-          if (!user) {
-            throw new Error('Benutzer nicht gefunden');
+          if (!user || !(await bcrypt.compare(credentials.password, user.password))) {
+            throw new Error('Invalid credentials');
           }
 
-          // Überprüfe Passwort
-          const isValid = await bcrypt.compare(credentials.password, user.password);
-          
-          if (!isValid) {
-            throw new Error('Falsches Passwort');
-          }
-
-          // Gib nur sichere Benutzerdaten zurück
+          // Only return essential user data
           return {
             id: user._id.toString(),
             email: user.email,
@@ -69,7 +62,7 @@ export const authOptions: AuthOptions = {
             name: user.name
           };
         } catch (error) {
-          throw error;
+          throw new Error('Authentication failed');
         }
       }
     })
