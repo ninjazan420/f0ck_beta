@@ -1,9 +1,36 @@
-import { ChangeEvent } from 'react';
-import { Nickname } from './Nickname';  // Add this import
+import { Nickname } from './Nickname';  // Removed unused ChangeEvent import
+
+// Define a proper type for settings
+interface PremiumSettings {
+  premium: {
+    maxGifSize: boolean;
+    keepOriginalVideoQuality: boolean;
+    hideAds: boolean;
+    pools: {
+      enabled: boolean;
+      privatePools: boolean;
+    };
+    tags: {
+      favorites: boolean;
+      customCategories: boolean;
+    };
+    notifications: {
+      customFilters: boolean;
+      mentionAlerts: boolean;
+      tagUpdates: boolean;
+      poolUpdates: boolean;
+    };
+    messaging: {
+      enabled: boolean;
+      attachments: boolean;
+      groupChats: boolean;
+    };
+  };
+}
 
 interface PremiumProps {
-  settings: any;
-  setSettings: (settings: any) => void;
+  settings: PremiumSettings;
+  setSettings: (settings: PremiumSettings) => void;
   userRole: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
 }
 

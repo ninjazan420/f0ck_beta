@@ -84,28 +84,6 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
     }
   });
 
-  const nicknameStyles = {
-    solid: [
-      { label: 'Purple', value: 'purple-600' },
-      { label: 'Pink', value: 'pink-600' },
-      { label: 'Blue', value: 'blue-600' },
-      { label: 'Emerald', value: 'emerald-500' },
-      { label: 'Rose', value: 'rose-500' },
-      { label: 'Violet', value: 'violet-500' }
-    ],
-    gradient: [
-      { label: 'Purple to Pink', value: ['purple-400', 'pink-600'] },
-      { label: 'Blue to Purple', value: ['blue-400', 'purple-600'] },
-      { label: 'Rose to Purple', value: ['rose-400', 'purple-600'] },
-      { label: 'Emerald to Blue', value: ['emerald-400', 'blue-600'] }
-    ],
-    animated: [
-      { label: 'Pulse', value: 'pulse' },
-      { label: 'Sparkle', value: 'sparkle' },
-      { label: 'Rainbow', value: 'rainbow' }
-    ]
-  };
-
   const handleSettingChange = (setting: keyof typeof settings) => (e: ChangeEvent<HTMLInputElement>) => {
     setSettings(prev => ({
       ...prev,

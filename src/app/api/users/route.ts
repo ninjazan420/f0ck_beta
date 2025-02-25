@@ -3,8 +3,8 @@ import dbConnect from '@/lib/db/mongodb';
 import User from '@/models/User';
 
 interface UserQuery {
-  $and?: Array<any>;
-  $or?: Array<any>;
+  $and?: Array<Record<string, unknown>>; // Statt any einen spezifischeren Typ verwenden
+  $or?: Array<Record<string, unknown>>;  // Statt any einen spezifischeren Typ verwenden
 }
 
 // Optimierte Query-Building
@@ -74,9 +74,6 @@ export async function GET(request: Request) {
     }
 
     const skip = (page - 1) * pageSize;
-
-    const cacheKey = `users:${JSON.stringify({ query, sort, skip, pageSize })}`;
-    // Hier könnte man Redis-Caching implementieren
 
     const [users, total] = await Promise.all([
       User.aggregate([

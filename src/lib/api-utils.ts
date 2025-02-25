@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from './auth';
 import dbConnect from './db/mongodb';
 
-export type ApiResponse<T = any> = {
+export type ApiResponse<T = unknown> = {
   data?: T;
   error?: string;
 };

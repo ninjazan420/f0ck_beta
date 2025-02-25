@@ -1,6 +1,8 @@
 import { PoolContentRating, SortBy } from './PoolsPage';
 import Link from 'next/link';
 import Image from 'next/image';
+import React, { useState } from 'react';
+import { Pagination } from '@/components/ui/pagination';
 
 interface Pool {
   id: string;
@@ -59,6 +61,13 @@ interface PoolListProps {
 }
 
 export function PoolList({ filters, page, totalPages, onPageChange }: PoolListProps) {
+  const [currentPage, setCurrentPage] = useState(page);
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    onPageChange(page);
+  };
+
   const filteredPools = MOCK_POOLS
     .filter(pool =>
       (filters.search === '' || pool.name.toLowerCase().includes(filters.search.toLowerCase())) &&
@@ -81,7 +90,7 @@ export function PoolList({ filters, page, totalPages, onPageChange }: PoolListPr
       }
     });
 
-  const startIdx = (page - 1) * 12;
+  const startIdx = (currentPage - 1) * 12;
   const currentPools = filteredPools.slice(startIdx, startIdx + 12);
 
   return (
@@ -173,9 +182,9 @@ export function PoolList({ filters, page, totalPages, onPageChange }: PoolListPr
       {/* Pagination */}
       <div className="flex items-center justify-between mt-4">
         <Link 
-          href={page > 1 ? `/pools?page=${page - 1}` : '#'}
+          href={currentPage > 1 ? `/pools?page=${currentPage - 1}` : '#'}
           className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 ${
-            page === 1 ? 'pointer-events-none opacity-50' : ''
+            currentPage === 1 ? 'pointer-events-none opacity-50' : ''
           }`}
         >
           ← Previous
@@ -189,7 +198,7 @@ export function PoolList({ filters, page, totalPages, onPageChange }: PoolListPr
                 key={pageNum}
                 href={`/pools?page=${pageNum}`}
                 className={`px-3 py-1 rounded-lg ${
-                  pageNum === page
+                  pageNum === currentPage
                     ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}
@@ -201,13 +210,20 @@ export function PoolList({ filters, page, totalPages, onPageChange }: PoolListPr
         </div>
 
         <Link 
-          href={page < totalPages ? `/pools?page=${page + 1}` : '#'}
+          href={currentPage < totalPages ? `/pools?page=${currentPage + 1}` : '#'}
           className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 ${
-            page === totalPages ? 'pointer-events-none opacity-50' : ''
+            currentPage === totalPages ? 'pointer-events-none opacity-50' : ''
           }`}
         >
           Next →
         </Link>
+      </div>
+      <div className="mt-4">
+        <Pagination 
+          totalPages={totalPages} 
+          currentPage={currentPage} 
+          onPageChange={handlePageChange} 
+        />
       </div>
     </div>
   );

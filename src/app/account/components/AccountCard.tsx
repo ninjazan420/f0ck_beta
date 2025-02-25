@@ -118,22 +118,8 @@ export function AccountCard() {
   }, [session]);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [newAvatar, setNewAvatar] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setNewAvatar(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Verbesserte handleSave Funktion
+  // Verbesserte handleSave Funktion ohne Avatar-Funktionalität
   const handleSave = async () => {
     try {
       if (!session?.user) {
@@ -187,8 +173,6 @@ export function AccountCard() {
   };
 
   const handleReset = () => {
-    setNewAvatar(null);
-    setPreviewUrl(null);
     setIsEditing(false);
   };
 
@@ -214,36 +198,20 @@ export function AccountCard() {
     <div className="p-6 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
       {/* Profile Header */}
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Avatar Section mit Edit Button */}
+        {/* Avatar Section ohne Edit-Funktionalität */}
         <div className="w-32 md:w-32 flex-shrink-0 space-y-3">
           <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700">
-            {(previewUrl || profile.avatarUrl) ? (
-              <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
-                <Image 
-                  src={previewUrl || profile.avatarUrl || '/images/defaultavatar.png'} // Fallback hinzugefügt
-                  alt={`${profile.nickname}'s avatar`}
-                  width={128}
-                  height={128}
-                  className="max-w-full max-h-full w-auto h-auto object-contain"
-                  priority
-                />
-              </div>
-            ) : (
-              <div className="w-full h-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
-                <span className="text-2xl text-gray-400">?</span>
-              </div>
-            )}
-            {isEditing && (
-              <label className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white cursor-pointer text-xs">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleAvatarChange}
-                />
-                Change
-              </label>
-            )}
+            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
+              <Image 
+                src={profile.avatarUrl || '/images/defaultavatar.png'}
+                alt={`${profile.nickname}'s avatar`}
+                width={128}
+                height={128}
+                className="max-w-full max-h-full w-auto h-auto object-contain"
+                priority
+              />
+            </div>
+            {/* Avatar-Edit-Button entfernt */}
           </div>
           
           {/* Edit Profile Button unter Avatar */}
@@ -346,7 +314,7 @@ export function AccountCard() {
               <div className="text-xs text-gray-500 mb-1">favorites</div>
               <div className="font-medium text-gray-900 dark:text-gray-100">{profile.favorites}</div>
             </div>
-            <div className="text-center">
+            <div className="text-center"></div>
               <div className="text-xs text-gray-500 mb-1">likes</div>
               <div className="font-medium text-gray-900 dark:text-gray-100">{profile.likedPosts}</div>
             </div>
@@ -412,7 +380,7 @@ export function AccountCard() {
         <h3 className="text-lg font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400 mb-3">
           Recent Activity
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-3"></div>
           {profile.recentActivity.map(activity => (
             <div key={activity.id} className="flex gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800/50">
               {/* Activity Content */}
