@@ -2,7 +2,7 @@ import { withAuth, createErrorResponse } from '@/lib/api-utils';
 import User from '@/models/User';
 
 export async function GET() {
-  return withAuth(async (session) => {
+  return withAuth(async (session: { user: { id: string } }) => {
     // Nutze die user.id aus der Session statt email/name
     const user = await User.findById(session.user.id)
       .select('username email name bio createdAt lastSeen stats');
@@ -33,7 +33,7 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  return withAuth(async (session) => {
+  return withAuth(async (session: { user: { id: string } }) => {
     const { username, name, bio, email } = await req.json();
 
     // Nutze auch hier die session.user.id

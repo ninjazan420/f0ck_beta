@@ -60,18 +60,22 @@ export default function RegisterClient() {
               <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-6 text-black dark:text-gray-400">
                 Create Account
               </h2>
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <input
                     type="text"
                     name="username"
-                    placeholder="Username"
+                    placeholder="Username (3-16 characters)"
                     required
+                    maxLength={16}
                     className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Allowed characters: letters, numbers, underscore, hyphen
+                  </p>
                 </div>
-                
+
                 <div className="space-y-2">
                   <input
                     type="password"
@@ -81,8 +85,18 @@ export default function RegisterClient() {
                     minLength={5}
                     className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
                   />
+                  <div className="text-sm text-red-600 dark:text-red-400 bg-red-50/50 dark:bg-red-900/20 p-2 rounded border border-red-100 dark:border-red-900/30">
+                    <p className="mb-1">🔒 Password requirements:</p>
+                    <ul className="list-disc pl-5 text-xs">
+                      <li>Minimum 8 characters</li>
+                      <li>No maximum length restriction</li>
+                      <li>At least one special character</li>
+                      <li>All characters allowed</li>
+                      <li>Case sensitive</li>
+                    </ul>
+                  </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <input
                     type="email"
@@ -91,13 +105,14 @@ export default function RegisterClient() {
                     className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
                   />
                   <p className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-900/20 p-2 rounded border border-amber-100 dark:border-amber-900/30">
-                    ⚠️ Warning: Without an email address, there is absolutely no way to recover your password or account if lost - no exceptions! You can add an email address later in your account settings while logged in.
+                    ⚠️ Warning: Without an email address, there is absolutely no
+                    way to recover your password or account if lost - no
+                    exceptions! You can add an email address later in your
+                    account settings while logged in.
                   </p>
                 </div>
 
-                {error && (
-                  <div className="text-red-500 text-sm">{error}</div>
-                )}
+                {error && <div className="text-red-500 text-sm">{error}</div>}
 
                 <button
                   type="submit"
@@ -114,7 +129,7 @@ export default function RegisterClient() {
                   <div className="absolute inset-[2px] shadow-[inset_0_0_15px_rgba(199,135,246,0.15)] rounded-lg"></div>
                   <div className="relative flex items-center justify-center gap-2">
                     <span className="text-lg font-normal bg-gradient-to-b from-[#D69DDE] to-[#B873F8] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(199,135,246,0.4)] tracking-tighter">
-                      {loading ? 'Register...' : 'Register'}
+                      {loading ? "Register..." : "Register"}
                     </span>
                   </div>
                   <div className="absolute inset-[2px] opacity-0 transition-opacity duration-300 bg-gradient-to-r from-[#2A1736]/20 via-[#C787F6]/10 to-[#2A1736]/20 group-hover:opacity-100 rounded-lg"></div>
@@ -142,15 +157,18 @@ export default function RegisterClient() {
           {/* Agreement Section */}
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              By creating an account, you are agreeing to the{' '}
-              <Link href="/rules" className="text-blue-600 dark:text-blue-400 hover:underline">
+              By creating an account, you are agreeing to the{" "}
+              <Link
+                href="/rules"
+                className="text-blue-600 dark:text-blue-400 hover:underline"
+              >
                 Rules/ToS
               </Link>
             </p>
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

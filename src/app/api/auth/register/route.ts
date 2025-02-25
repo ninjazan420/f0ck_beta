@@ -3,8 +3,8 @@ import dbConnect from '@/lib/db/mongodb';
 import User from '@/models/User';
 import { rateLimit } from '@/lib/rateLimit';
 
-// Username validation regex
-const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,20}$/;
+// Username validation regex - updated to limit to 16 characters max
+const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,16}$/;
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
