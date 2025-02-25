@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/mongodb';
 import User from '@/models/User';
+import { rateLimit } from '@/lib/rateLimit';
 
 export async function POST(req: Request) {
   try {
+    // Apply rate limiting - 5 requests per minute per IP
+    const ip = req.headers.get('x-forwarded-for') || 'anonymous';
+    const rateLimitResult = rateLimit(`register_${ip}`, 5, 60);
+    if (rateLimitResult) return rateLimitResult;
+
     await dbConnect();
     const { username, email, password } = await req.json();
 

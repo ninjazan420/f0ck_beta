@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import dbConnect from './db/mongodb';
 import User from '../models/User';
 import bcrypt from 'bcryptjs';
+import { rateLimit } from '@/lib/rateLimit';
 
 // Extend the built-in session types
 declare module 'next-auth' {
@@ -31,34 +32,45 @@ export const authOptions: AuthOptions = {
         username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' }
       },
-      async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) {
-          throw new Error('Username und Passwort erforderlich');
-        }
+      async authorize(credentials, req) {
+        try {
+          // Apply rate limiting - 5 login attempts per minute per IP
+          const ip = req?.headers?.['x-forwarded-for'] || 'anonymous';
+          const rateLimitResult = rateLimit(`login_${ip}`, 5, 60);
+          if (rateLimitResult) {
+            throw new Error('Too many login attempts. Please try again later.');
+          }
 
-        await dbConnect();
-        
-        // Suche nach Benutzer
-        const user = await User.findOne({ username: credentials.username });
-        
-        if (!user) {
-          throw new Error('Benutzer nicht gefunden');
-        }
+          if (!credentials?.username || !credentials?.password) {
+            throw new Error('Username und Passwort erforderlich');
+          }
 
-        // Überprüfe Passwort
-        const isValid = await bcrypt.compare(credentials.password, user.password);
-        
-        if (!isValid) {
-          throw new Error('Falsches Passwort');
-        }
+          await dbConnect();
+          
+          // Suche nach Benutzer
+          const user = await User.findOne({ username: credentials.username });
+          
+          if (!user) {
+            throw new Error('Benutzer nicht gefunden');
+          }
 
-        // Gib nur sichere Benutzerdaten zurück
-        return {
-          id: user._id.toString(),
-          email: user.email,
-          username: user.username,
-          name: user.name
-        };
+          // Überprüfe Passwort
+          const isValid = await bcrypt.compare(credentials.password, user.password);
+          
+          if (!isValid) {
+            throw new Error('Falsches Passwort');
+          }
+
+          // Gib nur sichere Benutzerdaten zurück
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            username: user.username,
+            name: user.name
+          };
+        } catch (error) {
+          throw error;
+        }
       }
     })
   ],
