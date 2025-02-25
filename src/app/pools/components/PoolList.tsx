@@ -1,8 +1,6 @@
 import { PoolContentRating, SortBy } from './PoolsPage';
 import Link from 'next/link';
 import Image from 'next/image';
-import React, { useState } from 'react';
-import { Pagination } from '@/components/ui/pagination';
 
 interface Pool {
   id: string;
@@ -61,13 +59,6 @@ interface PoolListProps {
 }
 
 export function PoolList({ filters, page, totalPages, onPageChange }: PoolListProps) {
-  const [currentPage, setCurrentPage] = useState(page);
-  
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    onPageChange(page);
-  };
-
   const filteredPools = MOCK_POOLS
     .filter(pool =>
       (filters.search === '' || pool.name.toLowerCase().includes(filters.search.toLowerCase())) &&
@@ -90,7 +81,7 @@ export function PoolList({ filters, page, totalPages, onPageChange }: PoolListPr
       }
     });
 
-  const startIdx = (currentPage - 1) * 12;
+  const startIdx = (page - 1) * 12;
   const currentPools = filteredPools.slice(startIdx, startIdx + 12);
 
   return (
@@ -181,49 +172,42 @@ export function PoolList({ filters, page, totalPages, onPageChange }: PoolListPr
 
       {/* Pagination */}
       <div className="flex items-center justify-between mt-4">
-        <Link 
-          href={currentPage > 1 ? `/pools?page=${currentPage - 1}` : '#'}
+        <button 
+          onClick={() => page > 1 && onPageChange(page - 1)}
           className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 ${
-            currentPage === 1 ? 'pointer-events-none opacity-50' : ''
+            page === 1 ? 'pointer-events-none opacity-50' : ''
           }`}
         >
           ← Previous
-        </Link>
+        </button>
 
         <div className="flex items-center gap-2">
           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
             const pageNum = i + 1;
             return (
-              <Link
+              <button
                 key={pageNum}
-                href={`/pools?page=${pageNum}`}
+                onClick={() => onPageChange(pageNum)}
                 className={`px-3 py-1 rounded-lg ${
-                  pageNum === currentPage
+                  pageNum === page
                     ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}
               >
                 {pageNum}
-              </Link>
+              </button>
             );
           })}
         </div>
 
-        <Link 
-          href={currentPage < totalPages ? `/pools?page=${currentPage + 1}` : '#'}
+        <button 
+          onClick={() => page < totalPages && onPageChange(page + 1)}
           className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 ${
-            currentPage === totalPages ? 'pointer-events-none opacity-50' : ''
+            page === totalPages ? 'pointer-events-none opacity-50' : ''
           }`}
         >
           Next →
-        </Link>
-      </div>
-      <div className="mt-4">
-        <Pagination 
-          totalPages={totalPages} 
-          currentPage={currentPage} 
-          onPageChange={handlePageChange} 
-        />
+        </button>
       </div>
     </div>
   );

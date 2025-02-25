@@ -1,8 +1,9 @@
 'use client';
+
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';  // Am Anfang der Datei importieren
 
 interface ActivityItem {
   id: string;
@@ -211,7 +212,7 @@ export function AccountCard() {
                 priority
               />
             </div>
-            {/* Avatar-Edit-Button entfernt */}
+            {/* ...existing code... */}
           </div>
           
           {/* Edit Profile Button unter Avatar */}
@@ -219,23 +220,23 @@ export function AccountCard() {
             {!isEditing ? (
               <button
                 onClick={() => setIsEditing(true)}
-                className="w-full py-1.5 px-3 text-xs rounded-lg text-center bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white transition-all duration-200"
-              >
+                className="w-full py-1.5 px-3 text-xs rounded-lg text-center bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+              > 
                 Edit Profile
               </button>
             ) : (
-              <div className="flex gap-1 mb-1">
-                <button
-                  onClick={handleReset}
-                  className="flex-1 py-1.5 px-2 text-xs rounded-lg text-red-600 hover:text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                >
-                  Cancel
-                </button>
+              <div className="flex gap-1">
                 <button
                   onClick={handleSave}
-                  className="flex-1 py-1.5 px-2 text-xs rounded-lg bg-purple-600 hover:bg-purple-700 text-white"
+                  className="flex-1 py-1.5 px-2 text-xs rounded-lg text-center bg-purple-600 hover:bg-purple-700 text-white transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Save
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="flex-1 py-1.5 px-2 text-xs rounded-lg text-center bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Cancel
                 </button>
               </div>
             )}
@@ -243,10 +244,9 @@ export function AccountCard() {
               href="/premium"
               className="w-full py-1.5 px-3 text-xs rounded-lg text-center bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-1"
             >
-              Buy Premium <span className="text-yellow-500">⭐</span>
+              Buy Premium 
             </Link>
           </div>
-
         </div>
 
         {/* Profile Info */}
@@ -281,7 +281,7 @@ export function AccountCard() {
           <div>
             <div className="flex justify-between items-center">
               <label className="block text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">Bio</label>
-              <span className="text-xs text-gray-400">{profile.bio.length}/140</span>
+              <span className="text-xs text-gray-500">{profile.bio.length}/140</span>
             </div>
             <textarea
               value={profile.bio}
@@ -297,10 +297,10 @@ export function AccountCard() {
           {/* Member Info */}
           <div className="text-sm space-y-1">
             <div className="text-gray-500">
-              Member since {new Date(profile.createdAt).toLocaleDateString()}
+              Member since <span className="text-gray-700 dark:text-gray-300">{new Date(profile.createdAt).toLocaleDateString()}</span>
             </div>
             <div className="text-gray-500">
-              Last seen {new Date(profile.lastSeen).toLocaleString()}
+              Last seen <span className="text-gray-700 dark:text-gray-300">{new Date(profile.lastSeen).toLocaleDateString()}</span>
             </div>
           </div>
 
@@ -314,7 +314,7 @@ export function AccountCard() {
               <div className="text-xs text-gray-500 mb-1">favorites</div>
               <div className="font-medium text-gray-900 dark:text-gray-100">{profile.favorites}</div>
             </div>
-            <div className="text-center"></div>
+            <div className="text-center">
               <div className="text-xs text-gray-500 mb-1">likes</div>
               <div className="font-medium text-gray-900 dark:text-gray-100">{profile.likedPosts}</div>
             </div>
@@ -380,14 +380,14 @@ export function AccountCard() {
         <h3 className="text-lg font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400 mb-3">
           Recent Activity
         </h3>
-        <div className="space-y-3"></div>
+        <div className="space-y-3">
           {profile.recentActivity.map(activity => (
             <div key={activity.id} className="flex gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800/50">
               {/* Activity Content */}
               <div className="flex-grow space-y-2">
                 <div className="flex items-start justify-between gap-4">
                   <p className="text-gray-700 dark:text-gray-300 text-sm">
-                    <span className="mr-2">{activity.emoji}</span>
+                    <span className="mr-1">{activity.emoji}</span>
                     {activity.text}
                   </p>
                   <span className="text-xs text-gray-500 whitespace-nowrap">
@@ -409,37 +409,22 @@ export function AccountCard() {
                 href={`/post/${activity.post.id}`}
                 className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden group"
               >
-                <div className={`absolute inset-0 bg-cover bg-center`}>
-                  {activity.post.imageUrl && (
-                    <Image
-                      src={activity.post.imageUrl}
-                      alt={activity.post.title}
-                      width={64}
-                      height={64}
-                      className={`object-cover w-full h-full transition-all duration-200 ${
-                        activity.post.nsfw ? 'group-hover:blur-none blur-md' : ''
-                      }`}
-                      priority
-                    />
-                  )}
+                <div className="absolute inset-0 bg-cover bg-center" 
+                     style={{ backgroundImage: `url(${activity.post.imageUrl})` }}>
                 </div>
                 {activity.post.type === 'video' && (
-                  <div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-black/50 flex items-center justify-center">
-                    <div className="w-2 h-2 border-l-[4px] border-l-white border-y-[2px] border-y-transparent" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <span className="text-white text-xl">▶</span>
                   </div>
                 )}
                 {activity.post.type === 'gif' && (
-                  <div className="absolute bottom-1 right-1">
-                    <span className="text-[8px] font-bold bg-black/50 text-white px-1 rounded">
-                      GIF
-                    </span>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <span className="text-white text-xs px-1.5 py-0.5 bg-black/50 rounded">GIF</span>
                   </div>
                 )}
                 {activity.post.nsfw && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:opacity-0">
-                    <span className="text-[10px] font-bold text-white px-1.5 py-0.5 bg-red-500/80 rounded">
-                      NSFW
-                    </span>
+                  <div className="absolute inset-0 flex items-center justify-center bg-red-500/50 group-hover:bg-red-500/30 transition-colors">
+                    <span className="text-white text-xs font-bold px-1 py-0.5 bg-red-600/90 rounded">NSFW</span>
                   </div>
                 )}
               </Link>

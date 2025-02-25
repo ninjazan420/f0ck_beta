@@ -184,7 +184,7 @@ export default function PremiumClient() {
                 Is there a money-back guarantee?
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                We offer a 7-day money-back guarantee if you're not satisfied with your premium experience.
+                We offer a 7-day money-back guarantee if you&apos;re not satisfied with your premium experience.
               </p>
             </div>
 
@@ -193,7 +193,7 @@ export default function PremiumClient() {
                 Can I switch between monthly and yearly plans?
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Yes, you can switch plans at any time. If you switch to yearly, we'll prorate your existing subscription.
+                Yes, you can switch plans at any time. If you switch to yearly, we&apos;ll prorate your existing subscription.
               </p>
             </div>
 

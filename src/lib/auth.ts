@@ -64,7 +64,7 @@ export const authOptions: AuthOptions = {
             name: user.name,
             role: user.role
           };
-        } catch (_) {
+        } catch (error) {
           throw new Error('Authentication failed');
         }
       }

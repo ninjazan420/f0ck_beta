@@ -1,10 +1,29 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 
+// Definiere Typen für die Settings
+interface UserSettings {
+  nickname?: string;
+  nicknameStyle?: NicknameStyle;
+  // Weitere Einstellungen können hier hinzugefügt werden
+}
+
+interface NicknameStyle {
+  type: 'solid' | 'gradient' | 'animated';
+  value: string | string[];
+}
+
 interface NicknameProps {
-  settings: any;
-  setSettings: (settings: any) => void;
+  settings: UserSettings;
+  setSettings: (settings: UserSettings) => void;
   hasPremiumAccess: boolean;
+}
+
+// Style-Definitionen
+interface StyleOption {
+  label: string;
+  value: string | string[];
+  preview: string;
 }
 
 // Verbesserte und erweiterte Styles
@@ -92,32 +111,59 @@ const nicknameStyles = {
 export function Nickname({ settings, setSettings, hasPremiumAccess }: NicknameProps) {
   const { data: session } = useSession();
   const username = session?.user?.name || 'Username';
-  const [previewNickname, setPreviewNickname] = useState('Your Nickname');
+  const [nickname, setNickname] = useState(settings.nickname || '');
 
-  const getStylePreview = (style: any) => {
-    if (Array.isArray(style.value)) {
-      return `bg-gradient-to-r from-${style.value[0]} to-${style.value[1]} bg-clip-text text-transparent`;
-    }
-    if (style.preview) {
-      return `animate-${style.value} ${style.preview} bg-clip-text text-transparent`;
-    }
-    return `text-${style.value}`;
+  const getStylePreview = (style: StyleOption): string => {
+    return style.preview;
+  };
+
+  const applyNicknameStyle = (type: 'solid' | 'gradient' | 'animated', style: StyleOption) => {
+    setSettings({
+      ...settings,
+      nicknameStyle: {
+        type,
+        value: style.value
+      }
+    });
+  };
+
+  const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newNickname = e.target.value;
+    setNickname(newNickname);
+    setSettings({
+      ...settings,
+      nickname: newNickname
+    });
   };
 
   const getPreviewStyle = (currentStyle: any) => {
-    const styleType = settings.premium.nickname.style.type;
+    const styleType = settings.nicknameStyle?.type;
     if (styleType === 'solid') {
-      return `text-${settings.premium.nickname.style.color}`;
+      return `text-${settings.nicknameStyle?.value}`;
     }
     if (styleType === 'gradient') {
-      const [from, to] = settings.premium.nickname.style.gradient || ['purple-400', 'pink-600'];
+      const [from, to] = settings.nicknameStyle?.value || ['purple-400', 'pink-600'];
       return `bg-gradient-to-r from-${from} to-${to} bg-clip-text text-transparent`;
     }
     if (styleType === 'animated') {
-      const style = nicknameStyles.animated.find(s => s.value === settings.premium.nickname.style.animation);
+      const style = nicknameStyles.animated.find(s => s.value === settings.nicknameStyle?.value);
       return style?.preview || nicknameStyles.animated[0].preview;
     }
     return '';
+  };
+
+  const isStyleSelected = (style: StyleOption, currentStyle?: NicknameStyle): boolean => {
+    if (!currentStyle || !currentStyle.value) return false;
+    
+    if (Array.isArray(style.value) && Array.isArray(currentStyle.value)) {
+      return style.value.join('-') === currentStyle.value.join('-');
+    }
+    
+    if (!Array.isArray(style.value) && !Array.isArray(currentStyle.value)) {
+      return style.value === currentStyle.value;
+    }
+    
+    return false;
   };
 
   return (
@@ -203,16 +249,10 @@ export function Nickname({ settings, setSettings, hasPremiumAccess }: NicknamePr
             <label className={`toggle-switch ${!hasPremiumAccess && "opacity-50 cursor-not-allowed"}`}>
               <input
                 type="checkbox"
-                checked={settings.premium.nickname.enabled}
+                checked={settings.nicknameStyle?.type !== undefined}
                 onChange={() => setSettings(prev => ({
                   ...prev,
-                  premium: {
-                    ...prev.premium,
-                    nickname: {
-                      ...prev.premium.nickname,
-                      enabled: !prev.premium.nickname.enabled
-                    }
-                  }
+                  nicknameStyle: prev.nicknameStyle ? undefined : { type: 'solid', value: 'purple-500' }
                 }))}
                 disabled={!hasPremiumAccess}
               />
@@ -223,7 +263,7 @@ export function Nickname({ settings, setSettings, hasPremiumAccess }: NicknamePr
           </div>
 
           {/* Style Options */}
-          {settings.premium.nickname.enabled && (
+          {settings.nicknameStyle && (
             <div className="relative p-6 bg-white dark:bg-gray-900 rounded-lg shadow-sm">
               {!hasPremiumAccess && (
                 <div className="absolute inset-0 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-10">
@@ -241,7 +281,7 @@ export function Nickname({ settings, setSettings, hasPremiumAccess }: NicknamePr
                   <div className="text-center">
                     <span className="text-sm text-gray-500 dark:text-gray-400">Preview</span>
                     <div className="h-16 flex items-center justify-center">
-                      <span className={`text-2xl font-medium ${getPreviewStyle(settings.premium.nickname.style)}`}>
+                      <span className={`text-2xl font-medium ${getPreviewStyle(settings.nicknameStyle)}`}>
                         {username}
                       </span>
                     </div>
@@ -261,19 +301,13 @@ export function Nickname({ settings, setSettings, hasPremiumAccess }: NicknamePr
                           key={type}
                           onClick={() => setSettings(prev => ({
                             ...prev,
-                            premium: {
-                              ...prev.premium,
-                              nickname: {
-                                ...prev.premium.nickname,
-                                style: {
-                                  ...prev.premium.nickname.style,
-                                  type
-                                }
-                              }
+                            nicknameStyle: {
+                              ...prev.nicknameStyle,
+                              type
                             }
                           }))}
                           className={`px-3 py-1.5 text-sm rounded-lg transition-all
-                            ${settings.premium.nickname.style.type === type 
+                            ${settings.nicknameStyle?.type === type 
                               ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' 
                               : 'bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-400'}
                             ${hasPremiumAccess ? 'hover:bg-purple-50 dark:hover:bg-purple-900/20' : 'cursor-not-allowed opacity-50'}
@@ -289,12 +323,12 @@ export function Nickname({ settings, setSettings, hasPremiumAccess }: NicknamePr
                   {/* Color/Effect Options */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {settings.premium.nickname.style.type === 'animated' ? 'Effects' : 'Colors'}
+                      {settings.nicknameStyle?.type === 'animated' ? 'Effects' : 'Colors'}
                     </label>
-                    <div className={`grid ${settings.premium.nickname.style.type === 'gradient' ? 'grid-cols-4' : 'grid-cols-6'} gap-1.5`}>
-                      {(settings.premium.nickname.style.type === 'animated'
+                    <div className={`grid ${settings.nicknameStyle?.type === 'gradient' ? 'grid-cols-4' : 'grid-cols-6'} gap-1.5`}>
+                      {(settings.nicknameStyle?.type === 'animated'
                         ? nicknameStyles.animated
-                        : settings.premium.nickname.style.type === 'gradient'
+                        : settings.nicknameStyle?.type === 'gradient'
                         ? nicknameStyles.gradient
                         : nicknameStyles.solid
                       ).map((style: any) => (
@@ -302,30 +336,16 @@ export function Nickname({ settings, setSettings, hasPremiumAccess }: NicknamePr
                           key={typeof style.value === 'string' ? style.value : style.value.join('-')}
                           onClick={() => setSettings(prev => ({
                             ...prev,
-                            premium: {
-                              ...prev.premium,
-                              nickname: {
-                                ...prev.premium.nickname,
-                                style: {
-                                  ...prev.premium.nickname.style,
-                                  ...(Array.isArray(style.value)
-                                    ? { gradient: style.value }
-                                    : settings.premium.nickname.style.type === 'animated'
-                                    ? { animation: style.value }
-                                    : { color: style.value }
-                                  )
-                                }
-                              }
+                            nicknameStyle: {
+                              ...prev.nicknameStyle,
+                              ...(Array.isArray(style.value)
+                                ? { value: style.value }
+                                : { value: style.value }
+                              )
                             }
                           }))}
                           className={`p-2 rounded-lg border-2 transition-all text-center
-                            ${(
-                              Array.isArray(style.value)
-                                ? settings.premium.nickname.style.gradient?.join('-') === style.value.join('-')
-                                : settings.premium.nickname.style.type === 'animated'
-                                ? settings.premium.nickname.style.animation === style.value
-                                : settings.premium.nickname.style.color === style.value
-                            ) ? 'border-purple-500' : 'border-transparent'}
+                            ${isStyleSelected(style, settings.nicknameStyle) ? 'border-purple-500' : 'border-transparent'}
                             ${hasPremiumAccess ? 'hover:bg-gray-50 dark:hover:bg-gray-800/50' : 'cursor-not-allowed'}
                           `}
                           disabled={!hasPremiumAccess}
