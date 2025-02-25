@@ -10,28 +10,19 @@ Modern, next-generation imageboard platform built with Next.js 14 and TailwindCS
 
 ![grafik](https://github.com/user-attachments/assets/e16a991f-6230-4819-a7f4-b38884fad9a2)
 
-## ⚡ Main Features
+## ⚡ Features
 
-### Basic Features
 - 7x4 grid layout with intelligent image adjustment
-- Advanced thumbnails with hover effects
-- Integrated security system with content ratings
-- Support for various media types
-- Reactive comment system
-- Personalized user profiles
-- Dark/Light mode toggle
+- Advanced thumbnails with hover preview
+- Integrated security system
+- Multi-media support
+- Real-time comment system
+- User profiles with customization
+- Dark/Light mode
 - Infinite scroll
-- Pinned posts system
-- Advanced search function
+- Premium features (custom nicknames, ad-free, exclusive themes)
 
-### Premium Features 💎
-- Custom nicknames
-- Advanced statistics
-- Prioritized support
-- Exclusive themes
-- Ad-free experience
-
-## 🛠️ Installation
+## 🛠️ Tech Stack & Setup
 
 ```bash
 git clone https://github.com/f0ck-org/f0ck.git
@@ -40,47 +31,37 @@ npm install
 npm run dev
 ```
 
-## 🔧 Technology Stack
-- Next.js 14 with App Router
-- TailwindCSS for modern design
-- Geist Font Family
+Built with:
+- Next.js 14 (App Router)
+- TailwindCSS
+- Geist Font
 - React Server Components
 - Vercel Edge Runtime
 - MongoDB Atlas
 
-## 🔥 Changelog
+## 🔥 Latest Updates
 
-### Beta v1.0.4 (Current)
-- 🎨 Optimized grid system (7x4)
-- 👤 Completely revamped user system
-  - Open registration
-  - New user cards & profiles
-  - Enhanced authentication
-  - Social features
-- 🔄 Infinite scroll performance improvements
-- 🎯 Enhanced pinned post system
-- 🔒 New security features
-- 💾 Improved database structure
-
-### Beta v1.0.3
-- 🖼️ New image processing
-- 📱 Responsive design 2.0
+### Beta v1.0.5 (Current)
+- 🎨 Enhanced grid optimization
 - 🚀 Performance improvements
-- 🔍 Advanced search functions
+- 🔒 Advanced security features
+- 🎯 Refined pinned post system
+- 💾 Database optimizations
 
-### Beta v1.0.2
-- 💬 Overhauled comment system
-- 👤 Extended profile options
-- 📊 Statistics dashboard
-- 🛡️ Improved moderation
+### Beta v1.0.4
+- 👤 Revamped user system
+  - Open registration
+  - Enhanced profiles
+  - Social features
+- 🔄 Infinite scroll improvements
+- 🔍 Search system upgrade
 
-## 🌐 Community & Support
-- [f0ck.org main website](https://f0ck.org)
-- [Discord Server](https://discord.gg/SmWpwGnyrU)
-- [Ko-fi Support](https://ko-fi.com/f0ck_org)
+## 🌐 Links & Support
+- [Website](https://f0ck.org)
+- [Discord](https://discord.gg/SmWpwGnyrU)
+- [Ko-fi](https://ko-fi.com/f0ck_org)
 
 ## 📜 License
 MIT License - © 2024 f0ck.org Team
 
-## 🤝 Contribute
 We welcome contributions! See `CONTRIBUTING.md` for details.
