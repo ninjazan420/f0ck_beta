@@ -64,8 +64,10 @@ export const authOptions: AuthOptions = {
             name: user.name,
             role: user.role
           };
-        } catch (error) {
-          throw new Error('Authentication failed');
+        } catch (error: Error | unknown) {
+          // Verwende die tatsächliche Fehlermeldung oder liefere einen Standardfehler
+          const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
+          throw new Error(errorMessage);
         }
       }
     })
