@@ -203,8 +203,8 @@ export function AccountCard() {
         <div className="w-32 md:w-32 flex-shrink-0 space-y-3">
           <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700">
             <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
-              <Image 
-                src={profile.avatarUrl || '/images/defaultavatar.png'}
+              <Image
+                src={profile.avatarUrl || "/images/defaultavatar.png"}
                 alt={`${profile.nickname}'s avatar`}
                 width={128}
                 height={128}
@@ -214,14 +214,14 @@ export function AccountCard() {
             </div>
             {/* ...existing code... */}
           </div>
-          
+
           {/* Edit Profile Button unter Avatar */}
           <div className="space-y-1">
             {!isEditing ? (
               <button
                 onClick={() => setIsEditing(true)}
                 className="w-full py-1.5 px-3 text-xs rounded-lg text-center bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-              > 
+              >
                 Edit Profile
               </button>
             ) : (
@@ -244,7 +244,7 @@ export function AccountCard() {
               href="/premium"
               className="w-full py-1.5 px-3 text-xs rounded-lg text-center bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-1"
             >
-              Buy Premium 
+              Buy Premium
             </Link>
           </div>
         </div>
@@ -252,11 +252,15 @@ export function AccountCard() {
         {/* Profile Info */}
         <div className="flex-grow space-y-3">
           <div>
-            <label className="block text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">Nickname</label>
+            <label className="block text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">
+              Nickname
+            </label>
             <input
               type="text"
-              value={profile.nickname || ''} // Stelle sicher, dass der Wert nie undefined ist
-              onChange={e => setProfile({ ...profile, nickname: e.target.value })}
+              value={profile.nickname || ""} // Stelle sicher, dass der Wert nie undefined ist
+              onChange={(e) =>
+                setProfile({ ...profile, nickname: e.target.value })
+              }
               disabled={!isEditing}
               className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
               placeholder="Enter your nickname"
@@ -270,8 +274,10 @@ export function AccountCard() {
             </label>
             <input
               type="email"
-              value={profile.email || ''} // Stelle sicher, dass der Wert nie undefined ist
-              onChange={e => setProfile({ ...profile, email: e.target.value })}
+              value={profile.email || ""} // Stelle sicher, dass der Wert nie undefined ist
+              onChange={(e) =>
+                setProfile({ ...profile, email: e.target.value })
+              }
               disabled={!isEditing}
               className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
               placeholder="Enter your email"
@@ -280,8 +286,12 @@ export function AccountCard() {
 
           <div>
             <div className="flex justify-between items-center">
-              <label className="block text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">Bio</label>
-              <span className="text-xs text-gray-500">{profile.bio.length}/140</span>
+              <label className="block text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">
+                Bio
+              </label>
+              <span className="text-xs text-gray-500">
+                {profile.bio.length}/140
+              </span>
             </div>
             <textarea
               value={profile.bio}
@@ -297,10 +307,16 @@ export function AccountCard() {
           {/* Member Info */}
           <div className="text-sm space-y-1">
             <div className="text-gray-500">
-              Member since <span className="text-gray-700 dark:text-gray-300">{new Date(profile.createdAt).toLocaleDateString()}</span>
+              Member since{" "}
+              <span className="text-gray-700 dark:text-gray-300">
+                {new Date(profile.createdAt).toLocaleDateString()}
+              </span>
             </div>
             <div className="text-gray-500">
-              Last seen <span className="text-gray-700 dark:text-gray-300">{new Date(profile.lastSeen).toLocaleDateString()}</span>
+              Last seen{" "}
+              <span className="text-gray-700 dark:text-gray-300">
+                {new Date(profile.lastSeen).toLocaleDateString()}
+              </span>
             </div>
           </div>
 
@@ -308,27 +324,38 @@ export function AccountCard() {
           <div className="flex justify-between items-end gap-4 py-2 text-sm">
             <div className="text-center">
               <div className="text-xs text-gray-500 mb-1">uploads</div>
-              <div className="font-medium text-gray-900 dark:text-gray-100">{profile.uploads}</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
+                {profile.uploads}
+              </div>
             </div>
             <div className="text-center">
               <div className="text-xs text-gray-500 mb-1">favorites</div>
-              <div className="font-medium text-gray-900 dark:text-gray-100">{profile.favorites}</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
+                {profile.favorites}
+              </div>
             </div>
             <div className="text-center">
               <div className="text-xs text-gray-500 mb-1">likes</div>
-              <div className="font-medium text-gray-900 dark:text-gray-100">{profile.likedPosts}</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
+                {profile.likedPosts}
+              </div>
             </div>
             <div className="text-center">
               <div className="text-xs text-gray-500 mb-1">comments</div>
-              <div className="font-medium text-gray-900 dark:text-gray-100">{profile.comments}</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
+                {profile.comments}
+              </div>
             </div>
             <div className="text-center">
               <div className="text-xs text-gray-500 mb-1">tags</div>
-              <div className="font-medium text-gray-900 dark:text-gray-100">{profile.tags}</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
+                {profile.tags}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
 
       {/* Privacy Settings - Kompakteres Layout */}
       <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -341,7 +368,7 @@ export function AccountCard() {
               type="checkbox"
               className="sr-only peer"
               checked={profile.privacySettings.isProfilePrivate}
-              onChange={() => togglePrivacySetting('isProfilePrivate')}
+              onChange={() => togglePrivacySetting("isProfilePrivate")}
               id="privacy-toggle"
               aria-label="Toggle private profile"
               title="Toggle private profile"
@@ -349,40 +376,46 @@ export function AccountCard() {
             <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
           </label>
         </div>
-
         <div className="grid grid-cols-2 gap-2 text-sm">
           {Object.entries(profile.privacySettings)
-            .filter(([key]) => key !== 'isProfilePrivate')
+            .filter(([key]) => key !== "isProfilePrivate")
             .map(([key, value]) => (
               <label key={key} className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={value}
-                  onChange={() => togglePrivacySetting(key as keyof ProfileData['privacySettings'])}
+                  onChange={() =>
+                    togglePrivacySetting(
+                      key as keyof ProfileData["privacySettings"]
+                    )
+                  }
                   disabled={profile.privacySettings.isProfilePrivate}
                   className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 
                       text-purple-600 focus:ring-purple-500 dark:focus:ring-purple-600
                       dark:bg-gray-700 transition-colors cursor-pointer"
-                  aria-label={`Show ${key.replace('show', '')}`}
-                  title={`Toggle visibility of ${key.replace('show', '')}`}
+                  aria-label={`Show ${key.replace("show", "")}`}
+                  title={`Toggle visibility of ${key.replace("show", "")}`}
                   id={`privacy-${key}`}
                 />
                 <span className="text-gray-600 dark:text-gray-400">
-                  Show {key.replace('show', '')}
+                  Show {key.replace("show", "")}
                 </span>
               </label>
             ))}
         </div>
       </div>
-
+      
       {/* Recent Activity mit verschiedenen Aktivitätstypen */}
       <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400 mb-3">
           Recent Activity
         </h3>
         <div className="space-y-3">
-          {profile.recentActivity.map(activity => (
-            <div key={activity.id} className="flex gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800/50">
+          {profile.recentActivity.map((activity) => (
+            <div
+              key={activity.id}
+              className="flex gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800/50"
+            >
               {/* Activity Content */}
               <div className="flex-grow space-y-2">
                 <div className="flex items-start justify-between gap-4">
@@ -395,8 +428,8 @@ export function AccountCard() {
                   </span>
                 </div>
                 <div className="text-xs text-gray-500">
-                  on{' '}
-                  <Link 
+                  on{" "}
+                  <Link
                     href={`/post/${activity.post.id}`}
                     className="text-purple-600 dark:text-purple-400 hover:underline"
                   >
@@ -405,26 +438,31 @@ export function AccountCard() {
                 </div>
               </div>
               {/* Thumbnail */}
-              <Link 
+              <Link
                 href={`/post/${activity.post.id}`}
                 className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden group"
               >
-                <div className="absolute inset-0 bg-cover bg-center" 
-                     style={{ backgroundImage: `url(${activity.post.imageUrl})` }}>
-                </div>
-                {activity.post.type === 'video' && (
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${activity.post.imageUrl})` }}
+                ></div>
+                {activity.post.type === "video" && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                     <span className="text-white text-xl">▶</span>
                   </div>
                 )}
-                {activity.post.type === 'gif' && (
+                {activity.post.type === "gif" && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <span className="text-white text-xs px-1.5 py-0.5 bg-black/50 rounded">GIF</span>
+                    <span className="text-white text-xs px-1.5 py-0.5 bg-black/50 rounded">
+                      GIF
+                    </span>
                   </div>
                 )}
                 {activity.post.nsfw && (
                   <div className="absolute inset-0 flex items-center justify-center bg-red-500/50 group-hover:bg-red-500/30 transition-colors">
-                    <span className="text-white text-xs font-bold px-1 py-0.5 bg-red-600/90 rounded">NSFW</span>
+                    <span className="text-white text-xs font-bold px-1 py-0.5 bg-red-600/90 rounded">
+                      NSFW
+                    </span>
                   </div>
                 )}
               </Link>
