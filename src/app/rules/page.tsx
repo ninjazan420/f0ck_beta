@@ -1,20 +1,6 @@
-import { Metadata } from 'next';
 import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
 
-export const metadata: Metadata = {
-  title: 'Rules & Policies - f0ck beta v1',
-  description: 'Community guidelines, content policies, and account rules for f0ck.org',
-  openGraph: {
-    title: 'Rules & Policies - f0ck beta v1',
-    description: 'Learn about our community guidelines and content policies.',
-  },
-  twitter: {
-    card: 'summary',
-    title: 'Rules & Policies - f0ck beta v1',
-    description: 'Community guidelines, content policies, and account rules for f0ck.org',
-  }
-};
 
 export default function Rules() {
   return (

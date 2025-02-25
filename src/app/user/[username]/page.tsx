@@ -42,32 +42,7 @@ export default async function UserPage({ params }: { params: Promise<{ username:
     <>
       <Head>
         <title>{`${formattedUsername} - ${titleSuffix}`}</title>
-        <meta 
-          name="description" 
-          content={user.bio || `${formattedUsername}'s Profil auf f0ck.org - ${memberSince} - ${userStats}`}
-        />
         <link rel="icon" href="/favicon.ico" />
-        
-        <meta property="og:type" content="profile" />
-        <meta property="og:title" content={`${formattedUsername} - ${titleSuffix}`} />
-        <meta 
-          property="og:description" 
-          content={user.bio ? `${user.bio}\n\n${memberSince}\n${userStats}` : `${memberSince}\n${userStats}`}
-        />
-        <meta property="og:image" content={user.avatar || '/images/defaultavatar.png'} />
-        <meta property="og:image:width" content="400" />
-        <meta property="og:image:height" content="400" />
-        <meta property="profile:username" content={user.username} />
-        
-        <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content={`${formattedUsername} - ${titleSuffix}`} />
-        <meta 
-          name="twitter:description" 
-          content={user.bio ? `${user.bio} · ${memberSince}` : memberSince}
-        />
-        <meta name="twitter:image" content={user.avatar || '/images/defaultavatar.png'} />
-        
-        <meta name="robots" content="index,follow,nocache" />
       </Head>
       <UserDetails username={username} />
     </>

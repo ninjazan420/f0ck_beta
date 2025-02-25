@@ -1,21 +1,6 @@
-import { Metadata } from 'next';
 import { AccountCard } from "./components/AccountCard";
 import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
-
-export const metadata: Metadata = {
-  title: 'Account - f0ck beta v1',
-  description: 'Your Account',
-  openGraph: {
-    title: 'Account - f0ck beta v1',
-    description: 'Your Account',
-  },
-  twitter: {
-    card: 'summary',
-    title: 'Account - f0ck beta v1',
-    description: 'Your Account',
-  }
-};
 
 export default function Account() {
   return (

@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import { Metadata } from '@/types/metadata';
 
 export const metadata: Metadata = {
   title: "Help - f0ck beta v1",

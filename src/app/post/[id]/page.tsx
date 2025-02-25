@@ -1,4 +1,3 @@
-import { Metadata } from 'next';
 import { Footer } from "@/components/Footer";
 import { PostDetails } from "../../posts/components/PostDetails";
 import { PostNavigation } from "../../posts/components/PostNavigation";
@@ -13,29 +12,6 @@ async function getPost(id: string) {
     imageUrl: "https://picsum.photos/1200/800",
     uploader: { name: "User1" },
     contentRating: "safe",
-  };
-}
-
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params;
-  const post = await getPost(id);
-  
-  return {
-    title: `${post.title} - f0ck beta v1`,
-    description: post.description,
-    openGraph: {
-      title: post.title,
-      description: post.description,
-      images: [{ url: post.imageUrl, width: 1200, height: 800 }],
-      type: 'article',
-      authors: [post.uploader.name],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: post.title,
-      description: post.description,
-      images: [post.imageUrl],
-    }
   };
 }
 
