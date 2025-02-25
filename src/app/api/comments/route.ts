@@ -7,49 +7,59 @@ import Post from '@/models/Post';
 export async function POST(req: Request) {
   try {
     const session = await getServerSession();
-    if (!session) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { postId, content, replyTo } = await req.json();
     
-    if (!postId || !content) {
+    // Erweiterte Validierung
+    if (!postId || !content?.trim()) {
       return NextResponse.json(
-        { error: 'Post ID and content are required' },
+        { error: 'Post ID and non-empty content are required' },
+        { status: 400 }
+      );
+    }
+
+    if (content.length > 1000) {
+      return NextResponse.json(
+        { error: 'Comment too long (max 1000 characters)' },
         { status: 400 }
       );
     }
 
     await dbConnect();
     
-    // Verify post exists
-    const post = await Post.findById(postId);
+    // Parallel Verification
+    const [post, parentComment] = await Promise.all([
+      Post.findById(postId),
+      replyTo ? Comment.findById(replyTo) : null
+    ]);
+
     if (!post) {
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    // If this is a reply, verify parent comment exists
-    if (replyTo) {
-      const parentComment = await Comment.findById(replyTo);
-      if (!parentComment) {
-        return NextResponse.json(
-          { error: 'Parent comment not found' },
-          { status: 404 }
-        );
-      }
+    if (replyTo && !parentComment) {
+      return NextResponse.json({ error: 'Parent comment not found' }, { status: 404 });
     }
+
+    // Sanitize content here if needed
 
     const comment = await Comment.create({
-      content,
+      content: content.trim(),
       author: session.user.id,
       post: postId,
       replyTo
     });
 
     await comment.populate('author', 'username');
+
+    // Aktualisiere Post-Statistiken
+    await Post.findByIdAndUpdate(postId, {
+      $inc: { commentCount: 1 },
+      $set: { lastActivity: new Date() }
+    });
 
     return NextResponse.json({
       message: 'Comment created successfully',
