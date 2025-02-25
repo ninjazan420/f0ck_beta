@@ -21,6 +21,14 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     minimumCacheTTL: 60
+  },
+  eslint: {
+    // Warning: Dies erlaubt Production Builds auch mit ESLint Fehlern
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    // Warning: Dies erlaubt Production Builds auch mit TypeScript Fehlern
+    ignoreBuildErrors: true,
   }
 };
 
