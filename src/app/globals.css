@@ -31,6 +31,17 @@ body {
   animation: fade-in-out 2s ease-in-out forwards;
 }
 
+/* Neue Utility-Klassen für Nickname-Animationen */
+.bg-size-200 {
+  background-size: 200% 200%;
+}
+
+.animate-gpu {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
 @layer components {
   .stat-card {
     @apply p-5 rounded-xl 
