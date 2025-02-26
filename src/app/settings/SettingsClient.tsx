@@ -105,7 +105,12 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
         <div className="space-y-6">
           <SettingsPremium 
             settings={settings} 
-            setSettings={setSettings} 
+            setSettings={(premiumSettings: any) => {
+              setSettings(prevSettings => ({
+                ...prevSettings,
+                ...premiumSettings
+              }))
+            }} 
             userRole={userRole}
           />
 

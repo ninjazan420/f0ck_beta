@@ -6,8 +6,7 @@ import { Footer } from "@/components/Footer";
 import { getRandomLogo } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
-// Remove metadata since this is now a client component
-// Metadata should be moved to a separate layout.tsx file
+// Client-Komponenten sollten keine metadata exportieren
 
 const PINNED_POST = {
   id: 'post-1',
@@ -15,8 +14,7 @@ const PINNED_POST = {
   thumbnail: 'https://picsum.photos/800/400',
   uploader: {
     name: 'Admin',
-    avatar: null,
-    isPremium: true
+    avatar: null
   },
   createdAt: '2023-12-24T12:00:00Z',
 };

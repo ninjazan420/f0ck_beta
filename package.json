@@ -6,10 +6,12 @@
     "dev": "next dev --turbopack -p 3001",
     "build": "next build",
     "start": "next start -p 3000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prod": "npm run build && npm run start"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.10.0",
@@ -17,7 +19,8 @@
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-dropzone": "^14.3.5"
+    "react-dropzone": "^14.3.5",
+    "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

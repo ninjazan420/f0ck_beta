@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { RandomLogo } from "@/components/RandomLogo";
 
+
 export default function ForgotPasswordClient() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);

@@ -4,9 +4,17 @@ import './globals.css'
 import { Navbar } from '@/components/Navbar'
 import { ThemeProvider } from '@/context/ThemeContext'
 import AuthProvider from '@/context/AuthProvider'
+import { siteConfig } from './metadata'
+import type { Metadata } from 'next'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const jetBrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono' })
+
+export const metadata: Metadata = {
+  title: `Comments | ${siteConfig.name}`,
+  description: "f0ck.org rules & help",
+  icons: siteConfig.icon,
+};
 
 export default function RootLayout({
   children,
@@ -15,9 +23,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-      </head>
       <body className={`${inter.variable} ${jetBrainsMono.variable} antialiased`}>
         <AuthProvider>
           <ThemeProvider>
