@@ -10,9 +10,12 @@
     "prod": "npm run build && npm run start"
   },
   "dependencies": {
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
+    "emoji-mart": "^5.6.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.10.0",
     "next": "^15.1.7",

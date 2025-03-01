@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, ReactElement } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { EmojiPicker } from '@/components/EmojiPicker';
+import { GifSelector } from '@/components/GifSelector';
 
 const DEFAULT_AVATAR = '/images/defaultavatar.png';
 
@@ -40,6 +42,8 @@ interface CommentProps {
 export function Comment({ data }: CommentProps) {
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState('');
+  const [showGifSelector, setShowGifSelector] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const formattedDate = new Date(data.createdAt).toLocaleString();
 
@@ -75,10 +79,63 @@ export function Comment({ data }: CommentProps) {
   };
 
   const handleReply = () => {
+    if (!replyText.trim()) return;
+    
     // Hier würde die API-Logik für das Senden der Antwort implementiert
     console.log(`Replying to comment ${data.id}: ${replyText}`);
     setReplyText('');
     setShowReplyBox(false);
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
+    if (textarea) {
+      const start = textarea.selectionStart || 0;
+      const end = textarea.selectionEnd || 0;
+      const text = textarea.value;
+      const before = text.substring(0, start);
+      const after = text.substring(end);
+      setReplyText(before + emoji + after);
+    }
+    setShowEmojiPicker(false);
+  };
+
+  const handleGifSelect = (gifUrl: string) => {
+    const cleanGifUrl = gifUrl.split('?')[0];
+    setReplyText(text => text.trim() + ' ' + cleanGifUrl + ' ');
+    setShowGifSelector(false);
+  };
+
+  const renderCommentContent = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+\.(gif|png|jpg|jpeg))(?:\?[^\s]*)?/gi;
+    const matches = text.match(urlRegex) || [];
+    const textParts = text.replace(urlRegex, '\n[media]\n').split('\n');
+    const result: ReactElement[] = [];
+    let mediaIndex = 0;
+    
+    textParts.forEach((part, index) => {
+      if (part === '[media]') {
+        if (matches[mediaIndex]) {
+          const cleanUrl = matches[mediaIndex].split('?')[0];
+          result.push(
+            <div key={`media-${index}`} className="my-2 relative w-[300px] aspect-square">
+              <Image
+                src={cleanUrl}
+                alt="Embedded media"
+                fill
+                className="object-contain rounded-lg"
+                unoptimized
+              />
+            </div>
+          );
+          mediaIndex++;
+        }
+      } else if (part.trim()) {
+        result.push(<span key={`text-${index}`} className="whitespace-pre-wrap">{part}</span>);
+      }
+    });
+    
+    return result;
   };
 
   return (
@@ -86,22 +143,26 @@ export function Comment({ data }: CommentProps) {
       {/* Reply Preview */}
       {data.replyTo && (
         <div className="mb-3 pl-4 border-l-2 border-purple-200 dark:border-purple-800/30 bg-purple-50/30 dark:bg-purple-900/10 rounded-r-lg py-2">
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Reply to{' '}
-            {data.replyTo.user.isAnonymous ? (
-              <span className="text-gray-600 dark:text-gray-400">Anonymous</span>
-            ) : (
-              <Link 
-                href={getUserUrl(data.replyTo.user.name)} 
-                className="text-purple-600 hover:underline"
-              >
-                {data.replyTo.user.name}
-              </Link>
-            )}:
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-300 font-[family-name:var(--font-geist-sans)] line-clamp-1">
-            {data.replyTo.preview}
-          </div>
+          <Link href={`/comments/${data.replyTo.id}`} className="block hover:bg-purple-50/50 dark:hover:bg-purple-900/20 rounded transition-colors">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Reply to{' '}
+              {data.replyTo.user.isAnonymous ? (
+                <span className="text-gray-600 dark:text-gray-400">Anonymous</span>
+              ) : (
+                <span className="text-purple-600 hover:underline cursor-pointer" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.location.href = getUserUrl(data.replyTo.user.name);
+                      }}>
+                  {data.replyTo.user.name}
+                </span>
+              )}:
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-300 font-[family-name:var(--font-geist-sans)] line-clamp-1">
+              {data.replyTo.preview}
+            </div>
+          </Link>
         </div>
       )}
 
@@ -167,9 +228,22 @@ export function Comment({ data }: CommentProps) {
             <div className="flex items-center gap-4">
               <Link 
                 href={`/comments/${data.id}`}
-                className="text-sm text-gray-500 hover:text-purple-600 dark:hover:text-purple-400"
+                className="text-sm text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-2"
               >
-                {formattedDate}
+                <span title={new Date(data.createdAt).toLocaleString()}>
+                  {new Date(data.createdAt).toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </span>
+                <span>•</span>
+                <span>
+                  {new Date(data.createdAt).toLocaleTimeString(undefined, {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </span>
               </Link>
               <Link 
                 href={`/comments/${data.id}/likes`}
@@ -186,9 +260,9 @@ export function Comment({ data }: CommentProps) {
           </div>
 
           <div className="flex gap-4 mt-2">
-            <p className="flex-grow text-gray-700 dark:text-gray-300 font-[family-name:var(--font-geist-sans)]">
-              {data.text}
-            </p>
+            <div className="flex-grow text-gray-700 dark:text-gray-300 font-[family-name:var(--font-geist-sans)]">
+              {renderCommentContent(data.text)}
+            </div>
 
             {/* Thumbnail */}
             <Link 
@@ -232,14 +306,14 @@ export function Comment({ data }: CommentProps) {
           </div>
 
           <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
-            <button className="hover:text-purple-600 dark:hover:text-purple-400">
-              ❤️ {data.likes}
+            <button className="hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1">
+              <span className="text-base">❤️</span> {data.likes}
             </button>
             <button 
               onClick={() => setShowReplyBox(!showReplyBox)}
               className="hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1"
             >
-              💬 Reply
+              <span className="text-base">💬</span> Reply
             </button>
           </div>
 
@@ -253,21 +327,69 @@ export function Comment({ data }: CommentProps) {
                 className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
                 rows={3}
               />
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setShowReplyBox(false)}
-                  className="px-3 py-1 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleReply}
-                  disabled={!replyText.trim()}
-                  className="px-3 py-1 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Send Reply
-                </button>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500">
+                  {replyText.length}/500 characters
+                </span>
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowGifSelector(true)}
+                      className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      title="Add GIF"
+                    >
+                      🎨 GIF
+                    </button>
+                    {showGifSelector && (
+                      <GifSelector
+                        onSelect={handleGifSelect}
+                        onClose={() => setShowGifSelector(false)}
+                      />
+                    )}
+                  </div>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowEmojiPicker(true)}
+                      className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      title="Add emoji"
+                    >
+                      😊 Emoji
+                    </button>
+                    {showEmojiPicker && (
+                      <EmojiPicker
+                        onSelect={handleEmojiSelect}
+                        onClose={() => setShowEmojiPicker(false)}
+                      />
+                    )}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowReplyBox(false);
+                      setReplyText('');
+                    }}
+                    className="px-3 py-1 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleReply}
+                    disabled={!replyText.trim()}
+                    className="px-3 py-1 rounded-lg text-sm text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 disabled:opacity-50"
+                  >
+                    Reply
+                  </button>
+                </div>
               </div>
+              {/* Preview des Reply-Texts */}
+              {replyText && (
+                <div className="mt-2 p-2 rounded-lg bg-gray-50/50 dark:bg-gray-800/50">
+                  <div className="text-sm text-gray-800 dark:text-gray-200">
+                    {renderCommentContent(replyText)}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
