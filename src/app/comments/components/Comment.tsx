@@ -117,15 +117,22 @@ export function Comment({ data }: CommentProps) {
       if (part === '[media]') {
         if (matches[mediaIndex]) {
           const cleanUrl = matches[mediaIndex].split('?')[0];
+          const isGiphy = cleanUrl.includes('giphy.com');
           result.push(
-            <div key={`media-${index}`} className="my-2 relative w-[300px] aspect-square">
+            <div key={`media-${index}`} className="my-1">
               <Image
                 src={cleanUrl}
                 alt="Embedded media"
-                fill
-                className="object-contain rounded-lg"
+                width={300}
+                height={300}
+                className="rounded-lg"
                 unoptimized
               />
+              {isGiphy && (
+                <div className="text-[12px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
+                  Powered by GIPHY
+                </div>
+              )}
             </div>
           );
           mediaIndex++;
@@ -146,21 +153,23 @@ export function Comment({ data }: CommentProps) {
           <Link href={`/comments/${data.replyTo.id}`} className="block hover:bg-purple-50/50 dark:hover:bg-purple-900/20 rounded transition-colors">
             <div className="text-sm text-gray-500 dark:text-gray-400">
               Reply to{' '}
-              {data.replyTo.user.isAnonymous ? (
+              {data.replyTo?.user?.isAnonymous ? (
                 <span className="text-gray-600 dark:text-gray-400">Anonymous</span>
               ) : (
                 <span className="text-purple-600 hover:underline cursor-pointer" 
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        window.location.href = getUserUrl(data.replyTo.user.name);
+                        if (data.replyTo?.user?.name) {
+                          window.location.href = getUserUrl(data.replyTo.user.name);
+                        }
                       }}>
-                  {data.replyTo.user.name}
+                  {data.replyTo?.user?.name}
                 </span>
               )}:
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-300 font-[family-name:var(--font-geist-sans)] line-clamp-1">
-              {data.replyTo.preview}
+              {data.replyTo?.preview}
             </div>
           </Link>
         </div>
