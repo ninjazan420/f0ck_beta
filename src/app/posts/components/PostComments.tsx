@@ -396,12 +396,19 @@ export function PostComments({ postId }: PostCommentsProps) {
                 {comment.user.isAnonymous ? (
                   <span className="text-sm text-gray-600 dark:text-gray-400">Anonymous</span>
                 ) : (
-                  <Link
-                    href={getUserUrl(comment.user.name)}
-                    className={`text-sm font-medium hover:underline ${getNickStyle(comment.user.style)}`}
-                  >
-                    {comment.user.name}
-                  </Link>
+                  <>
+                    <Link
+                      href={getUserUrl(comment.user.name)}
+                      className={`text-sm font-medium hover:underline ${getNickStyle(comment.user.style)}`}
+                    >
+                      {comment.user.name}
+                    </Link>
+                    {comment.user.style && (
+                      <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
+                        PREMIUM
+                      </span>
+                    )}
+                  </>
                 )}
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <span title={new Date(comment.createdAt).toLocaleString()}>
