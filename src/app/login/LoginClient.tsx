@@ -20,24 +20,57 @@ export default function LoginClient({ registered }: LoginClientProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (loading) return; // Prevent multiple submissions
+    
     setLoading(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
-    const res = await signIn('credentials', {
-      username: formData.get('username'),
-      password: formData.get('password'),
-      redirect: false,
-    });
+    try {
+      const formData = new FormData(e.currentTarget);
+      const username = formData.get('username') as string;
+      const password = formData.get('password') as string;
 
-    if (res?.error) {
-      setError(res.error);
+      // Basic input validation
+      if (!username || !password) {
+        setError('Please fill in all fields');
+        setLoading(false);
+        return;
+      }
+
+      // Input length validation
+      if (username.length > 50 || password.length > 100) {
+        setError('Invalid input length');
+        setLoading(false);
+        return;
+      }
+
+      const res = await signIn('credentials', {
+        username,
+        password,
+        redirect: false,
+      });
+
+      if (res?.error) {
+        setError(res.error);
+        setLoading(false);
+      } else {
+        setShowLoginBanner(true);
+        // Clear sensitive form data
+        e.currentTarget.reset();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Get the callback URL from the URL parameters
+        const params = new URLSearchParams(window.location.search);
+        const callbackUrl = params.get('callbackUrl');
+        
+        // Redirect to callback URL or home
+        router.push(callbackUrl || '/');
+        router.refresh();
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
       setLoading(false);
-    } else {
-      setShowLoginBanner(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      router.push('/');
-      router.refresh();
     }
   };
 
@@ -71,6 +104,8 @@ export default function LoginClient({ registered }: LoginClientProps) {
                   placeholder="Username"
                   className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
                   required
+                  autoComplete="username"
+                  maxLength={50}
                 />
               </div>
               
@@ -81,6 +116,8 @@ export default function LoginClient({ registered }: LoginClientProps) {
                   placeholder="Password"
                   className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
                   required
+                  autoComplete="current-password"
+                  maxLength={100}
                 />
               </div>
 

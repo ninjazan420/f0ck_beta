@@ -43,11 +43,18 @@ export const Navbar = () => {
   ];
 
   const handleLogout = async () => {
-    setShowLogoutBanner(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setShowLogoutBanner(false);
-    setShowSuccessLogout(true);
-    signOut({ redirect: true, callbackUrl: '/' });
+    try {
+      setShowLogoutBanner(true);
+      await signOut({ 
+        redirect: false
+      });
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setShowLogoutBanner(false);
+      setShowSuccessLogout(true);
+    }
   };
 
   const truncateUsername = (username: string | undefined | null): string => {
