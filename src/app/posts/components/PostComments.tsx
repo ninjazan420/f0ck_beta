@@ -191,15 +191,22 @@ export function PostComments({ postId }: PostCommentsProps) {
       if (part === '[media]') {
         if (matches[mediaIndex]) {
           const cleanUrl = matches[mediaIndex].split('?')[0];
+          const isGiphy = cleanUrl.includes('giphy.com');
           result.push(
-            <div key={`media-${index}`} className="my-2 relative w-[300px] aspect-square">
+            <div key={`media-${index}`} className="my-1">
               <Image
                 src={cleanUrl}
                 alt="Embedded media"
-                fill
-                className="object-contain rounded-lg"
+                width={300}
+                height={300}
+                className="rounded-lg"
                 unoptimized
               />
+              {isGiphy && (
+                <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
+                  Powered by GIPHY
+                </div>
+              )}
             </div>
           );
           mediaIndex++;
