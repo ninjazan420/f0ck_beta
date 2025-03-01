@@ -11,6 +11,7 @@ Modern, next-generation imageboard platform built with Next.js 14 and TailwindCS
 ![grafik](https://github.com/user-attachments/assets/e16a991f-6230-4819-a7f4-b38884fad9a2)
 
 ## 📋 Table of Contents
+
 - [f0ck.org Beta v1](#f0ckorg-beta-v1)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
@@ -63,11 +64,14 @@ npm run dev
 ```
 
 The development server will be available at:
+
 - **URL**: `http://localhost:3001`
 - **API**: `http://localhost:3001/api`
 
 ### Environment Setup
+
 Create a `.env.local` file in the root directory:
+
 ```env
 MONGODB_URI=your_mongodb_uri
 GIPHY_API_KEY=your_giphy_api_key
@@ -86,6 +90,7 @@ GIPHY_API_KEY=your_giphy_api_key
 ## 🔥 Latest Updates
 
 ### Beta v1.0.6 (Current)
+
 - 🎨 Enhanced comment system
   - GIPHY integration with attribution
   - Improved media display
@@ -95,6 +100,7 @@ GIPHY_API_KEY=your_giphy_api_key
 - 🎯 UI/UX improvements
 
 ### Beta v1.0.5
+
 - 🎨 Enhanced grid optimization
 - 🚀 Performance improvements
 - 🔒 Advanced security features
@@ -102,6 +108,7 @@ GIPHY_API_KEY=your_giphy_api_key
 - 💾 Database optimizations
 
 ### Beta v1.0.4
+
 - 👤 Revamped user system
   - Open registration
   - Enhanced profiles
@@ -110,9 +117,11 @@ GIPHY_API_KEY=your_giphy_api_key
 - 🔍 Search system upgrade
 
 ## 🌐 Links & Support
+
 - [Website](https://f0ck.org)
 - [Discord](https://discord.gg/SmWpwGnyrU)
 - [Ko-fi](https://ko-fi.com/f0ck_org)
 
 ## 📜 License
+
 MIT License - © 2024 f0ck.org Team
