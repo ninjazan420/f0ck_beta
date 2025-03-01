@@ -63,10 +63,10 @@ Modern, next-generation imageboard platform built with Next.js 14 and TailwindCS
 
 ```bash
 # Clone the repository
-git clone https://github.com/f0ck-org/f0ck.git
+git clone https://github.com/ninjazan420/f0ck_beta.git
 
 # Navigate to project directory
-cd f0ck
+cd f0ck_beta
 
 # Install dependencies
 npm install
@@ -79,6 +79,7 @@ The development server will be available at:
 
 - **URL**: `http://localhost:3001`
 - **API**: `http://localhost:3001/api`
+- **WebSocket**: `ws://localhost:3001` (automatically configured)
 
 ### Environment Setup
 
@@ -87,7 +88,10 @@ Create a `.env.local` file in the root directory:
 ```env
 MONGODB_URI=your_mongodb_uri
 GIPHY_API_KEY=your_giphy_api_key
-WEBSOCKET_URL=your_websocket_url
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3001
+PORT=3001
+NODE_ENV=development
 ```
 
 ## 🛠️ Tech Stack
