@@ -19,6 +19,11 @@ export const Navbar = () => {
   const [showLogoutBanner, setShowLogoutBanner] = useState(false);
   const [showSuccessLogout, setShowSuccessLogout] = useState(false);
 
+  // Debug output
+  console.log('Session:', session);
+  console.log('User role:', session?.user?.role);
+  console.log('Auth status:', status);
+
   const leftMenuItems: MenuItem[] = [
     { type: 'link', label: 'Home', href: '/' },
     { type: 'link', label: 'Posts', href: '/posts' },
@@ -69,6 +74,9 @@ export const Navbar = () => {
             </div>
           )
         },
+        ...(session?.user?.role && ['moderator', 'admin'].includes(session.user.role)) 
+          ? [{ type: 'link' as const, label: 'Mod', href: '/moderation' }] 
+          : [],
         ...commonMenuItems,
         {
           type: 'button',

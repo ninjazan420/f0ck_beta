@@ -1,10 +1,17 @@
 import mongoose from 'mongoose';
 
-interface IComment extends mongoose.Document {
+export interface IComment extends mongoose.Document {
   content: string;
   author: mongoose.Types.ObjectId;
   post: mongoose.Types.ObjectId;
   replyTo?: mongoose.Types.ObjectId;
+  status: 'pending' | 'approved' | 'rejected';
+  reports?: {
+    user: mongoose.Types.ObjectId;
+    reason: string;
+    createdAt: Date;
+  }[];
+  isHidden?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -12,24 +19,59 @@ interface IComment extends mongoose.Document {
 const commentSchema = new mongoose.Schema({
   content: {
     type: String,
-    required: [true, 'Inhalt ist erforderlich'],
+    required: [true, 'Content is required'],
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
+    index: true
   },
   post: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Post',
     required: true,
+    index: true
   },
   replyTo: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment',
+    index: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+    index: true
+  },
+  reports: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    reason: String,
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  isHidden: {
+    type: Boolean,
+    default: false,
+    index: true
   }
 }, {
   timestamps: true
+});
+
+// Indizes für häufige Abfragen
+commentSchema.index({ createdAt: -1 });
+commentSchema.index({ post: 1, createdAt: -1 });
+commentSchema.index({ author: 1, createdAt: -1 });
+
+// Virtual für die Anzahl der Reports
+commentSchema.virtual('reportCount').get(function() {
+  return this.reports?.length || 0;
 });
 
 const Comment = mongoose.models.Comment || mongoose.model<IComment>('Comment', commentSchema);

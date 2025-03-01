@@ -5,6 +5,8 @@ import { EmojiPicker } from '@/components/EmojiPicker';
 import { GifSelector } from '@/components/GifSelector';
 import Image from 'next/image';
 import { ReactElement } from 'react';
+import { useSession } from 'next-auth/react';
+import { commentSocket } from '@/lib/websocket/commentSocket';
 
 interface CommentData {
   id: string;
@@ -78,19 +80,25 @@ const MOCK_COMMENTS: CommentData[] = Array.from({ length: 20 }, (_, i) => ({
 }));
 
 interface CommentListProps {
-  filters: {
-    username: string;
-    searchText: string;
-    dateFrom: string;
-    dateTo: string;
-    minLikes: number;
-  };
-  infiniteScroll: boolean;
+  postId?: string;
+  initialPage?: number;
+  limit?: number;
+  status?: 'pending' | 'reported' | 'all' | 'approved';
+  showModActions?: boolean;
 }
 
-export function CommentList({ filters, infiniteScroll }: CommentListProps) {
-  const [page, setPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+export function CommentList({ 
+  postId, 
+  initialPage = 1, 
+  limit = 10,
+  status = 'approved',
+  showModActions = false 
+}: CommentListProps) {
+  const { data: session } = useSession();
+  const [comments, setComments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(initialPage);
   const [hasMore, setHasMore] = useState(true);
   const [displayedComments, setDisplayedComments] = useState<CommentData[]>([]);
   const [showPreview, setShowPreview] = useState(false);
@@ -182,210 +190,293 @@ export function CommentList({ filters, infiniteScroll }: CommentListProps) {
     return result;
   };
 
-  // Simuliere API-Call mit Pagination
-  const fetchComments = async (pageNum: number, filters: CommentListProps['filters']) => {
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
+  const fetchComments = async (pageNum: number) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    const startIndex = (pageNum - 1) * CHUNK_SIZE;
-    const filteredComments = MOCK_COMMENTS.filter(comment => {
-      if (filters.username && !comment.user.name.toLowerCase().includes(filters.username.toLowerCase())) return false;
-      if (filters.searchText && !comment.text.toLowerCase().includes(filters.searchText.toLowerCase())) return false;
-      if (filters.minLikes && comment.likes < filters.minLikes) return false;
-      if (filters.dateFrom && new Date(comment.createdAt) < new Date(filters.dateFrom)) return false;
-      if (filters.dateTo && new Date(comment.createdAt) > new Date(filters.dateTo)) return false;
-      return true;
-    });
+      const params = new URLSearchParams({
+        page: pageNum.toString(),
+        limit: limit.toString(),
+        ...(postId && { postId }),
+        // Moderatoren und Admins können alle Kommentare sehen
+        ...(session?.user?.role && ['moderator', 'admin'].includes(session.user.role) && { status: 'all' })
+      });
 
-    const chunk = filteredComments.slice(startIndex, startIndex + CHUNK_SIZE);
-    const hasMoreComments = startIndex + CHUNK_SIZE < filteredComments.length;
+      const response = await fetch(`/api/comments?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch comments');
 
-    setIsLoading(false);
-    return { comments: chunk, hasMore: hasMoreComments };
-  };
+      const data = await response.json();
+      
+      if (pageNum === 1) {
+        setComments(data.comments);
+      } else {
+        setComments(prev => [...prev, ...data.comments]);
+      }
 
-  // Handle infinite scroll
-  useEffect(() => {
-    if (!infiniteScroll || !hasMore || isLoading) return;
-
-    const observer = new IntersectionObserver(
-      async (entries) => {
-        const target = entries[0];
-        if (target.isIntersecting && hasMore) {
-          const nextPage = Math.floor(displayedComments.length / CHUNK_SIZE) + 1;
-          const { comments, hasMore: more } = await fetchComments(nextPage, filters);
-          
-          setDisplayedComments(prev => [...prev, ...comments]);
-          setHasMore(more);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
+      setHasMore(data.pagination.current < data.pagination.pages);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    return () => observer.disconnect();
-  }, [infiniteScroll, hasMore, isLoading, displayedComments.length, filters]);
-
-  // Reset and load initial comments when filters or scroll mode changes
   useEffect(() => {
-    const loadInitial = async () => {
-      const { comments, hasMore } = await fetchComments(1, filters);
-      setDisplayedComments(comments);
-      setHasMore(hasMore);
-      setPage(1);
+    fetchComments(initialPage);
+  }, [initialPage, postId]);
+
+  useEffect(() => {
+    // WebSocket-Verbindung aufbauen
+    const socketId = `comments-${postId || 'all'}-${status}`;
+    commentSocket.subscribe(socketId, handleCommentUpdate);
+
+    return () => {
+      commentSocket.unsubscribe(socketId);
     };
+  }, [postId, status]);
 
-    loadInitial();
-  }, [filters, infiniteScroll]);
-
-  // Handle manual pagination
-  const handlePageChange = async (newPage: number) => {
-    const { comments, hasMore } = await fetchComments(newPage, filters);
-    setDisplayedComments(comments);
-    setHasMore(hasMore);
-    setPage(newPage);
+  const handleCommentUpdate = (update: { type: string; commentId: string; data?: any }) => {
+    switch (update.type) {
+      case 'new':
+        if (update.data) {
+          setComments(prev => [update.data, ...prev]);
+        }
+        break;
+      case 'update':
+        if (update.data) {
+          setComments(prev => prev.map(comment => 
+            comment.id === update.commentId ? { ...comment, ...update.data } : comment
+          ));
+        }
+        break;
+      case 'delete':
+        setComments(prev => prev.filter(comment => comment.id !== update.commentId));
+        break;
+    }
   };
 
-  const handlePostComment = () => {
-    if (!newComment.trim()) return;
-    
-    // Mock-Kommentar erstellen
-    const mockNewComment: CommentData = {
-      id: `comment-${Date.now()}`,
-      user: {
-        id: isAnonymous ? null : 'current-user',
-        name: isAnonymous ? 'Anonymous' : 'CurrentUser',
-        avatar: null,
-        isAnonymous: isAnonymous,
-        style: !isAnonymous ? {
-          type: 'gradient',
-          gradient: ['purple-400', 'pink-600'],
-          animate: true
-        } : undefined
-      },
-      text: newComment,
-      post: {
-        id: 'current-post',
-        title: 'Current Post',
-        imageUrl: '/images/defaultpost.png',
-        type: 'image'
-      },
-      likes: 0,
-      createdAt: new Date().toISOString()
-    };
-
-    // Kommentar zur Liste hinzufügen
-    setDisplayedComments(prev => [mockNewComment, ...prev]);
-    setNewComment('');
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      setPage(prev => prev + 1);
+      fetchComments(page + 1);
+    }
   };
+
+  const handleReport = async (commentId: string, reason: string) => {
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          commentId,
+          action: 'report',
+          reason
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to report comment');
+      
+      // Optional: Aktualisiere den Kommentar in der UI
+      setComments(prev => 
+        prev.map(comment => 
+          comment.id === commentId 
+            ? { 
+                ...comment, 
+                reports: [...(comment.reports || []), {
+                  user: session?.user?.id,
+                  reason,
+                  createdAt: new Date().toISOString()
+                }]
+              }
+            : comment
+        )
+      );
+    } catch (error) {
+      console.error('Error reporting comment:', error);
+      throw error;
+    }
+  };
+
+  const handleDelete = async (commentId: string) => {
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          commentId,
+          action: 'delete'
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to delete comment');
+      
+      // Entferne den Kommentar aus der UI
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      throw error;
+    }
+  };
+
+  const handleReply = async (commentId: string, content: string) => {
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content,
+          postId,
+          replyTo: commentId
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to post reply');
+
+      const newComment = await response.json();
+      
+      // Füge den neuen Kommentar am Anfang der Liste hinzu
+      setComments(prev => [newComment, ...prev]);
+    } catch (error) {
+      console.error('Error posting reply:', error);
+      throw error;
+    }
+  };
+
+  const handleModAction = async (commentId: string, action: 'approve' | 'reject') => {
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          commentId,
+          action
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to moderate comment');
+      
+      // Aktualisiere den Kommentar in der UI
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+    } catch (error) {
+      console.error('Error moderating comment:', error);
+      throw error;
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="p-4 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg">
+        Error: {error}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
       {/* Neue Kommentar-Box */}
-      <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
-        <div className="flex gap-2 mb-3">
-          <button
-            onClick={() => setShowPreview(!showPreview)}
-            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-              showPreview 
-                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-            }`}
-          >
-            {showPreview ? 'Edit' : 'Preview'}
-          </button>
-          <label className="ml-auto flex items-center gap-2 cursor-pointer">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Post Anonymously</span>
-            <div className="relative inline-flex items-center">
-              <input
-                type="checkbox"
-                checked={isAnonymous}
-                onChange={(e) => setIsAnonymous(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-7 h-4 bg-gray-200 dark:bg-gray-700 peer-checked:bg-purple-600 rounded-full transition-colors"></div>
-              <div className="absolute left-[2px] top-[2px] w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-3"></div>
-            </div>
-          </label>
-        </div>
+      {!showModActions && (
+        <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => setShowPreview(!showPreview)}
+              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                showPreview 
+                  ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              {showPreview ? 'Edit' : 'Preview'}
+            </button>
+            <label className="ml-auto flex items-center gap-2 cursor-pointer">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Post Anonymously</span>
+              <div className="relative inline-flex items-center">
+                <input
+                  type="checkbox"
+                  checked={isAnonymous}
+                  onChange={(e) => setIsAnonymous(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-7 h-4 bg-gray-200 dark:bg-gray-700 peer-checked:bg-purple-600 rounded-full transition-colors"></div>
+                <div className="absolute left-[2px] top-[2px] w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-3"></div>
+              </div>
+            </label>
+          </div>
 
-        {showPreview ? (
-          <div className="min-h-[100px] p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50">
-            <div className="text-sm text-gray-800 dark:text-gray-200">
-              {renderCommentContent(newComment) || <span className="text-gray-400 dark:text-gray-500">Nothing to preview</span>}
+          {showPreview ? (
+            <div className="min-h-[100px] p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50">
+              <div className="text-sm text-gray-800 dark:text-gray-200">
+                {renderCommentContent(newComment) || <span className="text-gray-400 dark:text-gray-500">Nothing to preview</span>}
+              </div>
+            </div>
+          ) : (
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Write a comment..."
+              className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm min-h-[100px]"
+            />
+          )}
+
+          <div className="flex justify-between items-center mt-3">
+            <span className="text-xs text-gray-500">
+              {newComment.length}/500 characters
+            </span>
+            <div className="flex gap-2">
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowGifSelector(!showGifSelector);
+                    setShowEmojiPicker(false);
+                  }}
+                  className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  title="Add GIF"
+                >
+                  🎨 GIF
+                </button>
+                {showGifSelector && (
+                  <GifSelector
+                    onSelect={handleGifSelect}
+                    onClose={() => setShowGifSelector(false)}
+                  />
+                )}
+              </div>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEmojiPicker(!showEmojiPicker);
+                    setShowGifSelector(false);
+                  }}
+                  className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  title="Add emoji"
+                >
+                  😊 Emoji
+                </button>
+                {showEmojiPicker && (
+                  <EmojiPicker
+                    onSelect={handleEmojiSelect}
+                    onClose={() => setShowEmojiPicker(false)}
+                  />
+                )}
+              </div>
+              <button
+                onClick={() => setNewComment('')}
+                className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setNewComment('')}
+                className="px-4 py-2 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAnonymous ? 'Post Anonymously' : 'Post Comment'}
+              </button>
             </div>
           </div>
-        ) : (
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Write a comment..."
-            className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm min-h-[100px]"
-          />
-        )}
-
-        <div className="flex justify-between items-center mt-3">
-          <span className="text-xs text-gray-500">
-            {newComment.length}/500 characters
-          </span>
-          <div className="flex gap-2">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowGifSelector(!showGifSelector);
-                  setShowEmojiPicker(false);
-                }}
-                className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                title="Add GIF"
-              >
-                🎨 GIF
-              </button>
-              {showGifSelector && (
-                <GifSelector
-                  onSelect={handleGifSelect}
-                  onClose={() => setShowGifSelector(false)}
-                />
-              )}
-            </div>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowEmojiPicker(!showEmojiPicker);
-                  setShowGifSelector(false);
-                }}
-                className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                title="Add emoji"
-              >
-                😊 Emoji
-              </button>
-              {showEmojiPicker && (
-                <EmojiPicker
-                  onSelect={handleEmojiSelect}
-                  onClose={() => setShowEmojiPicker(false)}
-                />
-              )}
-            </div>
-            <button
-              onClick={() => setNewComment('')}
-              className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handlePostComment}
-              disabled={!newComment.trim()}
-              className="px-4 py-2 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isAnonymous ? 'Post Anonymously' : 'Post Comment'}
-            </button>
-          </div>
         </div>
-      </div>
+      )}
 
       {/* Preview des Reply-Texts */}
       {replyText && (
@@ -397,40 +488,42 @@ export function CommentList({ filters, infiniteScroll }: CommentListProps) {
       )}
 
       <div className="space-y-4">
-        {displayedComments.map(comment => (
-          <Comment key={comment.id} data={comment} />
+        {comments.map(comment => (
+          <Comment
+            key={comment.id}
+            data={comment}
+            onReport={handleReport}
+            onDelete={handleDelete}
+            onReply={handleReply}
+            onModerate={showModActions ? handleModAction : undefined}
+          />
         ))}
       </div>
 
-      {infiniteScroll ? (
-        hasMore && (
-          <div ref={loaderRef} className="w-full h-20 flex items-center justify-center">
-            {isLoading ? (
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-            ) : (
-              <div className="text-sm text-gray-500">Scroll for more</div>
-            )}
-          </div>
-        )
-      ) : (
-        <div className="flex justify-center gap-2 mt-6">
-          <button
-            onClick={() => handlePageChange(page - 1)}
-            disabled={page === 1 || isLoading}
-            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="px-4 py-2 text-gray-600 dark:text-gray-400">
-            Page {page}
-          </span>
-          <button
-            onClick={() => handlePageChange(page + 1)}
-            disabled={!hasMore || isLoading}
-            className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50"
-          >
-            Next
-          </button>
+      {loading && (
+        <div className="p-4 text-center text-gray-500">
+          Loading comments...
+        </div>
+      )}
+
+      {!loading && hasMore && (
+        <button
+          onClick={handleLoadMore}
+          className="w-full py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+        >
+          Load more comments
+        </button>
+      )}
+
+      {!loading && !hasMore && comments.length > 0 && (
+        <div className="p-4 text-center text-gray-500">
+          No more comments to load
+        </div>
+      )}
+
+      {!loading && comments.length === 0 && (
+        <div className="p-4 text-center text-gray-500">
+          No comments yet
         </div>
       )}
     </div>

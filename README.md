@@ -19,33 +19,45 @@ Modern, next-generation imageboard platform built with Next.js 14 and TailwindCS
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v1.0.6 (Current)](#beta-v106-current)
+    - [Beta v1.0.7 (Current)](#beta-v107-current)
+    - [Beta v1.0.6](#beta-v106)
     - [Beta v1.0.5](#beta-v105)
-    - [Beta v1.0.4](#beta-v104)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
 
 ## ⚡ Features
 
-- 7x4 grid layout with intelligent image adjustment
-- Advanced thumbnails with hover preview
-- Integrated security system
 - Multi-media support
-  - GIF support with GIPHY integration
   - Image and video uploads
+  - GIF support with GIPHY integration
   - Embedded media preview
+  - Advanced thumbnails with hover preview
 - Real-time comment system
   - Rich text formatting
   - GIF and emoji support
   - Reply threading
+  - WebSocket live updates
+  - Automatic spam detection
+  - Role-based moderation
+  - Report & live moderation system
 - User profiles with customization
-- Dark/Light mode
-- Infinite scroll
+  - Activity feed
+  - Role badges (Admin, Mod, Premium)
+  - Stats overview
 - Premium features
   - Custom nicknames
   - Ad-free experience
   - Exclusive themes
   - Premium badges
+- Modern UI/UX
+  - Dark/Light mode
+  - Infinite scroll
+  - 7x4 grid layout with intelligent image adjustment
+- Security
+  - Integrated security system
+  - Spam protection
+  - Role-based access control
+  - Report handling
 
 ## 🚀 Installation
 
@@ -75,6 +87,7 @@ Create a `.env.local` file in the root directory:
 ```env
 MONGODB_URI=your_mongodb_uri
 GIPHY_API_KEY=your_giphy_api_key
+WEBSOCKET_URL=your_websocket_url
 ```
 
 ## 🛠️ Tech Stack
@@ -83,13 +96,32 @@ GIPHY_API_KEY=your_giphy_api_key
 - **Styling**: TailwindCSS
 - **Typography**: Geist Font
 - **Architecture**: React Server Components
+- **Real-time**: WebSocket Integration
 - **Deployment**: Vercel Edge Runtime
 - **Database**: MongoDB Atlas
 - **Media**: GIPHY API Integration
 
 ## 🔥 Latest Updates
 
-### Beta v1.0.6 (Current)
+### Beta v1.0.7 (Current)
+
+- 💬 Enhanced Comment System
+  - WebSocket integration for live updates
+  - Automatic spam detection
+  - Role-based moderation system
+  - Report functionality
+  - Activity feed in user profiles
+  - Comment threading improvements
+- 👤 User System Enhancements
+  - Role badges (Admin, Mod, Premium)
+  - Activity tracking
+  - Profile statistics
+- 🔒 Security Updates
+  - Spam protection
+  - Report handling
+  - Moderation tools
+
+### Beta v1.0.6
 
 - 🎨 Enhanced comment system
   - GIPHY integration with attribution
@@ -106,15 +138,6 @@ GIPHY_API_KEY=your_giphy_api_key
 - 🔒 Advanced security features
 - 🎯 Refined pinned post system
 - 💾 Database optimizations
-
-### Beta v1.0.4
-
-- 👤 Revamped user system
-  - Open registration
-  - Enhanced profiles
-  - Social features
-- 🔄 Infinite scroll improvements
-- 🔍 Search system upgrade
 
 ## 🌐 Links & Support
 

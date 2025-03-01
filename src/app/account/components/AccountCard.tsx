@@ -118,6 +118,30 @@ export function AccountCard() {
     }
   }, [session]);
 
+  // Neue useEffect für Aktivitäten
+  useEffect(() => {
+    const fetchActivity = async () => {
+      try {
+        const response = await fetch('/api/user/activity');
+        if (!response.ok) {
+          throw new Error('Failed to fetch activity');
+        }
+        
+        const data = await response.json();
+        setProfile(prev => ({
+          ...prev,
+          recentActivity: data.activities || []
+        }));
+      } catch (error) {
+        console.error('Error fetching activity:', error);
+      }
+    };
+
+    if (session?.user) {
+      fetchActivity();
+    }
+  }, [session]);
+
   const [isEditing, setIsEditing] = useState(false);
 
   // Verbesserte handleSave Funktion ohne Avatar-Funktionalität

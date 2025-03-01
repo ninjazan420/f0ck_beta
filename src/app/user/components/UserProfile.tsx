@@ -72,7 +72,7 @@ export function UserProfile({ username }: { username: string }) {
             dislikes: data.stats?.dislikes || 0,
             tags: data.stats?.tags || 0
           },
-          recentActivity: data.recentActivity || [],
+          recentActivity: [],
           role: data.role || 'user'
         });
         setNotFound(false);
@@ -87,6 +87,30 @@ export function UserProfile({ username }: { username: string }) {
     }
   }, [username]);
 
+  // Neue useEffect für Aktivitäten
+  useEffect(() => {
+    const fetchActivity = async () => {
+      try {
+        const response = await fetch(`/api/users/${username}/activity`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch activity');
+        }
+        
+        const data = await response.json();
+        setUserData(prev => prev ? {
+          ...prev,
+          recentActivity: data.activities || []
+        } : null);
+      } catch (error) {
+        console.error('Error fetching activity:', error);
+      }
+    };
+
+    if (username && !notFound) {
+      fetchActivity();
+    }
+  }, [username, notFound]);
+
   const getRoleBadge = (role: string) => {
     switch(role) {
       case 'banned':
@@ -97,7 +121,7 @@ export function UserProfile({ username }: { username: string }) {
         );
       case 'admin':
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-red-500/40 text-white border border-red-500/50">
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-red-500 to-orange-500 text-white">
             ADMIN
           </span>
         );

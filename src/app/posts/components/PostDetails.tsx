@@ -6,6 +6,7 @@ import { PostMetadata } from './PostMetadata';
 import { PostTags } from './PostTags';
 import { PostComments } from './PostComments';
 import { ReverseSearch } from './ReverseSearch';
+import { CommentList } from '@/app/comments/components/CommentList';
 
 const DEFAULT_AVATAR = '/images/defaultavatar.png';
 
@@ -251,7 +252,12 @@ export function PostDetails({ postId }: { postId: string }) {
           </div>
 
           {/* Comments Section */}
-          <PostComments postId={postId} />
+          <div className="bg-white/50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800 p-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+              Comments ({post.stats.comments})
+            </h2>
+            <CommentList postId={post.id} />
+          </div>
         </div>
 
         {/* Right Column - Metadata and Tags */}

@@ -3,6 +3,7 @@
 import { useState, ReactElement } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { GifSelector } from '@/components/GifSelector';
 
@@ -11,398 +12,289 @@ const DEFAULT_AVATAR = '/images/defaultavatar.png';
 interface CommentProps {
   data: {
     id: string;
-    user: {      
-      id: string | null;  // null für anonyme User
-      name: string;
+    content: string;
+    author: {
+      id: string;
+      username: string;
       avatar: string | null;
-      isAnonymous?: boolean;  // Neues Flag für anonyme Kommentare
-      style?: { type: string; color?: string; gradient?: string[]; animate?: boolean }; // Neues Feld für Stil
     };
-    text: string;
     post: {
       id: string;
       title: string;
-      imageUrl: string;  // Direkte URL vom Post
-      type: 'image' | 'video' | 'gif';
-      nsfw?: boolean;
     };
-    likes: number;
-    createdAt: string;
+    status: 'pending' | 'approved' | 'rejected';
     replyTo?: {
       id: string;
-      user: {
-        name: string;
-        isAnonymous?: boolean;
+      author: {
+        username: string;
       };
-      preview: string;
+      content: string;
     };
+    createdAt: string;
+    reports?: Array<{
+      user: string;
+      reason: string;
+      createdAt: string;
+    }>;
   };
+  onReport?: (id: string, reason: string) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
+  onReply?: (id: string, content: string) => Promise<void>;
+  onModerate?: (id: string, action: 'approve' | 'reject') => Promise<void>;
 }
 
-export function Comment({ data }: CommentProps) {
+export function Comment({ data, onReport, onDelete, onReply, onModerate }: CommentProps) {
+  const { data: session } = useSession();
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [showGifSelector, setShowGifSelector] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formattedDate = new Date(data.createdAt).toLocaleString();
 
   const getUserUrl = (username: string) => `/user/${username.toLowerCase()}`;
-  const getNickStyle = (style?: { type: string; color?: string; gradient?: string[]; animate?: boolean }) => {
-    if (!style) return '';
-    
-    switch(style.type) {
-      case 'solid':
-        return `text-${style.color}`;
-      case 'gradient':
-        return `bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} bg-clip-text text-transparent`;
-      case 'animated':
-        return `animate-pulse bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} bg-clip-text text-transparent`;
-      default:
-        return '';
+
+  const handleReply = async () => {
+    if (!replyText.trim() || !onReply || isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      await onReply(data.id, replyText);
+      setReplyText('');
+      setShowReplyBox(false);
+    } catch (error) {
+      console.error('Error posting reply:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const getAvatarStyle = (style?: { type: string; color?: string; gradient?: string[]; animate?: boolean }) => {
-    if (!style) return '';
-    
-    switch(style.type) {
-      case 'solid':
-        return `ring-2 ring-${style.color}`;
-      case 'gradient':
-        return `ring-2 bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} ring-purple-400`;
-      case 'animated':
-        return `ring-2 bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} ring-purple-400 animate-pulse`;
-      default:
-        return '';
+  const handleReport = async () => {
+    if (!reportReason.trim() || !onReport || isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      await onReport(data.id, reportReason);
+      setReportReason('');
+      setShowReportDialog(false);
+    } catch (error) {
+      console.error('Error reporting comment:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleReply = () => {
-    if (!replyText.trim()) return;
-    
-    // Hier würde die API-Logik für das Senden der Antwort implementiert
-    console.log(`Replying to comment ${data.id}: ${replyText}`);
-    setReplyText('');
-    setShowReplyBox(false);
+  const handleDelete = async () => {
+    if (!onDelete || isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      await onDelete(data.id);
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEmojiSelect = (emoji: string) => {
-    const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
-    if (textarea) {
-      const start = textarea.selectionStart || 0;
-      const end = textarea.selectionEnd || 0;
-      const text = textarea.value;
-      const before = text.substring(0, start);
-      const after = text.substring(end);
-      setReplyText(before + emoji + after);
-    }
+    setReplyText(prev => prev + emoji);
     setShowEmojiPicker(false);
   };
 
   const handleGifSelect = (gifUrl: string) => {
-    const cleanGifUrl = gifUrl.split('?')[0];
-    setReplyText(text => text.trim() + ' ' + cleanGifUrl + ' ');
+    setReplyText(prev => prev + ` ${gifUrl} `);
     setShowGifSelector(false);
   };
 
-  const renderCommentContent = (text: string) => {
-    const urlRegex = /(https?:\/\/[^\s]+\.(gif|png|jpg|jpeg))(?:\?[^\s]*)?/gi;
-    const matches = text.match(urlRegex) || [];
-    const textParts = text.replace(urlRegex, '\n[media]\n').split('\n');
-    const result: ReactElement[] = [];
-    let mediaIndex = 0;
-    
-    textParts.forEach((part, index) => {
-      if (part === '[media]') {
-        if (matches[mediaIndex]) {
-          const cleanUrl = matches[mediaIndex].split('?')[0];
-          const isGiphy = cleanUrl.includes('giphy.com');
-          result.push(
-            <div key={`media-${index}`} className="my-1">
-              <Image
-                src={cleanUrl}
-                alt="Embedded media"
-                width={300}
-                height={300}
-                className="rounded-lg"
-                unoptimized
-              />
-              {isGiphy && (
-                <div className="text-[12px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                  Powered by GIPHY
-                </div>
-              )}
-            </div>
-          );
-          mediaIndex++;
-        }
-      } else if (part.trim()) {
-        result.push(<span key={`text-${index}`} className="whitespace-pre-wrap">{part}</span>);
-      }
-    });
-    
-    return result;
-  };
+  const canModerate = session?.user?.role && ['moderator', 'admin'].includes(session.user.role);
+  const isAuthor = session?.user?.id === data.author.id;
+  const isPending = data.status === 'pending';
+  const isRejected = data.status === 'rejected';
+
+  if (isRejected && !canModerate) return null;
 
   return (
-    <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
-      {/* Reply Preview */}
+    <div className={`p-4 rounded-lg ${isPending ? 'bg-yellow-50/10' : 'bg-white/50'} dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700/30`}>
+      {/* Reply to section */}
       {data.replyTo && (
-        <div className="mb-3 pl-4 border-l-2 border-purple-200 dark:border-purple-800/30 bg-purple-50/30 dark:bg-purple-900/10 rounded-r-lg py-2">
-          <Link href={`/comments/${data.replyTo.id}`} className="block hover:bg-purple-50/50 dark:hover:bg-purple-900/20 rounded transition-colors">
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Reply to{' '}
-              {data.replyTo?.user?.isAnonymous ? (
-                <span className="text-gray-600 dark:text-gray-400">Anonymous</span>
-              ) : (
-                <span className="text-purple-600 hover:underline cursor-pointer" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (data.replyTo?.user?.name) {
-                          window.location.href = getUserUrl(data.replyTo.user.name);
-                        }
-                      }}>
-                  {data.replyTo?.user?.name}
-                </span>
-              )}:
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-300 font-[family-name:var(--font-geist-sans)] line-clamp-1">
-              {data.replyTo?.preview}
-            </div>
+        <div className="mb-2 pl-2 border-l-2 border-gray-300 dark:border-gray-600">
+          <Link href={`#comment-${data.replyTo.id}`} className="text-sm text-gray-600 dark:text-gray-400">
+            <span className="font-medium">{data.replyTo.author.username}</span>: {data.replyTo.content.substring(0, 100)}
+            {data.replyTo.content.length > 100 ? '...' : ''}
           </Link>
         </div>
       )}
 
-      <div className="flex gap-4">
-        {/* Avatar */}
-        {data.user.isAnonymous ? (
-          <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0">
-            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-              ANON
-            </div>
-          </div>
-        ) : (
-          <Link href={getUserUrl(data.user.name)} className="block">
-            <div className={`w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0 
-              transition-all duration-300
-              ${data.user.style ? getAvatarStyle(data.user.style) : 'hover:ring-2 hover:ring-purple-400 dark:hover:ring-purple-600'}`}
-            >
-              <Image 
-                src={data.user.avatar || DEFAULT_AVATAR} // Fallback hinzugefügt
-                alt={`${data.user.name}'s avatar`}
-                width={40}
-                height={40}
-                className="w-full h-full object-cover"
-                priority
-              />
-            </div>
-          </Link>
-        )}
+      {/* Main comment content */}
+      <div className="flex items-start gap-3">
+        <Link href={getUserUrl(data.author.username)} className="flex-shrink-0">
+          <Image
+            src={data.author.avatar || DEFAULT_AVATAR}
+            alt={data.author.username}
+            width={40}
+            height={40}
+            className="rounded-lg"
+          />
+        </Link>
 
-        {/* Comment Content */}
-        <div className="flex-grow">
-          <div className="flex items-center justify-between gap-4 mb-1">
-            <div className="flex items-center gap-2">
-              {data.user.isAnonymous ? (
-                <span className="font-medium text-gray-600 dark:text-gray-400">
-                  Anonymous
-                </span>
-              ) : (
-                <>
-                  <Link
-                    href={getUserUrl(data.user.name)} 
-                    className={`font-medium hover:opacity-80 transition-opacity ${getNickStyle(data.user.style)}`}
-                  >
-                    {data.user.name}
-                  </Link>
-                  {data.user.style && (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
-                      PREMIUM
-                    </span>
-                  )}
-                </>
-              )}
-              <span className="text-sm text-gray-500">
-                on{' '}
-                <Link 
-                  href={`/post/${data.post.id}`}
-                  className="hover:text-purple-600 dark:hover:text-purple-400"
-                >
-                  {data.post.title}
-                </Link>
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link 
-                href={`/comments/${data.id}`}
-                className="text-sm text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-2"
-              >
-                <span title={new Date(data.createdAt).toLocaleString()}>
-                  {new Date(data.createdAt).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  })}
-                </span>
-                <span>•</span>
-                <span>
-                  {new Date(data.createdAt).toLocaleTimeString(undefined, {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </span>
-              </Link>
-              <Link 
-                href={`/comments/${data.id}/likes`}
-                className="flex items-center gap-1 group"
-              >
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">
-                  {data.likes}
-                </span>
-                <span className="text-xs text-gray-500 group-hover:text-purple-600 dark:group-hover:text-purple-400">
-                  likes
-                </span>
-              </Link>
-            </div>
-          </div>
-
-          <div className="flex gap-4 mt-2">
-            <div className="flex-grow text-gray-700 dark:text-gray-300 font-[family-name:var(--font-geist-sans)]">
-              {renderCommentContent(data.text)}
-            </div>
-
-            {/* Thumbnail */}
-            <Link 
-              href={`/post/${data.post.id}`}
-              className="relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden group"
-            >
-              <div className="absolute inset-0 bg-cover bg-center">
-                {data.post.imageUrl && (
-                  <Image
-                    src={data.post.imageUrl} // Direkte Verwendung der URL ohne Proxy
-                    alt={data.post.title}
-                    width={80}
-                    height={80}
-                    className={`object-cover w-full h-full transition-all duration-200 ${
-                      data.post.nsfw ? 'group-hover:blur-none blur-md' : ''
-                    }`}
-                    priority
-                  />
-                )}
-              </div>
-              {data.post.type === 'video' && (
-                <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-black/50 flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 border-l-[5px] border-l-white border-y-[3px] border-y-transparent" />
-                </div>
-              )}
-              {data.post.type === 'gif' && (
-                <div className="absolute bottom-1 right-1">
-                  <span className="text-[10px] font-bold bg-black/50 text-white px-1.5 rounded">
-                    GIF
-                  </span>
-                </div>
-              )}
-              {data.post.nsfw && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:opacity-0">
-                  <span className="text-[10px] font-bold text-white px-1.5 py-0.5 bg-red-500/80 rounded">
-                    NSFW
-                  </span>
-                </div>
-              )}
+        <div className="flex-grow min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <Link href={getUserUrl(data.author.username)} className="font-medium text-gray-900 dark:text-gray-100">
+              {data.author.username}
             </Link>
+            <span className="text-sm text-gray-500">{formattedDate}</span>
+            {isPending && (
+              <span className="px-2 py-0.5 text-xs rounded bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border border-yellow-500/30">
+                Pending
+              </span>
+            )}
           </div>
 
-          <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
-            <button className="hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1">
-              <span className="text-base">❤️</span> {data.likes}
-            </button>
-            <button 
-              onClick={() => setShowReplyBox(!showReplyBox)}
-              className="hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1"
-            >
-              <span className="text-base">💬</span> Reply
-            </button>
+          <div className="prose dark:prose-invert max-w-none">
+            {data.content}
           </div>
 
-          {/* Reply Box */}
+          {/* Action buttons */}
+          <div className="mt-2 flex items-center gap-4">
+            {session && (
+              <>
+                <button
+                  onClick={() => setShowReplyBox(true)}
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                >
+                  Reply
+                </button>
+                {!isAuthor && (
+                  <button
+                    onClick={() => setShowReportDialog(true)}
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-red-500"
+                  >
+                    Report
+                  </button>
+                )}
+                {(isAuthor || canModerate) && (
+                  <button
+                    onClick={handleDelete}
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-red-500"
+                    disabled={isSubmitting}
+                  >
+                    Delete
+                  </button>
+                )}
+                {/* Moderationsaktionen */}
+                {onModerate && canModerate && (
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={() => onModerate(data.id, 'approve')}
+                      className="px-3 py-1 text-sm rounded-lg bg-green-500/20 text-green-700 dark:text-green-300 border border-green-500/30 hover:bg-green-500/30"
+                      disabled={isSubmitting}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => onModerate(data.id, 'reject')}
+                      className="px-3 py-1 text-sm rounded-lg bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30 hover:bg-red-500/30"
+                      disabled={isSubmitting}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Reply box */}
           {showReplyBox && (
-            <div className="mt-4 space-y-2">
+            <div className="mt-4">
               <textarea
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                placeholder={`Reply to ${data.user.name}...`}
-                className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
+                placeholder="Write a reply..."
+                className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={3}
               />
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-500">
-                  {replyText.length}/500 characters
-                </span>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setShowGifSelector(true)}
-                      className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      title="Add GIF"
-                    >
-                      🎨 GIF
-                    </button>
-                    {showGifSelector && (
-                      <GifSelector
-                        onSelect={handleGifSelect}
-                        onClose={() => setShowGifSelector(false)}
-                      />
-                    )}
-                  </div>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setShowEmojiPicker(true)}
-                      className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      title="Add emoji"
-                    >
-                      😊 Emoji
-                    </button>
-                    {showEmojiPicker && (
-                      <EmojiPicker
-                        onSelect={handleEmojiSelect}
-                        onClose={() => setShowEmojiPicker(false)}
-                      />
-                    )}
-                  </div>
+              <div className="mt-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={() => {
-                      setShowReplyBox(false);
-                      setReplyText('');
-                    }}
-                    className="px-3 py-1 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={() => setShowEmojiPicker(true)}
+                    className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    😊
+                  </button>
+                  <button
+                    onClick={() => setShowGifSelector(true)}
+                    className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    GIF
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowReplyBox(false)}
+                    className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleReply}
-                    disabled={!replyText.trim()}
-                    className="px-3 py-1 rounded-lg text-sm text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 disabled:opacity-50"
+                    disabled={!replyText.trim() || isSubmitting}
+                    className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
                   >
                     Reply
                   </button>
                 </div>
               </div>
-              {/* Preview des Reply-Texts */}
-              {replyText && (
-                <div className="mt-2 p-2 rounded-lg bg-gray-50/50 dark:bg-gray-800/50">
-                  <div className="text-sm text-gray-800 dark:text-gray-200">
-                    {renderCommentContent(replyText)}
-                  </div>
-                </div>
-              )}
+            </div>
+          )}
+
+          {/* Report dialog */}
+          {showReportDialog && (
+            <div className="mt-4">
+              <textarea
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                placeholder="Why are you reporting this comment?"
+                className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+              />
+              <div className="mt-2 flex justify-end gap-2">
+                <button
+                  onClick={() => setShowReportDialog(false)}
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReport}
+                  disabled={!reportReason.trim() || isSubmitting}
+                  className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+                >
+                  Report
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Emoji picker */}
+      {showEmojiPicker && (
+        <div className="mt-2">
+          <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)} />
+        </div>
+      )}
+
+      {/* GIF selector */}
+      {showGifSelector && (
+        <div className="mt-2">
+          <GifSelector onSelect={handleGifSelect} onClose={() => setShowGifSelector(false)} />
+        </div>
+      )}
     </div>
   );
 }
