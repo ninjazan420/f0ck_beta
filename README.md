@@ -20,9 +20,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
     - [Beta v1.1.1 (Current)](#beta-v111-current)
-    - [Beta v1.1.0](#beta-v110)
-    - [Beta v1.0.7](#beta-v107)
-    - [Beta v1.0.6](#beta-v106)
+    - [Older Versions (click to expand)](#older-versions-click-to-expand)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
 
@@ -132,61 +130,63 @@ NODE_ENV=development
   - Reduced bundle size
   - Improved image loading
 
-### Beta v1.1.0
+### Older Versions (click to expand)
 
-> *Click to see changelog*
->
-> - 🎨 Upload System!
->   - Anonymous uploads without account requirement
->   - Improved image processing
->   - Better error handling
->   - Progress indicators
->   - File type validation
->   - Automatic image optimization
-> - 👤 User System Improvements
->   - Optional account system
->   - Enhanced role badges
->   - Anonymous posting support
->   - Better date formatting
->   - Default avatars for anonymous posts
-> - 🖼️ Image Display Enhancements
->   - Improved grid layout
->   - Better image scaling
->   - Enhanced mobile view
->   - Faster loading times
->   - Optimized thumbnails
+<details>
+<summary>Beta v1.1.0</summary>
 
-### Beta v1.0.7
+- 🎨 Upload System!
+  - Anonymous uploads without account requirement
+  - Improved image processing
+  - Better error handling
+  - Progress indicators
+  - File type validation
+  - Automatic image optimization
+- 👤 User System Improvements
+  - Optional account system
+  - Enhanced role badges
+  - Anonymous posting support
+  - Better date formatting
+  - Default avatars for anonymous posts
+- 🖼️ Image Display Enhancements
+  - Improved grid layout
+  - Better image scaling
+  - Enhanced mobile view
+  - Faster loading times
+  - Optimized thumbnails
+</details>
 
-> *Click to see changelog*
->
-> - 💬 Enhanced Comment System
->   - WebSocket integration for live updates
->   - Automatic spam detection
->   - Role-based moderation system
->   - Report functionality
->   - Activity feed in user profiles
->   - Comment threading improvements
-> - 👤 User System Enhancements
->   - Role badges (Admin, Mod, Premium)
->   - Activity tracking
->   - Profile statistics
-> - 🔒 Security Updates
->   - Spam protection
->   - Report handling
->   - Moderation tools
+<details>
+<summary>Beta v1.0.7</summary>
 
-### Beta v1.0.6
+- 💬 Enhanced Comment System
+  - WebSocket integration for live updates
+  - Automatic spam detection
+  - Role-based moderation system
+  - Report functionality
+  - Activity feed in user profiles
+  - Comment threading improvements
+- 👤 User System Enhancements
+  - Role badges (Admin, Mod, Premium)
+  - Activity tracking
+  - Profile statistics
+- 🔒 Security Updates
+  - Spam protection
+  - Report handling
+  - Moderation tools
+</details>
 
-> *Click to see changelog*
->
-> - 🎨 Enhanced comment system
->   - GIPHY integration with attribution
->   - Improved media display
->   - Premium user badges
->   - Better reply formatting
-> - 🚀 Performance optimizations
-> - 🎯 UI/UX improvements
+<details>
+<summary>Beta v1.0.6</summary>
+
+- 🎨 Enhanced comment system
+  - GIPHY integration with attribution
+  - Improved media display
+  - Premium user badges
+  - Better reply formatting
+- 🚀 Performance optimizations
+- 🎯 UI/UX improvements
+</details>
 
 ## 🌐 Links & Support
 
