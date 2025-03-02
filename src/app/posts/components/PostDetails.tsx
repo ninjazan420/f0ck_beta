@@ -7,6 +7,7 @@ import { PostTags } from './PostTags';
 import { PostComments } from './PostComments';
 import { ReverseSearch } from './ReverseSearch';
 import { CommentList } from '@/app/comments/components/CommentList';
+import { getImageUrlWithCacheBuster } from '@/lib/utils';
 
 const DEFAULT_AVATAR = '/images/defaultavatar.png';
 
@@ -257,13 +258,12 @@ export function PostDetails({ postId }: { postId: string }) {
           {/* Image Container */}
           <div className="relative rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
             <Image
-              src={post.imageUrl}
+              src={getImageUrlWithCacheBuster(post.imageUrl)}
               alt={post.title}
-              width={post.meta.width}
-              height={post.meta.height}
+              width={800}
+              height={600}
               className="w-full h-auto"
-              unoptimized
-              priority
+              unoptimized={true}
             />
             
             {/* Content Rating Badge */}
@@ -332,7 +332,7 @@ export function PostDetails({ postId }: { postId: string }) {
               {post.uploader.id === 'anonymous' ? (
                 <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0">
                   <Image 
-                    src={DEFAULT_AVATAR}
+                    src={getImageUrlWithCacheBuster(DEFAULT_AVATAR)}
                     alt="Anonymous user avatar"
                     width={48}
                     height={48}
@@ -344,8 +344,8 @@ export function PostDetails({ postId }: { postId: string }) {
                   href={`/user/${post.uploader.name}`}
                   className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0"
                 >
-                  <Image 
-                    src={post.uploader.avatar || DEFAULT_AVATAR}
+                  <Image
+                    src={getImageUrlWithCacheBuster(post.uploader.avatar || DEFAULT_AVATAR)}
                     alt={`${post.uploader.name}'s avatar`}
                     width={48}
                     height={48}

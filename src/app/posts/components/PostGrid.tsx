@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ContentRating } from './PostsPage';
+import { getImageUrlWithCacheBuster } from '@/lib/utils';
 
 interface Post {
   id: string;
@@ -113,12 +114,12 @@ export function PostGrid({ loading = false, filters = {}, page = 1 }: PostGridPr
           <div className="relative w-full h-full flex items-center justify-center">
             <div className="relative w-[90%] h-[90%]">
               <Image
-                src={post.thumbnail}
+                src={getImageUrlWithCacheBuster(post.thumbnail)}
                 alt={post.title}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-contain group-hover:opacity-75 transition-opacity"
-                priority
+                width={200}
+                height={200}
+                className="object-contain w-full h-full group-hover:opacity-75 transition-opacity"
+                unoptimized={true}
               />
             </div>
           </div>

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { initializeUploadDirectory } from './lib/init';
 
 // Protected paths that require authentication
 const PROTECTED_PATHS = [
@@ -15,9 +14,6 @@ const PROTECTED_PATHS = [
   '/profile/edit',   // Profile editing
   '/dashboard'       // User dashboard
 ];
-
-// Initialisiere den Upload-Ordner beim Start der Anwendung
-initializeUploadDirectory();
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;

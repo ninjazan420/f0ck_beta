@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // output: 'standalone',
   poweredByHeader: false,
   reactStrictMode: true,
 //  swcMinify: true,
@@ -17,6 +17,9 @@ const nextConfig = {
     return config;
   },
   images: {
+    domains: ['localhost'],
+    unoptimized: true,
+    minimumCacheTTL: 0,
     remotePatterns: [
       {
         protocol: 'https',
@@ -61,7 +64,27 @@ const nextConfig = {
     ],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
-    minimumCacheTTL: 60
+  },
+  async headers() {
+    return [
+      {
+        source: '/api/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+        ],
+      },
+    ];
   },
   eslint: {
     // Warning: Dies erlaubt Production Builds auch mit ESLint Fehlern

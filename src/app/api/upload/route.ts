@@ -3,6 +3,11 @@ import { processUpload, initializeUploadDirectories } from '@/lib/upload';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import connectToDatabase from '@/lib/db/mongodb';
+import { initializeUploadDirectory } from '@/lib/init';
+import { revalidatePath } from 'next/cache';
+
+// Initialisiere den Upload-Ordner beim Aufruf der Upload-API
+initializeUploadDirectory().catch(console.error);
 
 export async function POST(req: Request) {
   try {
@@ -67,6 +72,10 @@ export async function POST(req: Request) {
         });
       }
     }
+    
+    // Revalidiere die Post-Daten nach dem Upload
+    revalidatePath('/posts');
+    revalidatePath('/api/posts');
     
     return NextResponse.json({
       success: true,

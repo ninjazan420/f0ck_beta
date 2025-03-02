@@ -44,10 +44,21 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials, req) {
         try {
-          // Validate request origin
+          // Validate request origin with more flexibility
           const origin = req?.headers?.origin;
-          const allowedOrigins = [process.env.NEXTAUTH_URL];
-          if (!origin || !allowedOrigins.includes(origin)) {
+          const hostname = new URL(process.env.NEXTAUTH_URL || 'http://localhost').hostname;
+          const allowedOrigins = [
+            process.env.NEXTAUTH_URL,
+            `http://${hostname}:3000`,
+            `http://${hostname}:3001`,
+            `https://${hostname}`
+          ].filter(Boolean);
+          
+          // In development, be more lenient with origins
+          if (process.env.NODE_ENV !== 'production' && origin && origin.includes(hostname)) {
+            // Allow any origin with the same hostname in development
+          } else if (!origin || !allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+            console.error(`Invalid request origin: ${origin}, allowed: ${allowedOrigins.join(', ')}`);
             throw new Error('Invalid request origin');
           }
 
