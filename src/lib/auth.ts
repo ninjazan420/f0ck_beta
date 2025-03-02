@@ -49,6 +49,7 @@ export const authOptions: AuthOptions = {
           const hostname = new URL(process.env.NEXTAUTH_URL || 'http://localhost').hostname;
           const allowedOrigins = [
             process.env.NEXTAUTH_URL,
+            `http://${hostname}`,
             `http://${hostname}:3000`,
             `http://${hostname}:3001`,
             `https://${hostname}`
@@ -57,7 +58,12 @@ export const authOptions: AuthOptions = {
           // In development, be more lenient with origins
           if (process.env.NODE_ENV !== 'production' && origin && origin.includes(hostname)) {
             // Allow any origin with the same hostname in development
-          } else if (!origin || !allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+          } else if (!origin || !allowedOrigins.some(allowed => 
+            // Überprüft, ob der Origin bei allowed beginnt, aber behandelt URLs ohne Port richtig
+            origin === allowed || 
+            origin.startsWith(allowed + '/') || 
+            (allowed.includes('://') && origin.split('://')[1].split('/')[0].split(':')[0] === allowed.split('://')[1].split('/')[0].split(':')[0])
+          )) {
             console.error(`Invalid request origin: ${origin}, allowed: ${allowedOrigins.join(', ')}`);
             throw new Error('Invalid request origin');
           }
