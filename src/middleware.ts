@@ -28,20 +28,35 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // For protected paths: Check token
-  const token = await getToken({ 
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET
-  });
+  console.log(`Checking auth for protected path: ${path}`);
+  
+  // For protected paths: Check token with debugging
+  try {
+    const token = await getToken({ 
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+      secureCookie: process.env.NODE_ENV === 'production'
+    });
 
-  // If no token, redirect to login
-  if (!token) {
+    console.log(`Auth token check result: ${token ? 'Token found' : 'No token'}`);
+
+    // If no token, redirect to login
+    if (!token) {
+      console.log(`No auth token, redirecting to login`);
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('callbackUrl', path);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    console.log(`User authenticated, proceeding to: ${path}`);
+    return NextResponse.next();
+  } catch (error) {
+    console.error(`Error checking auth token: ${error instanceof Error ? error.message : 'Unknown error'}`);
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', path);
+    loginUrl.searchParams.set('error', 'AuthCheckError');
     return NextResponse.redirect(loginUrl);
   }
-
-  return NextResponse.next();
 }
 
 // Configure middleware for all protected paths

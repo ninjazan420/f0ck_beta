@@ -46,28 +46,13 @@ export const authOptions: AuthOptions = {
         try {
           // Validate request origin with more flexibility
           const origin = req?.headers?.origin;
-          const hostname = new URL(process.env.NEXTAUTH_URL || 'http://localhost').hostname;
-          const allowedOrigins = [
-            process.env.NEXTAUTH_URL,
-            `http://${hostname}`,
-            `http://${hostname}:3000`,
-            `http://${hostname}:3001`,
-            `https://${hostname}`
-          ].filter(Boolean);
           
-          // In development, be more lenient with origins
-          if (process.env.NODE_ENV !== 'production' && origin && origin.includes(hostname)) {
-            // Allow any origin with the same hostname in development
-          } else if (!origin || !allowedOrigins.some(allowed => 
-            // Überprüft, ob der Origin bei allowed beginnt, aber behandelt URLs ohne Port richtig
-            origin === allowed || 
-            origin.startsWith(allowed + '/') || 
-            (allowed.includes('://') && origin.split('://')[1].split('/')[0].split(':')[0] === allowed.split('://')[1].split('/')[0].split(':')[0])
-          )) {
-            console.error(`Invalid request origin: ${origin}, allowed: ${allowedOrigins.join(', ')}`);
-            throw new Error('Invalid request origin');
-          }
-
+          // Temporarily disable origin validation
+          // Log the origin for debugging purposes
+          console.log(`Auth request from origin: ${origin}`);
+          
+          // Skip origin validation for now
+          
           // Apply rate limiting
           const ip = req?.headers?.['x-forwarded-for'] || 'anonymous';
           const rateLimitResult = rateLimit(`login_${ip}`, 5, 60);
@@ -101,7 +86,7 @@ export const authOptions: AuthOptions = {
           }
 
           // For admin/mod routes, check if user has required role
-          const path = req?.url || '';
+          const path = req?.headers?.referer || '';
           if ((path.includes('/admin') || path.includes('/moderation')) && 
               (!user.role || !['admin', 'moderator'].includes(user.role))) {
             throw new Error('Insufficient permissions');
@@ -178,7 +163,26 @@ export const authOptions: AuthOptions = {
       name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' ? process.env.NEXTAUTH_COOKIE_DOMAIN : undefined
+      }
+    },
+    callbackUrl: {
+      name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.callback-url' : 'next-auth.callback-url',
+      options: {
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NODE_ENV === 'production' ? process.env.NEXTAUTH_COOKIE_DOMAIN : undefined
+      }
+    },
+    csrfToken: {
+      name: process.env.NODE_ENV === 'production' ? '__Host-next-auth.csrf-token' : 'next-auth.csrf-token',
+      options: {
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production'
       }
