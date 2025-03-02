@@ -51,24 +51,39 @@ export default function LoginClient({ registered }: LoginClientProps) {
         redirect: false,
       });
 
+      console.log('SignIn Response:', res); // Debug-Ausgabe
+
       if (res?.error) {
+        console.error('Login error:', res.error);
         setError(res.error);
         setLoading(false);
+      } else if (res?.ok) {
+        try {
+          setShowLoginBanner(true);
+          
+          // Get the callback URL from the URL parameters
+          const params = new URLSearchParams(window.location.search);
+          const callbackUrl = params.get('callbackUrl');
+          const targetUrl = callbackUrl || '/';
+          
+          console.log('Redirecting to:', targetUrl); // Debug-Ausgabe
+          
+          // Wait for the banner to show
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Perform the redirect without resetting the form
+          window.location.href = targetUrl;
+        } catch (redirectError) {
+          console.error('Redirect error:', redirectError);
+          setError('Error during redirect. Please try again.');
+          setLoading(false);
+        }
       } else {
-        setShowLoginBanner(true);
-        // Clear sensitive form data
-        e.currentTarget.reset();
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Get the callback URL from the URL parameters
-        const params = new URLSearchParams(window.location.search);
-        const callbackUrl = params.get('callbackUrl');
-        
-        // Redirect to callback URL or home
-        router.push(callbackUrl || '/');
-        router.refresh();
+        setError('Login failed. Please try again.');
+        setLoading(false);
       }
     } catch (err) {
+      console.error('Unexpected error:', err);
       setError('An unexpected error occurred');
       setLoading(false);
     }

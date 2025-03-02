@@ -3,19 +3,21 @@ import { Metadata } from "next";
 import { siteConfig } from "../metadata";
 
 export const metadata: Metadata = {
-  title: `Rules | ${siteConfig.name}`,
-  description: "f0ck.org rules & help",
+  title: `Login | ${siteConfig.name}`,
+  description: "Login to your account",
   icons: {
     icon: [{ url: siteConfig.icon, type: "image/x-icon" }],
   },
 };
 
-// Die korrekte Typisierung für Next.js 15 Page Props verwenden
 export default async function Login({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const isRegistered = searchParams?.registered === 'true';
+  // Warten auf die Auflösung der searchParams
+  const params = await Promise.resolve(searchParams);
+  const isRegistered = params?.registered === 'true';
+  
   return <LoginClient registered={isRegistered} />;
 }

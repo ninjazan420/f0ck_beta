@@ -22,6 +22,9 @@ interface PostData {
     name: string;
     avatar: string | null;
     premium: boolean;
+    admin: boolean;
+    moderator: boolean;
+    member: boolean;
     joinDate: string;
     stats: {
       totalPosts: number;
@@ -68,6 +71,9 @@ const MOCK_POST: PostData = {
     name: "User1",
     avatar: null,
     premium: true,
+    admin: false,
+    moderator: false,
+    member: true,
     joinDate: "2023-01-15T08:30:00Z",
     stats: {
       totalPosts: 342,
@@ -148,12 +154,72 @@ export function PostDetails({ postId }: { postId: string }) {
   };
 
   useEffect(() => {
-    // Simuliere API-Call
     const fetchPost = async () => {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-      setPost(MOCK_POST);
-      setLoading(false);
+      try {
+        const response = await fetch(`/api/posts/${postId}`);
+        if (!response.ok) {
+          setPost(null);
+          setLoading(false);
+          return;
+        }
+
+        // Für alle Posts verwenden wir die API-Daten
+        const postData = await response.json();
+        setPost({
+          id: postId,
+          title: postData.title,
+          description: postData.description || '',
+          imageUrl: postData.imageUrl,
+          thumbnailUrl: postData.thumbnailUrl,
+          uploadDate: new Date(postData.createdAt).toISOString(),
+          uploader: postData.author ? {
+            id: postData.author._id,
+            name: postData.author.username,
+            avatar: postData.author.avatar,
+            premium: Boolean(postData.author.premium),
+            admin: postData.author.role === 'admin',
+            moderator: postData.author.role === 'moderator',
+            member: postData.author.role === 'member' || !postData.author.role,
+            joinDate: new Date(postData.author.createdAt).toISOString(),
+            stats: postData.author.stats || {
+              totalPosts: 0,
+              totalLikes: 0,
+              totalViews: 0,
+              level: 1,
+              xp: 0,
+              xpNeeded: 100
+            }
+          } : {
+            id: 'anonymous',
+            name: 'Anonymous',
+            avatar: null,
+            premium: false,
+            admin: false,
+            moderator: false,
+            member: true,
+            joinDate: new Date(postData.createdAt).toISOString(),
+            stats: {
+              totalPosts: 0,
+              totalLikes: 0,
+              totalViews: 0,
+              level: 1,
+              xp: 0,
+              xpNeeded: 100
+            }
+          },
+          stats: postData.stats,
+          meta: postData.meta,
+          tags: postData.tags || [],
+          contentRating: postData.contentRating,
+          isAnimated: false
+        });
+      } catch (error) {
+        console.error('Failed to fetch post:', error);
+        setPost(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchPost();
@@ -193,11 +259,11 @@ export function PostDetails({ postId }: { postId: string }) {
             <Image
               src={post.imageUrl}
               alt={post.title}
-              width={1200}
-              height={800}
+              width={post.meta.width}
+              height={post.meta.height}
               className="w-full h-auto"
-              unoptimized        // Option hinzugefügt
-              priority          // Option hinzugefügt
+              unoptimized
+              priority
             />
             
             {/* Content Rating Badge */}
@@ -213,8 +279,8 @@ export function PostDetails({ postId }: { postId: string }) {
               </span>
             </div>
 
-            {/* Voting Buttons */}
-            <div className="absolute bottom-4 right-4 flex items-center gap-2">
+            {/* Action Buttons */}
+            <div className="absolute bottom-4 right-4 flex gap-2">
               <button
                 onClick={() => handleVote('like')}
                 className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
@@ -252,32 +318,32 @@ export function PostDetails({ postId }: { postId: string }) {
           </div>
 
           {/* Comments Section */}
-          <div className="bg-white/50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800 p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-              Comments ({post.stats.comments})
-            </h2>
-            <CommentList postId={post.id} />
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Comments</h2>
+            <CommentList postId={postId} />
           </div>
         </div>
 
         {/* Right Column - Metadata and Tags */}
         <div className="space-y-6">
-          {/* Title and Description */}
+          {/* Uploader Info - Nach oben verschoben */}
           <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
-            <h1 className="text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">
-              {post.title}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              {post.description}
-            </p>
-          </div>
-
-          {/* Uploader Info */}
-          <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 space-y-4">
             <div className="flex items-center gap-3">
-              <Link href={`/user/${post.uploader.name.toLowerCase()}`} className="block">
-                <div className={`w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0
-                  ${post.uploader.premium ? 'ring-2 ring-purple-400 dark:ring-purple-600' : ''}`}>
+              {post.uploader.id === 'anonymous' ? (
+                <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0">
+                  <Image 
+                    src={DEFAULT_AVATAR}
+                    alt="Anonymous user avatar"
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <Link 
+                  href={`/user/${post.uploader.name}`}
+                  className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0"
+                >
                   <Image 
                     src={post.uploader.avatar || DEFAULT_AVATAR}
                     alt={`${post.uploader.name}'s avatar`}
@@ -285,23 +351,46 @@ export function PostDetails({ postId }: { postId: string }) {
                     height={48}
                     className="w-full h-full object-cover"
                   />
-                </div>
-              </Link>
+                </Link>
+              )}
               
               <div className="flex-grow">
-                <Link href={`/user/${post.uploader.name.toLowerCase()}`}
-                  className={`font-medium hover:opacity-80 transition-opacity ${
-                    post.uploader.premium 
-                      ? 'bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent' 
-                      : 'text-gray-900 dark:text-gray-100'
+                <div className="flex items-center gap-2">
+                  {post.uploader.id === 'anonymous' ? (
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {post.uploader.name}
+                    </span>
+                  ) : (
+                    <Link 
+                      href={`/user/${post.uploader.name}`}
+                      className={`font-medium ${
+                        post.uploader.premium 
+                          ? 'bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent' 
+                          : 'text-gray-900 dark:text-gray-100'
+                      } hover:opacity-80 transition-opacity`}
+                    >
+                      {post.uploader.name}
+                    </Link>
+                  )}
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                    post.uploader.admin ? 'bg-red-500/40 text-white border border-red-500/50' :
+                    post.uploader.moderator ? 'bg-blue-500/40 text-white border border-blue-500/50' :
+                    'bg-gray-500/40 text-white border border-gray-500/50'
                   }`}>
-                  {post.uploader.name}
-                </Link>
-                <div className="text-sm text-gray-500 flex items-center gap-2">
-                  <span>Member since {new Date(post.uploader.joinDate).toLocaleDateString()}</span>
+                    {post.uploader.admin ? 'ADMIN' :
+                     post.uploader.moderator ? 'MOD' :
+                     'MEMBER'}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-500 flex items-center gap-2 flex-wrap">
+                  {post.uploader.id === 'anonymous' ? (
+                    <span>Posted on {new Date(post.uploadDate).toLocaleString()}</span>
+                  ) : (
+                    <span>Member since {new Date(post.uploader.joinDate).toLocaleString()}</span>
+                  )}
                   {post.uploader.premium && (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
-                      PREMIUM
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                      ⭐ PREMIUM
                     </span>
                   )}
                 </div>
@@ -309,7 +398,7 @@ export function PostDetails({ postId }: { postId: string }) {
             </div>
 
             {/* User Stats */}
-            <div className="grid grid-cols-3 gap-2 text-center text-sm">
+            <div className="grid grid-cols-3 gap-2 mt-4">
               <div className="p-2 rounded-lg bg-gray-100/50 dark:bg-gray-800/50">
                 <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats.totalPosts}</div>
                 <div className="text-gray-500">Posts</div>
@@ -324,6 +413,15 @@ export function PostDetails({ postId }: { postId: string }) {
               </div>
             </div>
           </div>
+
+          {/* Description */}
+          {post.description && (
+            <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                {post.description}
+              </p>
+            </div>
+          )}
 
           {/* Stats */}
           <div className="px-4 py-2 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
@@ -346,57 +444,8 @@ export function PostDetails({ postId }: { postId: string }) {
           {/* Tags */}
           <PostTags tags={post.tags} />
 
-          {/* Pools */}
-          <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 space-y-3">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Featured in Pools</h3>
-            <div className="space-y-2">
-              {[
-                { id: 'pool-1', name: 'Best Artworks 2024', items: 156, cover: "https://picsum.photos/400/225?random=1" },
-                { id: 'pool-2', name: 'Character Collection', items: 89, cover: "https://picsum.photos/400/225?random=2" },
-                { id: 'pool-3', name: 'Digital Art Showcase', items: 234, cover: "https://picsum.photos/400/225?random=3" }
-              ].map(pool => (
-                <Link
-                  key={pool.id}
-                  href={`/pool/${pool.id.replace('pool-', '')}`}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
-                >
-                  {/* Pool Cover Preview */}
-                  <div className="relative w-20 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-200 dark:bg-gray-800">
-                    <Image
-                      src={pool.cover}
-                      alt={`Cover for ${pool.name}`}
-                      fill
-                      className="object-cover group-hover:opacity-90 transition-opacity"
-                    />
-                  </div>
-                  {/* Pool Info */}
-                  <div className="flex-grow min-w-0">
-                    <div className="text-sm text-gray-900 dark:text-gray-100 truncate">
-                      {pool.name}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {pool.items} items
-                    </div>
-                  </div>
-                  {/* Arrow Icon */}
-                  <div className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300">
-                    →
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-
           {/* Metadata */}
-          <PostMetadata 
-            meta={{
-              ...post.meta,
-              uploadDate: post.uploadDate // Füge das Uploaddatum zu den Metadaten hinzu
-            }} 
-          />
-
-          {/* Reverse Search */}
-          <ReverseSearch imageUrl={post.thumbnailUrl} />
+          <PostMetadata meta={post.meta} />
         </div>
       </div>
     </div>

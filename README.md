@@ -1,8 +1,8 @@
-# f0ck.org Beta v1
+# f0ck.org Beta v1.1.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is not yet available.
 
-Modern, next-generation imageboard platform built with Next.js 14 and TailwindCSS.
+Modern, next-generation anonymous imageboard platform built with Next.js 14 and TailwindCSS. Upload and share images freely - accounts optional!
 
 ![grafik](https://github.com/user-attachments/assets/b35c9f71-d950-4b09-9943-f228cfbd8889)
 
@@ -12,21 +12,28 @@ Modern, next-generation imageboard platform built with Next.js 14 and TailwindCS
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v1](#f0ckorg-beta-v1)
+- [f0ck.org Beta v1.1.0](#f0ckorg-beta-v110)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v1.0.7 (Current)](#beta-v107-current)
+    - [Beta v1.1.0 (Current)](#beta-v110-current)
+    - [Beta v1.0.7](#beta-v107)
     - [Beta v1.0.6](#beta-v106)
-    - [Beta v1.0.5](#beta-v105)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
 
 ## ⚡ Features
 
+- Anonymous Image Sharing
+  - No account required for uploads
+  - Quick and easy image posting
+  - Automatic thumbnail generation
+  - Support for large image files
+  - Intelligent image resizing
+  - Optional user accounts for enhanced features
 - Multi-media support
   - Image and video uploads
   - GIF support with GIPHY integration
@@ -40,7 +47,7 @@ Modern, next-generation imageboard platform built with Next.js 14 and TailwindCS
   - Automatic spam detection
   - Role-based moderation
   - Report & live moderation system
-- User profiles with customization
+- User profiles with customization (Optional)
   - Activity feed
   - Role badges (Admin, Mod, Premium)
   - Stats overview
@@ -107,7 +114,29 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v1.0.7 (Current)
+### Beta v1.1.0 (Current)
+
+- 🎨 Upload System!
+  - Anonymous uploads without account requirement
+  - Improved image processing
+  - Better error handling
+  - Progress indicators
+  - File type validation
+  - Automatic image optimization
+- 👤 User System Improvements
+  - Optional account system
+  - Enhanced role badges
+  - Anonymous posting support
+  - Better date formatting
+  - Default avatars for anonymous posts
+- 🖼️ Image Display Enhancements
+  - Improved grid layout
+  - Better image scaling
+  - Enhanced mobile view
+  - Faster loading times
+  - Optimized thumbnails
+
+### Beta v1.0.7
 
 - 💬 Enhanced Comment System
   - WebSocket integration for live updates
@@ -134,14 +163,6 @@ NODE_ENV=development
   - Better reply formatting
 - 🚀 Performance optimizations
 - 🎯 UI/UX improvements
-
-### Beta v1.0.5
-
-- 🎨 Enhanced grid optimization
-- 🚀 Performance improvements
-- 🔒 Advanced security features
-- 🎯 Refined pinned post system
-- 💾 Database optimizations
 
 ## 🌐 Links & Support
 

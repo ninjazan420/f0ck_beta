@@ -1,29 +1,92 @@
 import mongoose from 'mongoose';
 
 interface IPost extends mongoose.Document {
+  id: number;
   title: string;
-  content: string;
+  description: string;
+  imageUrl: string;
+  thumbnailUrl: string;
   author: mongoose.Types.ObjectId;
+  contentRating: 'safe' | 'sketchy' | 'unsafe';
+  tags: string[];
+  meta: {
+    width: number;
+    height: number;
+    size: number;
+    format: string;
+    source: string | null;
+  };
+  stats: {
+    views: number;
+    likes: number;
+    dislikes: number;
+    comments: number;
+    favorites: number;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
 
 const postSchema = new mongoose.Schema({
+  id: {
+    type: Number,
+    unique: true
+  },
   title: {
     type: String,
     required: [true, 'Titel is required'],
   },
-  content: {
+  description: {
     type: String,
-    required: [true, 'Inhalt is required'],
+    default: ''
+  },
+  imageUrl: {
+    type: String,
+    default: ''
+  },
+  thumbnailUrl: {
+    type: String,
+    default: ''
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false,
+    default: null
+  },
+  contentRating: {
+    type: String,
+    enum: ['safe', 'sketchy', 'unsafe'],
+    default: 'safe'
+  },
+  tags: [{
+    type: String
+  }],
+  meta: {
+    width: { type: Number, default: 0 },
+    height: { type: Number, default: 0 },
+    size: { type: Number, default: 0 },
+    format: { type: String, default: 'jpeg' },
+    source: { type: String, default: null }
+  },
+  stats: {
+    views: { type: Number, default: 0 },
+    likes: { type: Number, default: 0 },
+    dislikes: { type: Number, default: 0 },
+    comments: { type: Number, default: 0 },
+    favorites: { type: Number, default: 0 }
   }
 }, {
   timestamps: true
+});
+
+// Pre-save middleware für automatische ID-Generierung
+postSchema.pre('save', async function(next) {
+  if (!this.id) {
+    const lastPost = await mongoose.model('Post').findOne({}, { id: 1 }).sort({ id: -1 });
+    this.id = lastPost ? lastPost.id + 1 : 1;
+  }
+  next();
 });
 
 const Post = mongoose.models.Post || mongoose.model<IPost>('Post', postSchema);

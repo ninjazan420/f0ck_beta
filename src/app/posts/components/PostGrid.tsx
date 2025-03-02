@@ -1,30 +1,36 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ContentRating } from './PostsPage';
 
-// Post-Interface wird direkt bei der Mock-Daten-Generierung verwendet
-const MOCK_POSTS = Array.from({ length: 28 }, (_, i) => ({
-  id: (i + 1).toString(), // Geändert von i + 1 zu String
-  title: `Amazing Artwork ${i + 1}`,
-  thumbnail: `https://picsum.photos/400/300?random=${i}`,
-  likes: Math.floor(Math.random() * 1000),
-  comments: Math.floor(Math.random() * 100),
-  favorites: Math.floor(Math.random() * 500),
-  contentRating: ['safe', 'sketchy', 'unsafe'][Math.floor(Math.random() * 3)] as ContentRating,
-  createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-  isPinned: i % 12 === 0,
-  mediaType: ['image', 'gif', 'video'][Math.floor(Math.random() * 3)] as 'image' | 'gif' | 'video',
-  hasAudio: Math.random() > 0.3,
-  isAd: i > 0 && i % 7 === 0,
-  isSponsored: i > 0 && i % 7 === 0,
-}));
+interface Post {
+  id: string;
+  title: string;
+  thumbnail: string;
+  url: string;
+  likes: number;
+  comments: number;
+  favorites: number;
+  contentRating: 'safe' | 'sketchy' | 'unsafe';
+  mediaType: 'image' | 'gif' | 'video';
+  hasAudio: boolean;
+  isPinned?: boolean;
+  isAd?: boolean;
+  author: {
+    username: string;
+    avatar: string | null;
+    premium?: boolean;
+    member?: boolean;
+    admin?: boolean;
+    moderator?: boolean;
+  };
+}
 
 interface PostGridProps {
   loading?: boolean;
   filters?: {
-    contentRating?: ContentRating[];
+    contentRating?: string[];
     searchText?: string;
     tags?: string[];
     uploader?: string;
@@ -40,9 +46,45 @@ interface PostGridProps {
 }
 
 export function PostGrid({ loading = false, filters = {}, page = 1 }: PostGridProps) {
-  const [posts] = useState(MOCK_POSTS);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(loading);
 
-  if (loading) {
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/posts');
+        if (!response.ok) {
+          throw new Error('Failed to fetch posts');
+        }
+        
+        const data = await response.json();
+        const formattedPosts = data.map((post: any) => ({
+          id: post.id.toString(),
+          title: post.title,
+          thumbnail: post.thumbnailUrl,
+          url: post.imageUrl,
+          likes: post.stats.likes,
+          comments: post.stats.comments,
+          favorites: post.stats.favorites,
+          contentRating: post.contentRating,
+          mediaType: 'image',
+          hasAudio: false,
+          author: post.author
+        }));
+        
+        setPosts(formattedPosts);
+      } catch (error) {
+        console.error('Failed to fetch posts:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [page, filters]);
+
+  if (isLoading) {
     return (
       <div className="grid grid-cols-7 auto-rows-fr gap-4">
         {Array.from({ length: 28 }).map((_, i) => (
@@ -68,13 +110,18 @@ export function PostGrid({ loading = false, filters = {}, page = 1 }: PostGridPr
           href={`/post/${post.id}`}
           className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800"
         >
-          <Image
-            src={post.thumbnail}
-            alt={post.title}
-            width={400}
-            height={400}
-            className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-          />
+          <div className="relative w-full h-full flex items-center justify-center">
+            <div className="relative w-[90%] h-[90%]">
+              <Image
+                src={post.thumbnail}
+                alt={post.title}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="object-contain group-hover:opacity-75 transition-opacity"
+                priority
+              />
+            </div>
+          </div>
           
           {/* Top Badge Row */}
           <div className="absolute top-2 left-2 right-2 flex justify-between items-start">
@@ -105,12 +152,8 @@ export function PostGrid({ loading = false, filters = {}, page = 1 }: PostGridPr
           </div>
 
           {/* Bottom Info Bar */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+          <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
             <div className="space-y-1">
-              {/* Title */}
-              <div className="text-white text-xs font-medium line-clamp-1">
-                {post.title}
-              </div>
               {/* Stats and Media Type */}
               <div className="flex items-center justify-between text-gray-300 text-[10px]">
                 <div className="flex items-center gap-2">

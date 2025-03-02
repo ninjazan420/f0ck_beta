@@ -1,6 +1,7 @@
 import { withAuth, createErrorResponse } from '@/lib/api-utils';
 import dbConnect from '@/lib/db/mongodb';
 import Post from '@/models/Post';
+import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   return withAuth(async (session) => {
@@ -26,13 +27,28 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  return withAuth(async () => {
+  try {
     await dbConnect();
-    const posts = await Post.find()
-      .populate('author', 'username')
-      .sort({ createdAt: -1 })
-      .limit(50);
-
-    return posts;
-  });
+    const posts = await Post.find({})
+      .select({
+        id: 1,
+        title: 1,
+        imageUrl: 1,
+        thumbnailUrl: 1,
+        stats: 1,
+        contentRating: 1,
+        meta: 1,
+        author: 1,
+        _id: 0
+      })
+      .populate('author', 'username avatar')
+      .sort({ createdAt: -1 });
+    return NextResponse.json(posts);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }
