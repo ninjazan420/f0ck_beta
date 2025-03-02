@@ -39,12 +39,18 @@ export async function POST(req: Request) {
         // Konvertiere die File zu einem Buffer
         const buffer = Buffer.from(await file.arrayBuffer());
         
+        // Überprüfe, ob das Rating gültig ist
+        const validRating = ['safe', 'sketchy', 'unsafe'].includes(rating) 
+          ? rating as 'safe' | 'sketchy' | 'unsafe' 
+          : 'safe';
+        
         // Verarbeite den Upload (User-ID ist optional)
         const processedUpload = await processUpload(
           buffer, 
           file.name, 
           file.type,
-          userId
+          userId,
+          validRating
         );
         
         results.push({
@@ -58,7 +64,7 @@ export async function POST(req: Request) {
             dimensions: processedUpload.dimensions,
             url: processedUpload.originalPath,
             thumbnailUrl: processedUpload.thumbnailPath,
-            rating: rating || 'safe',
+            rating: validRating,
             uploadDate: new Date().toISOString(),
             uploader: userId ? 'User' : 'Anonymous'
           }

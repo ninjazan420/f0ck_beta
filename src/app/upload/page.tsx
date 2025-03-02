@@ -15,6 +15,7 @@ export default function UploadPage() {
   const [urls, setUrls] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [fileRatings, setFileRatings] = useState<{[key: string]: 'safe' | 'sketchy' | 'unsafe'}>({});
 
   const handleFileDrop = (newFiles: File[]) => {
     const validFiles = newFiles.filter(file => {
@@ -63,7 +64,7 @@ export default function UploadPage() {
       for (const file of files) {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('rating', 'safe'); // Standard-Rating
+        formData.append('rating', fileRatings[file.name] || 'safe');
 
         const response = await fetch('/api/upload', {
           method: 'POST',
@@ -108,6 +109,13 @@ export default function UploadPage() {
     setFiles([]);
     setUrls([]);
     setError(null);
+  };
+
+  const updateFileRating = (fileName: string, rating: 'safe' | 'sketchy' | 'unsafe') => {
+    setFileRatings(prev => ({
+      ...prev,
+      [fileName]: rating
+    }));
   };
 
   const hasFiles = files.length > 0 || urls.length > 0;
@@ -158,6 +166,7 @@ export default function UploadPage() {
                   urls={urls}
                   onRemoveFile={handleRemoveFile}
                   onRemoveUrl={handleRemoveUrl}
+                  onUpdateRating={updateFileRating}
                 />
               </>
             )}

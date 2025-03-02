@@ -20,12 +20,14 @@ export function FileList({
   files, 
   urls, 
   onRemoveFile, 
-  onRemoveUrl 
+  onRemoveUrl,
+  onUpdateRating
 }: { 
   files: File[];
   urls: string[];
   onRemoveFile: (index: number) => void;
   onRemoveUrl: (index: number) => void;
+  onUpdateRating?: (fileName: string, rating: 'safe' | 'sketchy' | 'unsafe') => void;
 }) {
   const [items, setItems] = useState<FileItem[]>([]);
 
@@ -128,9 +130,19 @@ export function FileList({
   };
 
   const updateContentRating = (id: string, rating: FileItem['contentRating']) => {
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, contentRating: rating } : item
-    ));
+    setItems(prev => {
+      const newItems = prev.map(item =>
+        item.id === id ? { ...item, contentRating: rating } : item
+      );
+      
+      // Finde das aktualisierte Item und gebe Rating an übergeordnete Komponente weiter
+      const updatedItem = newItems.find(item => item.id === id);
+      if (updatedItem && onUpdateRating && updatedItem.type === 'file') {
+        onUpdateRating(updatedItem.name, rating);
+      }
+      
+      return newItems;
+    });
   };
 
   const handleTagInput = (id: string, e: KeyboardEvent<HTMLInputElement>) => {

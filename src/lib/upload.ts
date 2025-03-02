@@ -49,7 +49,8 @@ export async function processUpload(
   file: Buffer, 
   originalFilename: string, 
   contentType: string,
-  userId?: string
+  userId?: string,
+  contentRating: 'safe' | 'sketchy' | 'unsafe' = 'safe'
 ): Promise<ProcessedUpload> {
   try {
     // Verarbeite das Bild mit Sharp
@@ -60,6 +61,7 @@ export async function processUpload(
     const post = new Post({
       title: originalFilename,
       author: userId || null, // Wenn kein userId, dann null für anonymen Upload
+      contentRating: contentRating, // Setze das contentRating
       meta: {
         width: metadata.width || 0,
         height: metadata.height || 0,
