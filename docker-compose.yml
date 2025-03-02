@@ -10,7 +10,7 @@ services:
       - .env.production
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb+srv://admin:admin@f0ck.cqe6u.mongodb.net/?retryWrites=true&w=majority
+      - MONGODB_URI=
       - PORT=3001
     volumes:
       - ./public/uploads:/app/public/uploads:rw
