@@ -1,6 +1,6 @@
 # f0ck.org Beta v1.2.0
 
-> ⚠️ **Development Notice**: This project is currently under active development. A public live version is not yet available.
+> ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still broken.
 
 Modern, next-generation anonymous imageboard platform built with Next.js 14 and TailwindCSS. Upload and share images freely - accounts optional!
 
@@ -100,7 +100,8 @@ git clone https://github.com/ninjazan420/f0ck_beta.git
 # Navigate to project directory
 cd f0ck_beta
 
-# Create .env.production file (see Environment Setup below)
+# Rename env.template to either .env.production or .env.local (for dev)
+.env.template
 
 # Build and start Docker containers
 docker compose up -d
