@@ -32,13 +32,14 @@ export async function GET(
 
     // Wenn ein Autor existiert, populate die Autor-Daten
     if (post.author) {
-      await post.populate('author', 'username avatar premium role createdAt stats');
+      await post.populate('author', 'username avatar bio premium role createdAt stats');
     } else {
       // Füge Dummy-Autor-Daten für anonyme Posts hinzu
       post.author = {
         _id: 'anonymous',
         username: 'Anonymous',
         avatar: null,
+        bio: '',
         premium: false,
         role: 'member',
         createdAt: new Date(),

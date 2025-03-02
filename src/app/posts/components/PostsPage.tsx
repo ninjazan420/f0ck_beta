@@ -1,34 +1,87 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Footer } from "@/components/Footer";
 import { PostFilter } from "./PostFilter";
 import { PostGrid } from "./PostGrid";
 
 export type ContentRating = 'safe' | 'sketchy' | 'unsafe';
 
+// Konstante für den localStorage-Schlüssel
+const CONTENT_RATING_STORAGE_KEY = 'postFilterContentRating';
+
 export function PostsPage() {
   const [infiniteScroll, setInfiniteScroll] = useState(false);
   const [loading] = useState(false);
+  
+  // Initialen Zustand mit leeren Werten festlegen
   const [filters, setFilters] = useState({
     searchText: '',
     tags: [] as string[],
     uploader: '',
     commenter: '',
     minLikes: 0,
-    contentRating: ['safe'] as ContentRating[], // Default to safe content
+    contentRating: ['safe'] as ContentRating[], // Default-Wert, wird durch useEffect überschrieben
     dateFrom: '',
     dateTo: '',
     sortBy: 'newest' as 'newest' | 'oldest' | 'most_liked' | 'most_commented'
   });
+  
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 10; // Mock value, should come from API
+
+  // Beim Laden der Komponente die gespeicherten Content-Rating-Einstellungen wiederherstellen
+  useEffect(() => {
+    try {
+      // Prüfen, ob im Browser-Umfeld (nicht SSR)
+      if (typeof window !== 'undefined') {
+        const savedContentRating = localStorage.getItem(CONTENT_RATING_STORAGE_KEY);
+        
+        if (savedContentRating) {
+          const parsedRating = JSON.parse(savedContentRating) as ContentRating[];
+          // Nur aktualisieren, wenn die gespeicherten Werte valide sind
+          if (Array.isArray(parsedRating) && parsedRating.length > 0) {
+            // Nur gültige ContentRating-Werte übernehmen
+            const validRatings = parsedRating.filter(
+              (rating): rating is ContentRating => 
+                rating === 'safe' || rating === 'sketchy' || rating === 'unsafe'
+            );
+            
+            if (validRatings.length > 0) {
+              setFilters(prev => ({
+                ...prev,
+                contentRating: validRatings
+              }));
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der gespeicherten Content-Rating-Einstellungen:', error);
+      // Bei Fehlern den Standard verwenden
+    }
+  }, []);
+
+  // ContentRating speichern, wenn es sich ändert
+  const handleFilterChange = (newFilters: typeof filters) => {
+    setFilters(newFilters);
+    
+    // Speichern der ContentRating-Einstellungen im localStorage
+    if (typeof window !== 'undefined' && 
+        JSON.stringify(newFilters.contentRating) !== JSON.stringify(filters.contentRating)) {
+      try {
+        localStorage.setItem(CONTENT_RATING_STORAGE_KEY, JSON.stringify(newFilters.contentRating));
+      } catch (error) {
+        console.error('Fehler beim Speichern der Content-Rating-Einstellungen:', error);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
       <div className="container mx-auto px-4 flex-grow space-y-4 pb-4">
         <PostFilter 
           filters={filters} 
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           infiniteScroll={infiniteScroll}
           onToggleInfiniteScroll={setInfiniteScroll}
         />

@@ -10,15 +10,39 @@ export async function GET(
     const { username } = await params;
     await dbConnect();
     
-    const user = await User.findOne({ username })
-      .select('username email bio createdAt lastSeen role');
+    // Verwende eine Aggregation, um die Statistiken korrekt zu berechnen
+    const users = await User.aggregate([
+      { $match: { username } },
+      {
+        $project: {
+          username: 1,
+          email: 1,
+          bio: 1,
+          createdAt: 1,
+          lastSeen: 1,
+          role: 1,
+          premium: { $eq: ["$role", "premium"] },
+          avatar: 1,
+          stats: {
+            uploads: { $size: { $ifNull: ["$uploads", []] } },
+            comments: { $size: { $ifNull: ["$comments", []] } },
+            favorites: { $size: { $ifNull: ["$favorites", []] } },
+            likes: { $size: { $ifNull: ["$likes", []] } },
+            dislikes: { $size: { $ifNull: ["$dislikes", []] } },
+            tags: { $size: { $ifNull: ["$tags", []] } }
+          }
+        }
+      }
+    ]);
 
-    if (!user) {
+    if (!users || users.length === 0) {
       return NextResponse.json(
         { error: 'Benutzer nicht gefunden' },
         { status: 404 }
       );
     }
+
+    const user = users[0];
 
     // Update lastSeen silently
     await User.findByIdAndUpdate(user._id, { lastSeen: new Date() });
@@ -29,7 +53,9 @@ export async function GET(
       createdAt: user.createdAt,
       lastSeen: user.lastSeen,
       role: user.role,
-      isPremium: user.role === 'premium',
+      premium: user.premium,
+      avatar: user.avatar,
+      stats: user.stats,
       isModerator: user.role === 'moderator',
       isAdmin: user.role === 'admin'
     });

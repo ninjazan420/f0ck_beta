@@ -22,6 +22,7 @@ interface PostData {
     id: string;
     name: string;
     avatar: string | null;
+    bio: string;
     premium: boolean;
     admin: boolean;
     moderator: boolean;
@@ -31,6 +32,9 @@ interface PostData {
       totalPosts: number;
       totalLikes: number;
       totalViews: number;
+      favorites?: number;
+      comments?: number;
+      tags?: number;
       level: number;
       xp: number;
       xpNeeded: number;
@@ -71,6 +75,7 @@ const MOCK_POST: PostData = {
     id: "user1",
     name: "User1",
     avatar: null,
+    bio: '',
     premium: true,
     admin: false,
     moderator: false,
@@ -167,6 +172,15 @@ export function PostDetails({ postId }: { postId: string }) {
 
         // Für alle Posts verwenden wir die API-Daten
         const postData = await response.json();
+        // Detailliertes Debugging für Bio-Daten
+        console.log('API response für Post:', JSON.stringify(postData, null, 2));
+        console.log('API author data:', postData.author);
+        if (postData.author) {
+          console.log('Author bio exists?', postData.author.hasOwnProperty('bio'));
+          console.log('Author bio value:', postData.author.bio);
+          console.log('Author bio type:', typeof postData.author.bio);
+          console.log('Populate fields in author:', Object.keys(postData.author).join(', '));
+        }
         setPost({
           id: postId,
           title: postData.title,
@@ -178,6 +192,7 @@ export function PostDetails({ postId }: { postId: string }) {
             id: postData.author._id,
             name: postData.author.username,
             avatar: postData.author.avatar,
+            bio: postData.author.bio || '',
             premium: Boolean(postData.author.premium),
             admin: postData.author.role === 'admin',
             moderator: postData.author.role === 'moderator',
@@ -195,6 +210,7 @@ export function PostDetails({ postId }: { postId: string }) {
             id: 'anonymous',
             name: 'Anonymous',
             avatar: null,
+            bio: '',
             premium: false,
             admin: false,
             moderator: false,
@@ -394,23 +410,47 @@ export function PostDetails({ postId }: { postId: string }) {
                     </span>
                   )}
                 </div>
+                
+                {/* Benutzer-Bio direkt unter den Namen, wenn vorhanden und nicht anonymous */}
+                {post.uploader.id !== 'anonymous' && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {post.uploader.bio ? post.uploader.bio : 'Dieser Benutzer hat noch keine Bio hinzugefügt.'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* User Stats */}
-            <div className="grid grid-cols-3 gap-2 mt-4">
-              <div className="p-2 rounded-lg bg-gray-100/50 dark:bg-gray-800/50">
-                <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats.totalPosts}</div>
-                <div className="text-gray-500">Posts</div>
-              </div>
-              <div className="p-2 rounded-lg bg-gray-100/50 dark:bg-gray-800/50">
-                <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats.totalLikes}</div>
-                <div className="text-gray-500">Likes</div>
-              </div>
-              <div className="p-2 rounded-lg bg-gray-100/50 dark:bg-gray-800/50">
-                <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats.totalViews}</div>
-                <div className="text-gray-500">Views</div>
-              </div>
+            {/* User Stats - Alle Stats kompakt darstellen */}
+            <div className="mt-4">
+              <Link
+                href={`/user/${post.uploader.name}`}
+                className="block rounded-lg bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors p-3"
+              >
+                <div className="flex justify-between items-end gap-3 py-1 text-sm">
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 mb-1">posts</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.totalPosts || 0}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 mb-1">favorites</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.favorites || 0}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 mb-1">likes</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.totalLikes || 0}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 mb-1">comments</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.comments || 0}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 mb-1">tags</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.tags || 0}</div>
+                  </div>
+                </div>
+              </Link>
             </div>
           </div>
 
@@ -423,31 +463,17 @@ export function PostDetails({ postId }: { postId: string }) {
             </div>
           )}
 
-          {/* Stats */}
-          <div className="px-4 py-2 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
-            <div className="grid grid-cols-3 gap-2 text-center text-sm">
-              <div>
-                <div className="font-medium text-gray-900 dark:text-gray-100">{post.stats.views}</div>
-                <div className="text-xs text-gray-500">Views</div>
-              </div>
-              <div>
-                <div className="font-medium text-gray-900 dark:text-gray-100">{post.stats.likes}</div>
-                <div className="text-xs text-gray-500">Likes</div>
-              </div>
-              <div>
-                <div className="font-medium text-gray-900 dark:text-gray-100">{post.stats.favorites}</div>
-                <div className="text-xs text-gray-500">Favorites</div>
-              </div>
-            </div>
-          </div>
-
           {/* Tags */}
           <PostTags tags={post.tags} />
 
-          {/* Metadata */}
-          <PostMetadata meta={post.meta} />
+          {/* Reverse Image Search - jetzt über den Metadaten */}
+          <ReverseSearch imageUrl={post.imageUrl} />
+          
+          {/* Metadata - jetzt nach der ReverseSearch */}
+          <PostMetadata meta={{...post.meta, uploadDate: post.uploadDate}} />
         </div>
       </div>
     </div>
   );
 }
+

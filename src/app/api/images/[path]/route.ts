@@ -8,7 +8,9 @@ export async function GET(
 ) {
   try {
     // Get path parameter (may include subdirectories)
-    const pathParts = params.path.split('/');
+    // Sicherstellen, dass params aufgelöst ist
+    const resolvedParams = await Promise.resolve(params);
+    const pathParts = resolvedParams.path.split('/');
     const decodedPath = pathParts.map(part => decodeURIComponent(part)).join('/');
     
     // Determine image type

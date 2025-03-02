@@ -4,6 +4,8 @@ import './globals.css'
 import { Navbar } from '@/components/Navbar'
 import { ThemeProvider } from '@/context/ThemeContext'
 import AuthProvider from '@/context/AuthProvider'
+import { PageMetaProvider } from '@/context/PageMetaContext'
+import { AutoPageMetaUpdater } from '@/components/PageMetaUpdater'
 import { siteConfig } from './metadata'
 import type { Metadata } from 'next'
 
@@ -26,8 +28,11 @@ export default function RootLayout({
       <body className={`${inter.variable} ${jetBrainsMono.variable} antialiased`}>
         <AuthProvider>
           <ThemeProvider>
-            <Navbar />
-            {children}
+            <PageMetaProvider>
+              <AutoPageMetaUpdater />
+              <Navbar />
+              {children}
+            </PageMetaProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

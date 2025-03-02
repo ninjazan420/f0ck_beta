@@ -128,6 +128,11 @@ export function AccountCard() {
         }
         
         const data = await response.json();
+        console.log('AccountCard: Erhaltene Aktivitäten:', data.activities);
+        if (data.activities && data.activities.length > 0) {
+          console.log('AccountCard: Beispiel Post-ID:', data.activities[0].post.id);
+        }
+        
         setProfile(prev => ({
           ...prev,
           recentActivity: data.activities || []

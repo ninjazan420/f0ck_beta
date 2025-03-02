@@ -1,20 +1,37 @@
 export function ReverseSearch({ imageUrl }: { imageUrl: string }) {
+  // Konvertiere relative URL zu absoluter URL
+  const getFullImageUrl = (url: string) => {
+    if (url.startsWith('http')) {
+      return url; // URL ist bereits absolut
+    }
+    
+    // Verwende NEXTAUTH_URL anstelle von PUBLIC_URL
+    // In Produktionsumgebung wird der Wert aus .env.production genommen (https://beta.f0ck.org)
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://beta.f0ck.org';
+    const sanitizedImageUrl = url.startsWith('/') ? url : `/${url}`;
+    
+    return `${baseUrl}${sanitizedImageUrl}`;
+  };
+  
+  // Verwende die vollständige URL für alle Suchmaschinen
+  const fullImageUrl = getFullImageUrl(imageUrl);
+
   const searchEngines = [
     {
       name: 'Google',
-      url: `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(imageUrl)}`
+      url: `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(fullImageUrl)}`
     },
     {
       name: 'Yandex',
-      url: `https://yandex.com/images/search?url=${encodeURIComponent(imageUrl)}`
+      url: `https://yandex.com/images/search?url=${encodeURIComponent(fullImageUrl)}`
     },
     {
       name: 'SauceNAO',
-      url: `https://saucenao.com/search.php?url=${encodeURIComponent(imageUrl)}`
+      url: `https://saucenao.com/search.php?url=${encodeURIComponent(fullImageUrl)}`
     },
     {
       name: 'IQDB',
-      url: `https://iqdb.org/?url=${encodeURIComponent(imageUrl)}`
+      url: `https://iqdb.org/?url=${encodeURIComponent(fullImageUrl)}`
     }
   ];
 

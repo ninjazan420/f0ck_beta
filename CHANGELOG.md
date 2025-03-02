@@ -2,6 +2,19 @@
 
 Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 
+## [1.2.2] - 2024-03-02
+
+### 👤 Verbesserungen der Benutzerprofile
+- Korrektur der Anzeige von Benutzer-Bios in Posts
+- Standardisierte Darstellung von Benutzerstatistiken über alle Komponenten hinweg
+- Verbesserte Konsistenz der Benutzerprofilinformationen
+- Bessere Organisation von Benutzermetadaten
+
+### 🖼️ UI/UX-Verfeinerungen
+- Optimierte Darstellung der Statistiken auf der Startseite
+- Entfernung der redundanten Statistikbox in den Post-Ansichten
+- Verbesserte visuelle Konsistenz in der gesamten Anwendung
+
 ## [1.2.0] - 2024-03-02
 
 ### 🐳 Docker-Integration

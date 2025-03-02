@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db/mongodb';
 import Comment from '@/models/Comment';
+import Post from '@/models/Post';
+import User from '@/models/User';
 
 export async function GET(req: Request) {
   try {
@@ -20,30 +22,103 @@ export async function GET(req: Request) {
       isHidden: false 
     })
     .sort({ createdAt: -1 })
-    .limit(10)
-    .populate('post', 'title imageUrl type nsfw');
+    .limit(5)
+    .populate('post', 'title imageUrl thumbnailUrl contentRating');
 
-    // Aktivitäten formatieren
-    const activities = comments.map(comment => ({
-      id: comment._id,
-      type: 'comment',
-      text: comment.content.substring(0, 100) + (comment.content.length > 100 ? '...' : ''),
-      date: comment.createdAt,
-      emoji: '💬',
-      post: {
-        id: comment.post._id,
-        title: comment.post.title,
-        imageUrl: comment.post.imageUrl,
-        type: comment.post.type,
-        nsfw: comment.post.nsfw
-      }
-    }));
+    // Posts des Benutzers abrufen
+    const posts = await Post.find({
+      author: session.user.id
+    })
+    .sort({ createdAt: -1 })
+    .limit(5);
+
+    // Liked Posts abrufen (falls im User-Schema gespeichert)
+    const userWithLikes = await User.findById(session.user.id)
+      .populate({
+        path: 'likes',
+        model: 'Post',
+        select: 'title imageUrl thumbnailUrl contentRating createdAt',
+        options: { sort: { createdAt: -1 }, limit: 5 }
+      });
+
+    // Alle Aktivitäten kombinieren
+    let activities = [];
+
+    // Kommentar-Aktivitäten
+    if (comments && comments.length > 0) {
+      activities = activities.concat(comments.map(comment => {
+        // Stelle sicher, dass wir den Post richtig abbilden
+        let postId = null;
+        if (comment.post) {
+          if (typeof comment.post === 'object') {
+            // Wenn es ein Objekt ist, versuche die numerische ID oder _id zu verwenden
+            postId = comment.post.id || comment.post._id;
+          } else {
+            // Wenn es eine direkte Referenz ist
+            postId = comment.post;
+          }
+        }
+
+        return {
+          id: comment._id.toString(),
+          type: 'comment',
+          text: `Du hast einen Kommentar hinterlassen`,
+          date: comment.createdAt,
+          emoji: '💬',
+          post: {
+            id: postId,
+            title: comment.post?.title || 'Unbekannter Post',
+            imageUrl: comment.post?.thumbnailUrl || comment.post?.imageUrl
+          }
+        };
+      }));
+    }
+
+    // Post-Aktivitäten
+    if (posts && posts.length > 0) {
+      activities = activities.concat(posts.map(post => ({
+        id: post._id.toString(),
+        type: 'post',
+        text: `Du hast ein Bild hochgeladen`,
+        date: post.createdAt,
+        emoji: '🖼️',
+        post: {
+          // Nutze die numerische ID, wenn verfügbar, sonst die Mongo-ID
+          id: post.id || post._id.toString(),
+          title: post.title,
+          imageUrl: post.thumbnailUrl || post.imageUrl
+        }
+      })));
+    }
+
+    // Like-Aktivitäten
+    if (userWithLikes?.likes && userWithLikes.likes.length > 0) {
+      activities = activities.concat(userWithLikes.likes.map((post: any) => ({
+        id: `like-${post._id}`,
+        type: 'like',
+        text: `Du hast ein Bild geliked`,
+        date: post.createdAt,
+        emoji: '❤️',
+        post: {
+          // Nutze die numerische ID, wenn verfügbar, sonst die Mongo-ID
+          id: post.id || post._id.toString(),
+          title: post.title,
+          imageUrl: post.thumbnailUrl || post.imageUrl
+        }
+      })));
+    }
+
+    // Nach Datum sortieren (neueste zuerst)
+    activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    // Auf 10 Aktivitäten begrenzen
+    activities = activities.slice(0, 10);
 
     return NextResponse.json({ activities });
   } catch (error) {
-    console.error('Error fetching user activity:', error);
+    console.error('Fehler beim Abrufen der Benutzeraktivität:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: 'Interner Serverfehler' },
       { status: 500 }
     );
   }

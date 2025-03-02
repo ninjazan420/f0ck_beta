@@ -91,12 +91,15 @@ export function UserProfile({ username }: { username: string }) {
   useEffect(() => {
     const fetchActivity = async () => {
       try {
+        console.log('Fetching activities for user:', username);
         const response = await fetch(`/api/users/${username}/activity`);
         if (!response.ok) {
+          console.error('Activity response not OK. Status:', response.status);
           throw new Error('Failed to fetch activity');
         }
         
         const data = await response.json();
+        console.log('Received activities data:', data);
         setUserData(prev => prev ? {
           ...prev,
           recentActivity: data.activities || []

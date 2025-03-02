@@ -50,7 +50,7 @@ export default function Home() {
               Anonymous Imageboard platform for sharing Memes, Cats, and more
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Beta Version 1.1.1 - We build something new...
+              Beta Version 1.2.2 - We build something new...
             </p>
           </div>
         </div>
@@ -93,18 +93,20 @@ export default function Home() {
 
         {/* Bottom Section - Stats and Coming Soon */}
         <div className="w-full max-w-2xl mx-auto px-4 space-y-8 mb-8">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 text-center">
-              <div className="text-2xl font-light tracking-tight text-gray-900 dark:text-gray-400">{stats.activeUsers}</div>
-              <div className="text-[13px] font-medium tracking-wide text-gray-500 dark:text-gray-500">Aktive Nutzer</div>
+          <div className="flex justify-between items-center gap-4 rounded-xl p-4 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+            <div className="text-center flex-1">
+              <div className="text-xl font-light tracking-tight text-gray-900 dark:text-gray-300">{stats.activeUsers}</div>
+              <div className="text-xs font-medium text-gray-500 dark:text-gray-500">Aktive Nutzer</div>
             </div>
-            <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 text-center">
-              <div className="text-2xl font-light tracking-tight text-gray-900 dark:text-gray-400">{stats.newComments}</div>
-              <div className="text-[13px] font-medium tracking-wide text-gray-500 dark:text-gray-500">Kommentare (24h)</div>
+            <div className="h-8 w-px bg-gray-200 dark:bg-gray-700"></div>
+            <div className="text-center flex-1">
+              <div className="text-xl font-light tracking-tight text-gray-900 dark:text-gray-300">{stats.newComments}</div>
+              <div className="text-xs font-medium text-gray-500 dark:text-gray-500">Kommentare (24h)</div>
             </div>
-            <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 text-center">
-              <div className="text-2xl font-light tracking-tight text-gray-900 dark:text-gray-400">{stats.newPosts}</div>
-              <div className="text-[13px] font-medium tracking-wide text-gray-500 dark:text-gray-500">Neue Posts (24h)</div>
+            <div className="h-8 w-px bg-gray-200 dark:bg-gray-700"></div>
+            <div className="text-center flex-1">
+              <div className="text-xl font-light tracking-tight text-gray-900 dark:text-gray-300">{stats.newPosts}</div>
+              <div className="text-xs font-medium text-gray-500 dark:text-gray-500">Neue Posts (24h)</div>
             </div>
           </div>
           <div className="text-center text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">

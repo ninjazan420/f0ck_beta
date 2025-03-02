@@ -1,4 +1,4 @@
-# f0ck.org Beta v1.2.0
+# f0ck.org Beta v1.2.2
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still broken.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v1.2.0](#f0ckorg-beta-v120)
+- [f0ck.org Beta v1.2.2](#f0ckorg-beta-v122)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,7 +21,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v1.2.0 (Current)](#beta-v120-current)
+    - [Beta v1.2.2 (Current)](#beta-v122-current)
     - [Older Versions (click to expand)](#older-versions-click-to-expand)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
@@ -145,7 +145,22 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v1.2.0 (Current)
+### Beta v1.2.2 (Current)
+
+- 👤 User Profile Improvements
+  - Fixed user bio display in posts
+  - Standardized user statistics display across components
+  - Improved user profile information consistency
+  - Better organization of user metadata
+- 🖼️ UI/UX Refinements
+  - Streamlined statistics display on homepage
+  - Removed redundant stats box in post views
+  - Improved overall visual consistency
+
+### Older Versions (click to expand)
+
+<details>
+<summary>Beta v1.2.0</summary>
 
 - 🐳 Docker Integration
   - Docker support for easy deployment and environment consistency
@@ -157,8 +172,7 @@ NODE_ENV=development
   - Optimized file upload system
   - Improved permissions for uploads
   - Updated dependencies
-
-### Older Versions (click to expand)
+</details>
 
 <details>
 <summary>Beta v1.1.1</summary>

@@ -130,19 +130,21 @@ export function FileList({
   };
 
   const updateContentRating = (id: string, rating: FileItem['contentRating']) => {
-    setItems(prev => {
-      const newItems = prev.map(item =>
-        item.id === id ? { ...item, contentRating: rating } : item
-      );
-      
-      // Finde das aktualisierte Item und gebe Rating an übergeordnete Komponente weiter
-      const updatedItem = newItems.find(item => item.id === id);
-      if (updatedItem && onUpdateRating && updatedItem.type === 'file') {
-        onUpdateRating(updatedItem.name, rating);
-      }
-      
-      return newItems;
-    });
+    // Finde das aktuelle Item
+    const currentItem = items.find(item => item.id === id);
+    
+    // Aktualisiere die Items
+    setItems(prev => 
+      prev.map(item => item.id === id ? { ...item, contentRating: rating } : item)
+    );
+    
+    // Rufe den Callback separat auf, außerhalb des setItems
+    if (currentItem && onUpdateRating && currentItem.type === 'file') {
+      // Verwende setTimeout, um sicherzustellen, dass der Callback nach dem Rendering aufgerufen wird
+      setTimeout(() => {
+        onUpdateRating(currentItem.name, rating);
+      }, 0);
+    }
   };
 
   const handleTagInput = (id: string, e: KeyboardEvent<HTMLInputElement>) => {

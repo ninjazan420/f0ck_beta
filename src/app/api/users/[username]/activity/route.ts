@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db/mongodb';
 import User from '@/models/User';
 import Comment from '@/models/Comment';
+import Post from '@/models/Post';
 
 export async function GET(
   request: Request,
@@ -16,48 +17,119 @@ export async function GET(
     const resolvedParams = await Promise.resolve(params);
     const username = resolvedParams.username;
 
-    console.log('Searching for user:', username); // Debug-Log
+    console.log('Suche Benutzer:', username);
 
     const user = await User.findOne({ username: username });
     if (!user) {
-      console.log('User not found for username:', username); // Debug-Log
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      console.log('Benutzer nicht gefunden:', username);
+      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
     }
 
-    console.log('Found user:', user._id); // Debug-Log
+    console.log('Benutzer gefunden:', user._id);
 
-    // Hole die letzten 10 genehmigten Kommentare des Benutzers
+    // Kommentare des Benutzers abrufen
     const comments = await Comment.find({ 
       author: user._id,
       status: 'approved'
     })
     .sort({ createdAt: -1 })
-    .limit(10)
-    .populate('post', 'title imageUrl type nsfw');
+    .limit(5)
+    .populate('post', 'title imageUrl thumbnailUrl contentRating');
 
-    console.log('Found comments:', comments.length); // Debug-Log
+    // Posts des Benutzers abrufen
+    const posts = await Post.find({
+      author: user._id
+    })
+    .sort({ createdAt: -1 })
+    .limit(5);
 
-    // Formatiere die Aktivitäten
-    const activities = comments.map(comment => ({
-      id: comment._id,
-      type: 'comment',
-      text: comment.content,
-      date: comment.createdAt,
-      emoji: '💬',
-      post: {
-        id: comment.post._id,
-        title: comment.post.title,
-        imageUrl: comment.post.imageUrl,
-        type: comment.post.type,
-        nsfw: comment.post.nsfw
-      }
-    }));
+    // Liked Posts abrufen (falls im User-Schema gespeichert)
+    const userWithLikes = await User.findById(user._id)
+      .populate({
+        path: 'likes',
+        model: 'Post',
+        select: 'title imageUrl thumbnailUrl contentRating createdAt',
+        options: { sort: { createdAt: -1 }, limit: 5 }
+      });
+
+    // Alle Aktivitäten kombinieren
+    let activities = [];
+
+    // Kommentar-Aktivitäten
+    if (comments && comments.length > 0) {
+      activities = activities.concat(comments.map(comment => {
+        // Stelle sicher, dass wir den Post richtig abbilden
+        let postId = null;
+        if (comment.post) {
+          if (typeof comment.post === 'object') {
+            // Wenn es ein Objekt ist, versuche die numerische ID oder _id zu verwenden
+            postId = comment.post.id || comment.post._id;
+          } else {
+            // Wenn es eine direkte Referenz ist
+            postId = comment.post;
+          }
+        }
+
+        return {
+          id: comment._id.toString(),
+          type: 'comment',
+          text: `Hat einen Kommentar hinterlassen`,
+          date: comment.createdAt,
+          emoji: '💬',
+          post: {
+            id: postId,
+            title: comment.post?.title || 'Unbekannter Post',
+            imageUrl: comment.post?.thumbnailUrl || comment.post?.imageUrl
+          }
+        };
+      }));
+    }
+
+    // Post-Aktivitäten
+    if (posts && posts.length > 0) {
+      activities = activities.concat(posts.map(post => ({
+        id: post._id.toString(),
+        type: 'post',
+        text: `Hat ein Bild hochgeladen`,
+        date: post.createdAt,
+        emoji: '🖼️',
+        post: {
+          // Nutze die numerische ID, wenn verfügbar, sonst die Mongo-ID
+          id: post.id || post._id.toString(),
+          title: post.title,
+          imageUrl: post.thumbnailUrl || post.imageUrl
+        }
+      })));
+    }
+
+    // Like-Aktivitäten
+    if (userWithLikes?.likes && userWithLikes.likes.length > 0) {
+      activities = activities.concat(userWithLikes.likes.map((post: any) => ({
+        id: `like-${post._id}`,
+        type: 'like',
+        text: `Hat ein Bild geliked`,
+        date: post.createdAt,
+        emoji: '❤️',
+        post: {
+          // Nutze die numerische ID, wenn verfügbar, sonst die Mongo-ID
+          id: post.id || post._id.toString(),
+          title: post.title,
+          imageUrl: post.thumbnailUrl || post.imageUrl
+        }
+      })));
+    }
+
+    // Nach Datum sortieren (neueste zuerst)
+    activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    // Auf 10 Aktivitäten begrenzen
+    activities = activities.slice(0, 10);
 
     return NextResponse.json({ activities });
   } catch (error) {
-    console.error('Error fetching user activity:', error);
+    console.error('Fehler beim Abrufen der Benutzeraktivität:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch user activity' },
+      { error: 'Fehler beim Abrufen der Benutzeraktivität' },
       { status: 500 }
     );
   }

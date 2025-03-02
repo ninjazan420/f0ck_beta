@@ -21,12 +21,12 @@ export default function ModerationDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <ModerationStats />
           <QuickActions />
-          <RecentActivity />
+          <CommentModeration />
         </div>
 
-        {/* Kommentarmoderation */}
+        {/* Recent Activity umgezogen in eine vollbreite Sektion */}
         <div className="mt-8">
-          <CommentModeration />
+          <RecentActivity />
         </div>
       </div>
     </div>
