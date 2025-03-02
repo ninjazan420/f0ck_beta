@@ -1,4 +1,4 @@
-# f0ck.org Beta v1.1.1
+# f0ck.org Beta v1.2.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is not yet available.
 
@@ -12,14 +12,16 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v1.1.1](#f0ckorg-beta-v111)
+- [f0ck.org Beta v1.2.0](#f0ckorg-beta-v120)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
+    - [Development Setup](#development-setup)
+    - [Production Setup with Docker](#production-setup-with-docker)
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v1.1.1 (Current)](#beta-v111-current)
+    - [Beta v1.2.0 (Current)](#beta-v120-current)
     - [Older Versions (click to expand)](#older-versions-click-to-expand)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
@@ -67,6 +69,8 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 🚀 Installation
 
+### Development Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/ninjazan420/f0ck_beta.git
@@ -83,9 +87,36 @@ npm run dev
 
 The development server will be available at:
 
+- **URL**: `http://localhost:3000`
+- **API**: `http://localhost:3000/api`
+- **WebSocket**: `ws://localhost:3000` (automatically configured)
+
+### Production Setup with Docker
+
+```bash
+# Clone the repository
+git clone https://github.com/ninjazan420/f0ck_beta.git
+
+# Navigate to project directory
+cd f0ck_beta
+
+# Create .env.production file (see Environment Setup below)
+
+# Build and start Docker containers
+docker compose up -d
+```
+
+The production server will be available at:
+
 - **URL**: `http://localhost:3001`
 - **API**: `http://localhost:3001/api`
 - **WebSocket**: `ws://localhost:3001` (automatically configured)
+
+You can also use the npm script:
+
+```bash
+npm run docker:prod
+```
 
 ### Environment Setup
 
@@ -107,13 +138,29 @@ NODE_ENV=development
 - **Typography**: Geist Font
 - **Architecture**: React Server Components
 - **Real-time**: WebSocket Integration
-- **Deployment**: Vercel Edge Runtime
+- **Deployment**: Docker & Vercel Edge Runtime
 - **Database**: MongoDB Atlas
 - **Media**: GIPHY API Integration
 
 ## 🔥 Latest Updates
 
-### Beta v1.1.1 (Current)
+### Beta v1.2.0 (Current)
+
+- 🐳 Docker Integration
+  - Docker support for easy deployment and environment consistency
+  - Simplified production build with `docker compose`
+  - Persistent uploads folder
+  - Optimized MongoDB Atlas configuration
+- 🛠️ Technical Improvements
+  - Better environment variable management
+  - Optimized file upload system
+  - Improved permissions for uploads
+  - Updated dependencies
+
+### Older Versions (click to expand)
+
+<details>
+<summary>Beta v1.1.1</summary>
 
 - 🖼️ UI/UX Improvements
   - Better metadata management across all pages
@@ -129,8 +176,7 @@ NODE_ENV=development
   - Faster page loads
   - Reduced bundle size
   - Improved image loading
-
-### Older Versions (click to expand)
+</details>
 
 <details>
 <summary>Beta v1.1.0</summary>

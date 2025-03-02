@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb+srv://admin:admin@f0ck.cqe6u.mongodb.net/?retryWrites=true&w=majority
+      - PORT=3001
+    volumes:
+      - ./public/uploads:/app/public/uploads:rw
+    ports:
+      - "3001:3001"  # Macht den Port 3001 nach außen verfügbar
+
+networks:
+  default:
+    driver: bridge

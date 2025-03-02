@@ -1,13 +1,14 @@
 {
   "name": "f0ck_beta",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack -p 3001",
+    "dev": "next dev --turbopack -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint",
-    "prod": "npm run build && npm run start"
+    "prod": "npm run build && npm run start",
+    "docker:prod": "docker compose up -d"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",

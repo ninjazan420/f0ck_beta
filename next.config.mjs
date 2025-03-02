@@ -8,6 +8,7 @@ const nextConfig = {
     MONGODB_URI: process.env.MONGODB_URI,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    PUBLIC_URL: process.env.PUBLIC_URL || 'http://localhost:3001',
   },
   webpack: (config) => {
     config.module.rules.push({
@@ -17,7 +18,7 @@ const nextConfig = {
     return config;
   },
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'beta.f0ck.org'],
     unoptimized: true,
     minimumCacheTTL: 0,
     remotePatterns: [
