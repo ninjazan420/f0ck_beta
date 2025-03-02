@@ -11,8 +11,8 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const jetBrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono' })
 
 export const metadata: Metadata = {
-  title: `Comments | ${siteConfig.name}`,
-  description: "f0ck.org rules & help",
+  title: "Home | " + siteConfig.name,
+  description: "Anonymous Imageboard platform for sharing Memes, Cats, and more",
   icons: siteConfig.icon,
 };
 

@@ -3,7 +3,7 @@ import { Metadata } from "next";
 // Allgemeine Konfiguration
 export const siteConfig = {
   name: "f0ck.org",
-  description: "Catmemes, Shitposts, Girls und mehr",
+  description: "Anonymous Imageboard platform for sharing Memes, Cats, and more",
   url: "https://f0ck.org",
   icon: "/favicon.ico",
 };

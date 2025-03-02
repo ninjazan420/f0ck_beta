@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { getRandomLogo } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { RandomLogo } from "@/components/RandomLogo";
 
 // Client-Komponenten sollten keine metadata exportieren
 
@@ -14,18 +15,16 @@ const PINNED_POST = {
   thumbnail: 'https://picsum.photos/800/400',
   uploader: {
     name: 'Admin',
-    avatar: null
+    avatar: null,
+    role: 'admin'
   },
   createdAt: '2023-12-24T12:00:00Z',
 };
 
 export default function Home() {
-  const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const [stats, setStats] = useState({ activeUsers: 0, newPosts: 0, newComments: 0 });
 
   useEffect(() => {
-    setLogoSrc(getRandomLogo());
-
     async function fetchStats() {
       try {
         const response = await fetch('/api/stats');
@@ -44,24 +43,14 @@ export default function Home() {
       <div className="flex-1 flex flex-col items-center w-full">
         {/* Top Section - Logo and Welcome */}
         <div className="flex flex-col items-center gap-4 pt-12 pb-8">
-          <Link href="/" className="relative w-[411px] h-[84px]">
-            {logoSrc && (
-              <Image
-                src={logoSrc}
-                alt="f0ck.org Logo"
-                fill
-                priority
-                className="object-contain"
-              />
-            )}
-          </Link>
+          <RandomLogo />
 
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-[family-name:var(--font-geist-mono)] text-gray-900 dark:text-gray-400">
-              Catmemes, Shitposts, Girls und mehr
+              Anonymous Imageboard platform for sharing Memes, Cats, and more
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Beta Version 1.0 - Wir bauen etwas Neues.
+              Beta Version 1.1.1 - We build something new...
             </p>
           </div>
         </div>
@@ -86,7 +75,7 @@ export default function Home() {
                   <div className="flex-grow">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{PINNED_POST.uploader.name}</span>
-                      {PINNED_POST.uploader.isPremium && (
+                      {PINNED_POST.uploader.role === 'premium' && (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 border border-purple-500/50">
                           PREMIUM
                         </span>

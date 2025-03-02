@@ -1,4 +1,4 @@
-# f0ck.org Beta v1.1.0
+# f0ck.org Beta v1.1.1
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is not yet available.
 
@@ -12,14 +12,15 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v1.1.0](#f0ckorg-beta-v110)
+- [f0ck.org Beta v1.1.1](#f0ckorg-beta-v111)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v1.1.0 (Current)](#beta-v110-current)
+    - [Beta v1.1.1 (Current)](#beta-v111-current)
+    - [Beta v1.1.0](#beta-v110)
     - [Beta v1.0.7](#beta-v107)
     - [Beta v1.0.6](#beta-v106)
   - [🌐 Links \& Support](#-links--support)
@@ -114,55 +115,78 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v1.1.0 (Current)
+### Beta v1.1.1 (Current)
 
-- 🎨 Upload System!
-  - Anonymous uploads without account requirement
-  - Improved image processing
+- 🖼️ UI/UX Improvements
+  - Better metadata management across all pages
+  - Fixed issues with user role display
+  - Improved responsive design
+  - Enhanced logo functionality
+  - Better dark mode support
+- 🔒 Security Enhancements
+  - Improved role-based access control
   - Better error handling
-  - Progress indicators
-  - File type validation
-  - Automatic image optimization
-- 👤 User System Improvements
-  - Optional account system
-  - Enhanced role badges
-  - Anonymous posting support
-  - Better date formatting
-  - Default avatars for anonymous posts
-- 🖼️ Image Display Enhancements
-  - Improved grid layout
-  - Better image scaling
-  - Enhanced mobile view
-  - Faster loading times
-  - Optimized thumbnails
+  - Enhanced user validation
+- 🚀 Performance Optimizations
+  - Faster page loads
+  - Reduced bundle size
+  - Improved image loading
+
+### Beta v1.1.0
+
+> *Click to see changelog*
+>
+> - 🎨 Upload System!
+>   - Anonymous uploads without account requirement
+>   - Improved image processing
+>   - Better error handling
+>   - Progress indicators
+>   - File type validation
+>   - Automatic image optimization
+> - 👤 User System Improvements
+>   - Optional account system
+>   - Enhanced role badges
+>   - Anonymous posting support
+>   - Better date formatting
+>   - Default avatars for anonymous posts
+> - 🖼️ Image Display Enhancements
+>   - Improved grid layout
+>   - Better image scaling
+>   - Enhanced mobile view
+>   - Faster loading times
+>   - Optimized thumbnails
 
 ### Beta v1.0.7
 
-- 💬 Enhanced Comment System
-  - WebSocket integration for live updates
-  - Automatic spam detection
-  - Role-based moderation system
-  - Report functionality
-  - Activity feed in user profiles
-  - Comment threading improvements
-- 👤 User System Enhancements
-  - Role badges (Admin, Mod, Premium)
-  - Activity tracking
-  - Profile statistics
-- 🔒 Security Updates
-  - Spam protection
-  - Report handling
-  - Moderation tools
+> *Click to see changelog*
+>
+> - 💬 Enhanced Comment System
+>   - WebSocket integration for live updates
+>   - Automatic spam detection
+>   - Role-based moderation system
+>   - Report functionality
+>   - Activity feed in user profiles
+>   - Comment threading improvements
+> - 👤 User System Enhancements
+>   - Role badges (Admin, Mod, Premium)
+>   - Activity tracking
+>   - Profile statistics
+> - 🔒 Security Updates
+>   - Spam protection
+>   - Report handling
+>   - Moderation tools
 
 ### Beta v1.0.6
 
-- 🎨 Enhanced comment system
-  - GIPHY integration with attribution
-  - Improved media display
-  - Premium user badges
-  - Better reply formatting
-- 🚀 Performance optimizations
-- 🎯 UI/UX improvements
+> *Click to see changelog*
+>
+> - 🎨 Enhanced comment system
+>   - GIPHY integration with attribution
+>   - Improved media display
+>   - Premium user badges
+>   - Better reply formatting
+> - 🚀 Performance optimizations
+> - 🎯 UI/UX improvements
 
 ## 🌐 Links & Support
 

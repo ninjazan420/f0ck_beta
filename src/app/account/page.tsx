@@ -1,6 +1,16 @@
 import { AccountCard } from "./components/AccountCard";
 import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
+import { Metadata } from "next";
+import { siteConfig } from "../metadata";
+
+export const metadata: Metadata = {
+  title: `Account | ${siteConfig.name}`,
+  description: "Manage your f0ck.org account",
+  icons: {
+    icon: [{ url: siteConfig.icon, type: "image/x-icon" }],
+  },
+};
 
 export default function Account() {
   return (

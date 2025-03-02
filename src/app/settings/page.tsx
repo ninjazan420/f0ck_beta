@@ -6,7 +6,7 @@ import { siteConfig } from "../metadata";
 
 export const metadata: Metadata = {
   title: `Settings | ${siteConfig.name}`,
-  description: "f0ck.org rules & help",
+  description: "Manage your f0ck.org account settings",
   icons: {
     icon: [{ url: siteConfig.icon, type: "image/x-icon" }],
   },

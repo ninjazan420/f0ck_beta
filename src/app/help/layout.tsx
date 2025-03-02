@@ -1,8 +1,8 @@
 import { Metadata } from '@/types/metadata';
 
 export const metadata: Metadata = {
-  title: "Help - f0ck beta v1",
-  description: "Help and documentation for f0ck beta v1.",
+  title: "Help | f0ck.org",
+  description: "Help center and documentation for f0ck.org",
 };
 
 export default function HelpLayout({

@@ -1,6 +1,15 @@
 import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
+import { Metadata } from "next";
+import { siteConfig } from "../metadata";
 
+export const metadata: Metadata = {
+  title: `Rules & Policies | ${siteConfig.name}`,
+  description: "Community guidelines and content policies for f0ck.org",
+  icons: {
+    icon: [{ url: siteConfig.icon, type: "image/x-icon" }],
+  },
+};
 
 export default function Rules() {
   return (

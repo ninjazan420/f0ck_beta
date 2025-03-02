@@ -5,8 +5,8 @@ import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: `Rules | ${siteConfig.name}`,
-  description: "f0ck.org rules & help",
+  title: `Forgot Password | ${siteConfig.name}`,
+  description: "Reset your f0ck.org account password",
   icons: {
     icon: [{ url: siteConfig.icon, type: "image/x-icon" }],
   },
