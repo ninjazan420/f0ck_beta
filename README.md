@@ -1,4 +1,4 @@
-# f0ck.org Beta v1.2.2
+# f0ck.org Beta v1.3.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still broken.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v1.2.2](#f0ckorg-beta-v122)
+- [f0ck.org Beta v1.3.0](#f0ckorg-beta-v130)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,7 +21,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v1.2.2 (Current)](#beta-v122-current)
+    - [Beta v1.3.0 (Current)](#beta-v130-current)
     - [Older Versions (click to expand)](#older-versions-click-to-expand)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
@@ -145,7 +145,20 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v1.2.2 (Current)
+### Beta v1.3.0 (Current)
+
+- 💬 Comment System Enhancement
+  - Live comment functionality activated
+  - Comment moderation system enabled
+  - Reply threading with nested responses
+  - Editing and deleting capabilities for users
+  - GIF support in comments with GIPHY integration
+  - Anonymous commenting option
+
+### Older Versions (click to expand)
+
+<details>
+<summary>Beta v1.2.2</summary>
 
 - 👤 User Profile Improvements
   - Fixed user bio display in posts
@@ -156,8 +169,7 @@ NODE_ENV=development
   - Streamlined statistics display on homepage
   - Removed redundant stats box in post views
   - Improved overall visual consistency
-
-### Older Versions (click to expand)
+</details>
 
 <details>
 <summary>Beta v1.2.0</summary>

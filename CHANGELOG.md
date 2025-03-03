@@ -2,6 +2,16 @@
 
 Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 
+## [1.3.0] - 2024-03-15
+
+### 💬 Kommentarsystem-Erweiterung
+- Live-Kommentarfunktion aktiviert
+- Kommentar-Moderationssystem freigeschaltet
+- Antwort-Threading mit verschachtelten Reaktionen
+- Bearbeiten und Löschen von Kommentaren für Benutzer
+- GIF-Unterstützung in Kommentaren mit GIPHY-Integration
+- Option für anonymes Kommentieren
+
 ## [1.2.2] - 2024-03-02
 
 ### 👤 Verbesserungen der Benutzerprofile
