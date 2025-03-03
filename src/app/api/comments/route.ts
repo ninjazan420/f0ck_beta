@@ -81,12 +81,37 @@ export async function GET(req: Request) {
         .skip((page - 1) * limit)
         .limit(limit)
         .populate('author', 'username avatar')
-        .populate('replyTo'),
+        .populate({
+          path: 'post',
+          select: '_id id title numericId'
+        })
+        .populate({
+          path: 'replyTo',
+          populate: {
+            path: 'author',
+            select: 'username avatar'
+          }
+        }),
       Comment.countDocuments(query)
     ]);
 
+    // Make sure we provide numericId for posts if available
+    const processedComments = comments.map(comment => {
+      const processedComment = comment.toObject();
+      
+      // If the post has a numericId, make sure it's included
+      if (processedComment.post && processedComment.post._id) {
+        // If post has an id field but not a numericId field, use that as numericId
+        if (!processedComment.post.numericId && processedComment.post.id) {
+          processedComment.post.numericId = processedComment.post.id;
+        }
+      }
+      
+      return processedComment;
+    });
+
     return NextResponse.json({
-      comments,
+      comments: processedComments,
       pagination: {
         total,
         pages: Math.ceil(total / limit),

@@ -54,11 +54,36 @@ export function PostComments({ postId }: PostCommentsProps) {
   const [editCommentId, setEditCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState('');
   const [showEditPreview, setShowEditPreview] = useState(false);
+  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
 
   // Aktualisiere den isAnonymous-Status, wenn sich der Session-Status ändert
   useEffect(() => {
     setIsAnonymous(!session?.user);
   }, [session]);
+
+  // Get the hash fragment from URL on page load and set it as the highlighted comment
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#comment-')) {
+        const commentId = hash.replace('#comment-', '');
+        setHighlightedCommentId(commentId);
+        
+        // Scroll to the element after a short delay to ensure it's rendered
+        setTimeout(() => {
+          const element = document.getElementById(`comment-${commentId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 500);
+        
+        // Clear the highlight after 3 seconds
+        setTimeout(() => {
+          setHighlightedCommentId(null);
+        }, 4000);
+      }
+    }
+  }, [comments]); // Re-run when comments change
 
   // Hilfsfunktionen aus der Comment-Komponente
   const getUserUrl = (username: string) => `/user/${username.toLowerCase()}`;
@@ -615,7 +640,15 @@ export function PostComments({ postId }: PostCommentsProps) {
 
       <div className="space-y-4">
         {comments.map((comment, index) => (
-          <div key={comment.id} id={`comment-${comment.id}`} className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl p-4">
+          <div 
+            key={comment.id} 
+            id={`comment-${comment.id}`} 
+            className={`bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl p-4 transition-all duration-500 ${
+              highlightedCommentId === comment.id 
+                ? 'ring-4 ring-purple-500/50 dark:ring-purple-500/30 bg-purple-50/50 dark:bg-purple-900/20' 
+                : ''
+            }`}
+          >
             {/* Reply to section */}
             {comment.replyTo && (
               <div className="mb-3 pl-3 py-2 border-l-2 border-purple-300 dark:border-purple-700 bg-purple-50/30 dark:bg-purple-900/10 rounded">

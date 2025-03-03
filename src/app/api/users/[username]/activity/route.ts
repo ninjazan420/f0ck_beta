@@ -73,12 +73,13 @@ export async function GET(
         return {
           id: comment._id.toString(),
           type: 'comment',
-          text: `Hat einen Kommentar hinterlassen`,
+          text: `Left a comment`,
+          content: comment.content,
           date: comment.createdAt,
           emoji: '💬',
           post: {
             id: postId,
-            title: comment.post?.title || 'Unbekannter Post',
+            title: comment.post?.title || 'Unknown Post',
             imageUrl: comment.post?.thumbnailUrl || comment.post?.imageUrl
           }
         };
@@ -90,7 +91,7 @@ export async function GET(
       activities = activities.concat(posts.map(post => ({
         id: post._id.toString(),
         type: 'post',
-        text: `Hat ein Bild hochgeladen`,
+        text: `Uploaded an image`,
         date: post.createdAt,
         emoji: '🖼️',
         post: {
@@ -107,7 +108,7 @@ export async function GET(
       activities = activities.concat(userWithLikes.likes.map((post: any) => ({
         id: `like-${post._id}`,
         type: 'like',
-        text: `Hat ein Bild geliked`,
+        text: `Liked an image`,
         date: post.createdAt,
         emoji: '❤️',
         post: {

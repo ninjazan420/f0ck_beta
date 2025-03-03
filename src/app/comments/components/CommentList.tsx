@@ -28,6 +28,7 @@ interface CommentData {
     imageUrl: string; // Stellen Sie sicher, dass dies immer gefüllt ist
     type: 'image' | 'video' | 'gif';
     nsfw?: boolean;
+    numericId: string;
   };
   likes: number;
   createdAt: string;
@@ -63,7 +64,8 @@ const MOCK_COMMENTS: CommentData[] = Array.from({ length: 20 }, (_, i) => ({
     title: `Amazing Artwork ${Math.floor(i / 4) + 1}`,
     imageUrl: `https://picsum.photos/seed/${i}/400/300`, // Deterministisches Bild mit seed
     type: 'image',
-    nsfw: i % 3 === 0
+    nsfw: i % 3 === 0,
+    numericId: `${Math.floor(i / 4)}`
   },
   likes: i * 5, // Deterministische Like-Anzahl
   createdAt: new Date(2024, 0, 1, 0, i * 30).toISOString(), // Deterministische Dates
@@ -503,6 +505,35 @@ export function CommentList({
     }
   };
 
+  // Handle anchor links to comments
+  useEffect(() => {
+    if (typeof window !== 'undefined' && comments.length > 0) {
+      // Check if there's a hash in the URL
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#comment-')) {
+        const commentId = hash.substring('#comment-'.length);
+        
+        // Check if the comment is loaded
+        const targetComment = comments.find(comment => 
+          comment.id === commentId || comment._id === commentId);
+        
+        if (targetComment) {
+          // Scroll to the comment after a brief delay
+          setTimeout(() => {
+            const element = document.getElementById(`comment-${commentId}`);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 500);
+        } else if (hasMore) {
+          // If we haven't found it but have more comments to load, load the next page
+          setPage(prevPage => prevPage + 1);
+          fetchComments(page + 1);
+        }
+      }
+    }
+  }, [comments, hasMore]);
+
   if (error) {
     return (
       <div className="p-4 text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg">
@@ -513,262 +544,12 @@ export function CommentList({
 
   return (
     <div className="space-y-4">
-      {/* Neue Kommentar-Box */}
-      {!showModActions && (
-        <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
-          <div className="flex gap-2 mb-3 justify-between">
-            <button
-              onClick={() => setShowPreview(!showPreview)}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                showPreview 
-                  ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' 
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}
-            >
-              {showPreview ? 'Edit' : 'Preview'}
-            </button>
-            
-            <label className="inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isAnonymous}
-                onChange={(e) => setIsAnonymous(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-              <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                Post Anonymously
-              </span>
-            </label>
-          </div>
-          
-          {showPreview ? (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 min-h-[100px] mb-3">
-              {renderCommentContent(newComment)}
-            </div>
-          ) : (
-            <textarea
-              value={newComment}
-              onChange={(e) => {
-                setNewComment(e.target.value);
-                if (e.target.value === '' && selectedGif) {
-                  setSelectedGif(null);
-                }
-              }}
-              placeholder="Write a comment..."
-              className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
-              rows={5}
-            />
-          )}
-          
-          {selectedGif && (
-            <div className="mt-2 p-2 border border-gray-200 dark:border-gray-700 bg-white/20 dark:bg-gray-800/20 rounded-lg">
-              <div className="relative">
-                <button 
-                  onClick={() => setSelectedGif(null)}
-                  className="absolute top-2 right-2 bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-black/90"
-                  title="Remove GIF"
-                >
-                  ×
-                </button>
-                <div className="my-2">
-                  <Image
-                    src={selectedGif.url}
-                    alt="Selected GIF"
-                    width={400}
-                    height={300}
-                    className=""
-                    unoptimized
-                  />
-                  {selectedGif.source === 'giphy' && (
-                    <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                      Powered by GIPHY
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="text-sm text-gray-500 mt-1 text-center">
-                Dieses GIF wird mit Ihrem Kommentar gesendet.
-              </div>
-            </div>
-          )}
-          
-          <div className="mt-3 flex justify-between items-center">
-            <div className="text-xs text-gray-500">
-              {newComment.length}/500 characters
-            </div>
-            
-            <div className="flex gap-2">
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowGifSelector(!showGifSelector);
-                    setShowEmojiPicker(false);
-                  }}
-                  className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  title="Add GIF"
-                >
-                  🎨 GIF
-                </button>
-                {showGifSelector && (
-                  <GifSelector
-                    onSelect={(gifData) => handleGifSelect(gifData)}
-                    onClose={() => setShowGifSelector(false)}
-                  />
-                )}
-              </div>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowEmojiPicker(!showEmojiPicker);
-                    setShowGifSelector(false);
-                  }}
-                  className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  title="Add emoji"
-                >
-                  😊 Emoji
-                </button>
-                {showEmojiPicker && (
-                  <EmojiPicker
-                    onSelect={(emoji) => handleEmojiSelect(emoji)}
-                    onClose={() => setShowEmojiPicker(false)}
-                  />
-                )}
-              </div>
-              <button
-                onClick={() => setNewComment('')}
-                className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmitComment}
-                disabled={(!newComment.trim() && !selectedGif) || loading}
-                className="px-4 py-2 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Loading...
-                  </span>
-                ) : (
-                  isAnonymous ? 'Post Anonymously' : 'Post Comment'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Antwortsektion (wenn aktiv) */}
-      {replyToId && (
-        <div className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-4">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Reply to comment
-            </h3>
-            <button 
-              onClick={() => setReplyToId(null)}
-              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-            >
-              <span className="sr-only">Close</span>
-              ✕
-            </button>
-          </div>
-          
-          <textarea
-            name="reply"
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            placeholder="Write your reply..."
-            className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
-            rows={3}
-          />
-          
-          <div className="mt-3 flex justify-between items-center">
-            <div className="text-xs text-gray-500">
-              {replyText.length}/500 characters
-            </div>
-            
-            <div className="flex gap-2">
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowReplyGifSelector(!showReplyGifSelector);
-                    setShowReplyEmojiPicker(false);
-                  }}
-                  className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  title="Add GIF"
-                >
-                  🎨 GIF
-                </button>
-                {showReplyGifSelector && (
-                  <GifSelector
-                    onSelect={(url) => handleGifSelect(url, true)}
-                    onClose={() => setShowReplyGifSelector(false)}
-                  />
-                )}
-              </div>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowReplyEmojiPicker(!showReplyEmojiPicker);
-                    setShowReplyGifSelector(false);
-                  }}
-                  className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  title="Add emoji"
-                >
-                  😊 Emoji
-                </button>
-                {showReplyEmojiPicker && (
-                  <EmojiPicker
-                    onSelect={(emoji) => handleEmojiSelect(emoji, true)}
-                    onClose={() => setShowReplyEmojiPicker(false)}
-                  />
-                )}
-              </div>
-              <button
-                onClick={() => {
-                  setReplyText('');
-                  setReplyToId(null);
-                }}
-                className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleReply(replyToId!, replyText)}
-                disabled={!replyText.trim() || loading}
-                className="px-4 py-2 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Loading...
-                  </span>
-                ) : 'Reply'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Kommentarliste */}
+      {/* Liste der Kommentare */}
       <div className="space-y-4">
         {comments.map((comment, index) => {
           const uniqueId = `${comment.id || 'comment'}-${index}`;
           
-          // Normalisiere das Kommentar-Objekt für die Comment-Komponente
+          // Erweiterte Normalisierung des Kommentar-Objekts für die Comment-Komponente
           const commentData = {
             id: comment.id || uniqueId, // Sicherstellen, dass id immer gesetzt ist
             content: comment.content || comment.text || '', // Unterstützung für beide Feldnamen
@@ -777,9 +558,24 @@ export function CommentList({
               username: comment.user?.name || 'Anonymous',
               avatar: comment.user?.avatar || null
             },
-            post: comment.post || { id: postId || '', title: '' },
+            post: {
+              // Stellen Sie sicher, dass post.id korrekt ist
+              id: comment.post?._id || comment.post?.id || 
+                  (typeof comment.post === 'string' ? comment.post : '') || 
+                  postId || '',
+              title: comment.post?.title || '',
+              // Numerische ID des Posts für die URL
+              numericId: comment.post?.numericId || comment.post?.id || ''
+            },
             status: comment.status || 'approved',
-            createdAt: comment.createdAt || new Date().toISOString()
+            createdAt: comment.createdAt || new Date().toISOString(),
+            replyTo: comment.replyTo ? {
+              id: comment.replyTo._id || comment.replyTo.id || '',
+              author: {
+                username: comment.replyTo.author?.username || comment.replyTo.user?.name || 'Anonymous'
+              },
+              content: comment.replyTo.content || comment.replyTo.text || ''
+            } : undefined
           };
           
           return (

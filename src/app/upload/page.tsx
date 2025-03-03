@@ -53,7 +53,7 @@ export default function UploadPage() {
 
   const handleUpload = async () => {
     if (files.length === 0) {
-      setError('Bitte wählen Sie mindestens eine Datei aus');
+      setError('Please choose a file to upload.');
       return;
     }
 

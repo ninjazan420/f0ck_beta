@@ -11,6 +11,7 @@ interface ActivityItem {
   text: string;
   date: string;
   emoji: string;
+  content?: string;
   post: {
     id: string;
     title: string;
@@ -456,6 +457,13 @@ export function AccountCard() {
                     {new Date(activity.date).toLocaleDateString()}
                   </span>
                 </div>
+                {activity.content && activity.type === 'comment' && (
+                  <div className="text-sm text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-900/30 p-2 rounded border border-gray-200 dark:border-gray-700">
+                    {activity.content.length > 100 
+                      ? `${activity.content.substring(0, 100)}...` 
+                      : activity.content}
+                  </div>
+                )}
                 <div className="text-xs text-gray-500">
                   on{" "}
                   <Link

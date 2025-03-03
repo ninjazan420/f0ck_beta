@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, ReactElement } from 'react';
+import { useState, ReactElement, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
@@ -21,6 +21,7 @@ interface CommentProps {
     post: {
       id: string;
       title: string;
+      numericId?: string;
     };
     status: 'pending' | 'approved' | 'rejected';
     replyTo?: {
@@ -57,6 +58,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
   const [showEditPreview, setShowEditPreview] = useState(false);
   const [selectedGif, setSelectedGif] = useState<{ url: string, source: string } | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [isHighlighted, setIsHighlighted] = useState(false);
 
   // Sicherstellen, dass data.author immer definiert ist
   const author = data.author || { id: '', username: 'Anonymous', avatar: null };
@@ -64,6 +66,30 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
   const formattedDate = new Date(data.createdAt).toLocaleString();
 
   const getUserUrl = (username: string) => `/user/${username.toLowerCase()}`;
+
+  // Implement highlight effect for anchor links
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash === `#comment-${data.id}`) {
+        // Highlight the comment
+        setIsHighlighted(true);
+        
+        // Scroll to the comment after a brief delay
+        setTimeout(() => {
+          const element = document.getElementById(`comment-${data.id}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 500);
+        
+        // Remove highlight after 3 seconds
+        setTimeout(() => {
+          setIsHighlighted(false);
+        }, 4000);
+      }
+    }
+  }, [data.id]);
 
   // Bei Aktivierung des Edit-Modus den aktuellen Text übernehmen
   const handleStartEdit = () => {
@@ -314,18 +340,23 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
   return (
     <div 
       id={`comment-${data.id}`}
-      className={`comment-card p-4 rounded-lg ${
+      className={`comment-card p-4 rounded-lg transition-all duration-500 ${
         isRejected
           ? 'bg-red-50 border border-red-200 dark:bg-red-950/10 dark:border-red-900/30'
           : isPending
             ? 'bg-yellow-50 border border-yellow-200 dark:bg-yellow-950/10 dark:border-yellow-900/30'
-            : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800'
+            : isHighlighted
+              ? 'bg-purple-50/50 dark:bg-purple-900/20 border border-gray-200 dark:border-gray-800 ring-4 ring-purple-500/50 dark:ring-purple-500/30'
+              : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800'
       }`}
     >
       {/* Reply to section */}
       {data.replyTo && (
         <div className="mb-2 pl-2 border-l-2 border-gray-300 dark:border-gray-600">
-          <Link href={`#comment-${data.replyTo.id}`} className="text-sm text-gray-600 dark:text-gray-400">
+          <Link href={data.post?.id ? 
+            (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.replyTo.id}` : `/post/${data.post.id}#comment-${data.replyTo.id}`)
+            : `#comment-${data.replyTo.id}`} 
+            className="text-sm text-gray-600 dark:text-gray-400">
             <span className="font-medium">{data.replyTo.author?.username || 'Anonymous'}</span>: 
             <span className="inline-block">
               {data.replyTo.content.length > 100 
@@ -354,9 +385,12 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
               {author.username}
             </Link>
             <Link 
-              href={`#comment-${data.id}`} 
+              href={data.post?.id ? 
+                // Versuche zuerst die numericId zu verwenden, wenn vorhanden, sonst die normale ID
+                (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.id}` : `/post/${data.post.id}#comment-${data.id}`) 
+                : `#comment-${data.id}`} 
               className="text-sm text-gray-500 hover:text-purple-500"
-              title="Permalink to this comment"
+              title="Link to the post containing this comment"
             >
               {formattedDate}
             </Link>

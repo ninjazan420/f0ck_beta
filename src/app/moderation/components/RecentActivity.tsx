@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -20,7 +20,7 @@ interface Activity {
     username?: string;
     content?: string;
     title?: string;
-    numericId?: number;
+    numericId?: number | string;
     imageUrl?: string;
   } | null;
 }
@@ -58,24 +58,23 @@ export function RecentActivity() {
 
   const getActivityIcon = (action: string) => {
     switch (action) {
+      case 'comment': return '💬';
       case 'delete': return '🗑️';
-      case 'warn': return '⚠️';
-      case 'ban': return '🚫';
-      case 'unban': return '✅';
-      case 'approve': return '👍';
-      case 'reject': return '👎';
+      case 'approve': return '✅';
+      case 'reject': return '❌';
       case 'upload': return '📤';
-      default: return '📋';
+      case 'report': return '🚩';
+      default: return '📝';
     }
   };
 
   const getTargetName = (activity: Activity) => {
-    if (!activity.target) return 'Unbekanntes Ziel';
+    if (!activity.target) return 'Unknown target';
     
     switch (activity.targetType) {
-      case 'user': return activity.target.username || `Benutzer #${activity.target.id}`;
-      case 'comment': return `Kommentar ${activity.target.id.substring(0, 6)}...`;
-      case 'post': return activity.target.title || `Beitrag #${activity.target.numericId || activity.target.id}`;
+      case 'user': return activity.target.username || `User #${activity.target.id}`;
+      case 'comment': return `Comment ${activity.target.id.substring(0, 6)}...`;
+      case 'post': return activity.target.title || `Post #${activity.target.numericId || activity.target.id}`;
       default: return `${activity.targetType} #${activity.target.id}`;
     }
   };
@@ -90,17 +89,30 @@ export function RecentActivity() {
         const postId = activity.target.numericId || activity.target.id;
         return `/post/${postId}`;
       case 'comment': 
-        if (activity.target.postId) {
-          return `/post/${activity.target.postId}#comment-${activity.target.id}`;
+        if (activity.target.numericId) {
+          const numericId = typeof activity.target.numericId === 'number' ? 
+            activity.target.numericId : 
+            activity.target.numericId;
+          return `/post/${numericId}#comment-${activity.target.id}`;
         }
-        return null;
+        else if (activity.target.content) {
+          try {
+            const contentData = JSON.parse(activity.target.content);
+            if (contentData.postId) {
+              return `/post/${contentData.postId}#comment-${activity.target.id}`;
+            }
+          } catch (e) {
+            // Ignore JSON parsing errors
+          }
+        }
+        return `/comments#comment-${activity.target.id}`;
       default: 
         return null;
     }
   };
 
   const formatTime = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: de });
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: enUS });
   };
 
   return (
@@ -119,7 +131,7 @@ export function RecentActivity() {
           </div>
         ) : activities.length === 0 ? (
           <div className="p-3 rounded bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800/30">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Keine Aktivitäten verfügbar</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">No activities available</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -157,12 +169,30 @@ export function RecentActivity() {
                           )}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {activity.action === 'upload' ? 'Von' : 'Durch'} {activity.moderator} • {formatTime(activity.createdAt)}
+                          {activity.action === 'upload' ? 'By' : 'By'} {activity.moderator} • {formatTime(activity.createdAt)}
                         </p>
                         {activity.action !== 'upload' && (
                           <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-1">
-                            Grund: {activity.reason}
+                            Reason: {activity.reason}
                           </p>
+                        )}
+                        
+                        {/* Display comment content if available */}
+                        {activity.targetType === 'comment' && activity.target?.content && (
+                          <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800/80 rounded text-xs text-gray-700 dark:text-gray-300">
+                            <p className="line-clamp-2">
+                              {activity.target.content.startsWith('{') && activity.target.content.endsWith('}')
+                                ? (() => {
+                                    try {
+                                      const parsed = JSON.parse(activity.target.content);
+                                      return parsed.text || parsed.content || activity.target.content;
+                                    } catch (e) {
+                                      return activity.target.content;
+                                    }
+                                  })()
+                                : activity.target.content}
+                            </p>
+                          </div>
                         )}
                       </div>
                     </div>
