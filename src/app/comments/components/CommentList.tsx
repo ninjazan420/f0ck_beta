@@ -351,23 +351,11 @@ export function CommentList({
         })
       });
 
-      if (!response.ok) throw new Error('Failed to report comment');
+      if (!response.ok) {
+        throw new Error('Failed to report comment');
+      }
       
-      // Optional: Aktualisiere den Kommentar in der UI
-      setComments(prev => 
-        prev.map(comment => 
-          comment.id === commentId 
-            ? { 
-                ...comment, 
-                reports: [...(comment.reports || []), {
-                  user: session?.user?.id,
-                  reason,
-                  createdAt: new Date().toISOString()
-                }]
-              }
-            : comment
-        )
-      );
+      return Promise.resolve();
     } catch (error) {
       console.error('Error reporting comment:', error);
       throw error;
@@ -398,82 +386,69 @@ export function CommentList({
       
       // Entferne den Kommentar aus der UI
       setComments(prev => prev.filter(comment => comment.id !== commentId));
+      
       return Promise.resolve();
     } catch (error) {
       console.error('Error deleting comment:', error);
-      return Promise.reject(error);
+      throw error;
     }
   };
 
-  const handleReply = async (commentId: string, content: string) => {
+  const handleModDelete = async (commentId: string) => {
     if (!commentId) {
-      console.error('Cannot reply to comment with undefined ID');
-      return Promise.reject(new Error('Comment ID is required for reply'));
+      console.error('Cannot delete comment with undefined ID');
+      return Promise.reject(new Error('Comment ID is required for moderation delete'));
     }
     
     try {
-      console.log(`Replying to comment with ID: ${commentId}`);
+      console.log(`Moderator deleting comment with ID: ${commentId}`);
       
+      const response = await fetch(`/api/comments/${commentId}/modDelete`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to delete comment as moderator: ${errorText}`);
+        throw new Error('Failed to delete comment as moderator');
+      }
+      
+      // Entferne den Kommentar aus der UI
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+    } catch (error) {
+      console.error('Error deleting comment as moderator:', error);
+      throw error;
+    }
+  };
+
+  const handleReply = async (parentId: string, content: string): Promise<any> => {
+    if (!content.trim()) {
+      return Promise.reject(new Error('Reply content cannot be empty'));
+    }
+    
+    try {
       const response = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content,
           postId,
-          replyTo: commentId
+          parentId,
+          isAnonymous
         })
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Failed to post reply: ${errorText}`);
         throw new Error('Failed to post reply');
       }
-
-      const newComment = await response.json();
       
-      // Sicherstellen, dass der neue Kommentar eine ID hat
-      const processedComment = {
-        ...newComment,
-        id: newComment._id || newComment.id // Verwende _id, wenn id nicht definiert ist
-      };
+      const savedReply = await response.json();
       
       // Füge den neuen Kommentar am Anfang der Liste hinzu
-      setComments(prev => [processedComment, ...prev]);
+      setComments(prev => [savedReply, ...prev]);
     } catch (error) {
       console.error('Error posting reply:', error);
-      throw error;
-    }
-  };
-
-  const handleModAction = async (commentId: string, action: 'approve' | 'reject') => {
-    if (!commentId) {
-      console.error('Cannot moderate comment with undefined ID');
-      return Promise.reject(new Error('Comment ID is required for moderation'));
-    }
-    
-    try {
-      console.log(`Moderating comment with ID: ${commentId}, action: ${action}`);
-      
-      const response = await fetch('/api/comments', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          commentId,
-          action
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Failed to moderate comment: ${errorText}`);
-        throw new Error('Failed to moderate comment');
-      }
-      
-      // Aktualisiere den Kommentar in der UI
-      setComments(prev => prev.filter(comment => comment.id !== commentId));
-    } catch (error) {
-      console.error('Error moderating comment:', error);
       throw error;
     }
   };
@@ -791,12 +766,10 @@ export function CommentList({
       {/* Kommentarliste */}
       <div className="space-y-4">
         {comments.map((comment, index) => {
-          // Fallback-ID für Kommentare ohne ID verwenden
-          const uniqueId = comment.id || `comment-fallback-${index}`;
+          const uniqueId = `${comment.id || 'comment'}-${index}`;
           
-          // Sicherstellen, dass alle erforderlichen Felder vorhanden sind
+          // Normalisiere das Kommentar-Objekt für die Comment-Komponente
           const commentData = {
-            ...comment,
             id: comment.id || uniqueId, // Sicherstellen, dass id immer gesetzt ist
             content: comment.content || comment.text || '', // Unterstützung für beide Feldnamen
             author: comment.author || {
@@ -816,7 +789,7 @@ export function CommentList({
               onReport={handleReport}
               onDelete={handleDelete}
               onReply={handleReply}
-              onModerate={showModActions ? handleModAction : undefined}
+              onModDelete={showModActions ? handleModDelete : undefined}
             />
           );
         })}

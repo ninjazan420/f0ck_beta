@@ -40,10 +40,10 @@ interface CommentProps {
   onReport?: (id: string, reason: string) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
   onReply?: (id: string, content: string) => Promise<void>;
-  onModerate?: (id: string, action: 'approve' | 'reject') => Promise<void>;
+  onModDelete?: (id: string) => Promise<void>;
 }
 
-export function Comment({ data, onReport, onDelete, onReply, onModerate }: CommentProps) {
+export function Comment({ data, onReport, onDelete, onReply, onModDelete }: CommentProps) {
   const { data: session } = useSession();
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState('');
@@ -463,22 +463,15 @@ export function Comment({ data, onReport, onDelete, onReply, onModerate }: Comme
                       Edit
                     </button>
                   )}
-                  {/* Moderationsaktionen */}
-                  {onModerate && canModerate && (
+                  {/* Moderatorlöschknopf */}
+                  {onModDelete && canModerate && (
                     <div className="flex items-center gap-2 ml-4">
                       <button
-                        onClick={() => onModerate(data.id, 'approve')}
-                        className="px-3 py-1 text-sm rounded-lg bg-green-500/20 text-green-700 dark:text-green-300 border border-green-500/30 hover:bg-green-500/30"
-                        disabled={isSubmitting}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => onModerate(data.id, 'reject')}
+                        onClick={() => onModDelete(data.id)}
                         className="px-3 py-1 text-sm rounded-lg bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30 hover:bg-red-500/30"
                         disabled={isSubmitting}
                       >
-                        Reject
+                        Delete (Mod)
                       </button>
                     </div>
                   )}

@@ -1,10 +1,8 @@
 'use client';
 
 import { RandomLogo } from "@/components/RandomLogo";
-import { ModerationStats } from './ModerationStats';
-import { QuickActions } from './QuickActions';
-import { RecentActivity } from './RecentActivity';
 import { CommentModeration } from './CommentModeration';
+import { Footer } from "@/components/Footer";
 
 export default function ModerationDashboard() {
   return (
@@ -18,17 +16,28 @@ export default function ModerationDashboard() {
           Moderation Dashboard
         </h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <ModerationStats />
-          <QuickActions />
-          <CommentModeration />
-        </div>
-
-        {/* Recent Activity umgezogen in eine vollbreite Sektion */}
-        <div className="mt-8">
-          <RecentActivity />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700/30 p-6">
+            <h2 className="text-xl font-[family-name:var(--font-geist-mono)] mb-4 text-center py-2 rounded-lg bg-green-500/20 text-green-700 dark:text-green-300 border border-green-500/30">
+              Comments
+            </h2>
+            <div className="space-y-4">
+              <CommentModeration />
+            </div>
+          </div>
+          
+          <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700/30 p-6">
+            <h2 className="text-xl font-[family-name:var(--font-geist-mono)] mb-4 text-center py-2 rounded-lg bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30">
+              Reported Content
+            </h2>
+            <div className="p-4 bg-gray-100 dark:bg-gray-900 rounded-lg">
+              <p className="text-sm text-gray-600 dark:text-gray-400">No reported content available</p>
+            </div>
+          </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 } 
