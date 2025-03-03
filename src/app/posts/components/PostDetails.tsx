@@ -336,7 +336,11 @@ export function PostDetails({ postId }: { postId: string }) {
           {/* Comments Section */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Comments</h2>
-            <CommentList postId={postId} />
+            <CommentList 
+              postId={postId} 
+              status="approved" 
+              limit={20} 
+            />
           </div>
         </div>
 

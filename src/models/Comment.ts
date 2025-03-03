@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 export interface IComment extends mongoose.Document {
   content: string;
-  author: mongoose.Types.ObjectId;
+  author?: mongoose.Types.ObjectId;
   post: mongoose.Types.ObjectId;
   replyTo?: mongoose.Types.ObjectId;
   status: 'pending' | 'approved' | 'rejected';
@@ -24,7 +24,7 @@ const commentSchema = new mongoose.Schema({
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false,
     index: true
   },
   post: {

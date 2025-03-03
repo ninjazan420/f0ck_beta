@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { GifSelector } from '@/components/GifSelector';
+import { useSession } from 'next-auth/react';
 
 const DEFAULT_AVATAR = '/images/defaultavatar.png';
 
@@ -15,6 +16,7 @@ interface Comment {
     avatar: string | null;
     isAnonymous?: boolean;
     style?: { type: string; color?: string; gradient?: string[]; animate?: boolean };
+    isCurrentUser: boolean;
   };
   text: string;
   likes: number;
@@ -34,17 +36,29 @@ interface PostCommentsProps {
 }
 
 export function PostComments({ postId }: PostCommentsProps) {
+  const { data: session, status } = useSession();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [replyToId, setReplyToId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [newComment, setNewComment] = useState('');
   const [showPreview, setShowPreview] = useState(false);
-  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(!session?.user);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showGifSelector, setShowGifSelector] = useState(false);
   const [showReplyEmojiPicker, setShowReplyEmojiPicker] = useState(false);
   const [showReplyGifSelector, setShowReplyGifSelector] = useState(false);
+  const [showReplyPreview, setShowReplyPreview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [editCommentId, setEditCommentId] = useState<string | null>(null);
+  const [editCommentText, setEditCommentText] = useState('');
+  const [showEditPreview, setShowEditPreview] = useState(false);
+
+  // Aktualisiere den isAnonymous-Status, wenn sich der Session-Status ändert
+  useEffect(() => {
+    setIsAnonymous(!session?.user);
+  }, [session]);
 
   // Hilfsfunktionen aus der Comment-Komponente
   const getUserUrl = (username: string) => `/user/${username.toLowerCase()}`;
@@ -78,66 +92,223 @@ export function PostComments({ postId }: PostCommentsProps) {
     }
   };
 
-  const handleReply = (commentId: string) => {
+  const handleReply = async (commentId: string) => {
     if (!replyText.trim()) return;
+    setIsSubmitting(true);
     
-    // Mock: Füge die Antwort als neuen Kommentar hinzu
-    const mockReply: Comment = {
-      id: `comment-${Date.now()}`,
-      user: {
-        id: 'current-user',
-        name: 'CurrentUser',
-        avatar: null,
-        style: {
-          type: 'gradient',
-          gradient: ['purple-400', 'pink-600'],
-          animate: true
-        }
-      },
-      text: replyText,
-      likes: 0,
-      createdAt: new Date().toISOString(),
-      replyTo: {
-        id: commentId,
-        user: {
-          name: comments.find(c => c.id === commentId)?.user.name || '',
-          isAnonymous: comments.find(c => c.id === commentId)?.user.isAnonymous
-        },
-        preview: comments.find(c => c.id === commentId)?.text.substring(0, 100) || ''
+    try {
+      // Finde den Originalkommentar
+      const originalComment = comments.find(c => c.id === commentId);
+      if (!originalComment) {
+        throw new Error('Original comment not found');
       }
-    };
-
-    setComments([mockReply, ...comments]);
-    setReplyText('');
-    setReplyToId(null);
+      
+      // Stelle sicher, dass eingeloggte Benutzer nicht unbeabsichtigt als anonym markiert werden
+      const effectiveIsAnonymous = !session?.user ? true : isAnonymous;
+      
+      console.log('Submitting reply:', {
+        content: replyText,
+        postId,
+        replyTo: commentId,
+        isAnonymous: effectiveIsAnonymous,
+      });
+      
+      // API-Aufruf zum Speichern des Kommentars
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: replyText,
+          postId,
+          replyTo: commentId,
+          isAnonymous: effectiveIsAnonymous,
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to post reply: ${error}`);
+      }
+      
+      // Antwort wurde erfolgreich gespeichert
+      setReplyText('');
+      setReplyToId(null);
+      
+      // Aktualisiere die Kommentarliste
+      console.log('Reply saved successfully, refreshing comments');
+      setRefreshKey(prev => prev + 1);
+      
+    } catch (error) {
+      console.error('Error posting reply:', error);
+      alert(`Failed to post reply: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleSubmitComment = () => {
-    if (!newComment.trim()) return;
-    
-    // Hier würde die API-Logik zum Speichern implementiert
-    console.log(`New comment for post ${postId}: ${newComment}`);
-    
-    // Mock: Füge den Kommentar temporär hinzu
-    const mockNewComment: Comment = {
-      id: `comment-${Date.now()}`,
-      user: {
-        id: 'current-user',
-        name: 'CurrentUser',
-        avatar: null,
-        style: {
-          type: 'gradient',
-          gradient: ['purple-400', 'pink-600'],
-          animate: true
-        }
-      },
-      text: newComment,
-      likes: 0,
-      createdAt: new Date().toISOString()
-    };
+  const fetchComments = async () => {
+    setLoading(true);
+    try {
+      console.log(`Fetching comments for postId: ${postId}`);
+      const response = await fetch(`/api/comments?postId=${postId}&page=1&limit=50`);
+      
+      if (!response.ok) {
+        console.error(`Failed to fetch comments: ${response.status} ${response.statusText}`);
+        throw new Error('Failed to fetch comments');
+      }
+      
+      const responseText = await response.text();
+      console.log(`Comments API response: ${responseText.substring(0, 200)}...`);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse comments response:', parseError);
+        throw new Error('Failed to parse server response');
+      }
+      
+      console.log(`Received ${data.comments.length} comments`);
+      
+      // Formatiere die Kommentare
+      const formattedComments: Comment[] = data.comments.map((comment: any) => {
+        console.log('Processing comment:', comment);
+        
+        // Prüfen, ob der Kommentar vom aktuellen Benutzer stammt, um Edit/Delete-Buttons anzuzeigen
+        const isFromCurrentUser = session?.user && 
+          (comment.author?._id === session.user.id || 
+           comment.author?.id === session.user.id);
+        
+        return {
+          id: comment._id || comment.id,
+          user: {
+            id: comment.author?._id || comment.author?.id || null,
+            name: comment.author?.username || 'Anonymous',
+            avatar: comment.author?.avatar || null,
+            isAnonymous: !comment.author,
+            isCurrentUser: isFromCurrentUser // Neues Flag für aktuelle Benutzerkommentare
+          },
+          text: comment.content,
+          likes: 0, // Anzahl der Likes sollte vom Server kommen
+          createdAt: comment.createdAt,
+          ...(comment.replyTo ? {
+            replyTo: {
+              id: comment.replyTo._id || comment.replyTo.id,
+              user: {
+                name: comment.replyTo.author?.username || 'Anonymous',
+                isAnonymous: !comment.replyTo.author
+              },
+              preview: comment.replyTo.content.substring(0, 100)
+            }
+          } : {})
+        };
+      });
+      
+      setComments(formattedComments);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchComments();
+  }, [postId, refreshKey]);
 
-    setComments([mockNewComment, ...comments]);
-    setNewComment('');
+  // Funktion zum Hinzufügen eines neuen Kommentars zur Liste
+  const addNewComment = (savedComment: any) => {
+    try {
+      // Erstelle ein korrekt formatiertes Kommentar-Objekt
+      const formattedComment: Comment = {
+        id: savedComment._id || savedComment.id,
+        user: {
+          id: session?.user?.id || null,
+          name: session?.user?.name || 'Anonymous',
+          avatar: session?.user?.image || null,
+          isAnonymous: !session?.user || isAnonymous,
+          isCurrentUser: true // Dieser Kommentar stammt vom aktuellen Benutzer
+        },
+        text: savedComment.content,
+        likes: 0,
+        createdAt: savedComment.createdAt || new Date().toISOString(),
+        ...(savedComment.replyTo ? {
+          replyTo: {
+            id: savedComment.replyTo._id || savedComment.replyTo.id,
+            user: {
+              name: savedComment.replyTo.author?.username || 'Anonymous',
+              isAnonymous: !savedComment.replyTo.author
+            },
+            preview: typeof savedComment.replyTo.content === 'string' 
+              ? savedComment.replyTo.content.substring(0, 100) 
+              : "..."
+          }
+        } : {})
+      };
+      
+      // Füge den neuen Kommentar an den Anfang der Liste
+      setComments(prev => [formattedComment, ...prev]);
+    } catch (error) {
+      console.error('Error formatting new comment:', error);
+    }
+  };
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim()) return;
+    setIsSubmitting(true);
+    
+    try {
+      // Stelle sicher, dass eingeloggte Benutzer nicht unbeabsichtigt als anonym markiert werden
+      const effectiveIsAnonymous = !session?.user ? true : isAnonymous;
+      
+      console.log('Submitting comment:', {
+        content: newComment,
+        postId,
+        isAnonymous: effectiveIsAnonymous,
+        session: session ? 'User is logged in' : 'No session'
+      });
+      
+      // API-Aufruf zum Speichern des Kommentars
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: newComment,
+          postId,
+          isAnonymous: effectiveIsAnonymous,
+        }),
+      });
+      
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}: ${responseText}`);
+      }
+      
+      try {
+        // Parse der Antwort
+        const savedComment = JSON.parse(responseText);
+        console.log('Parsed comment response:', savedComment);
+        
+        // Füge den neuen Kommentar zur Liste hinzu
+        addNewComment(savedComment);
+        
+        // Leere das Formular
+        setNewComment('');
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
+      }
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      alert(`Failed to submit comment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEmojiSelect = (emoji: string) => {
@@ -193,7 +364,7 @@ export function PostComments({ postId }: PostCommentsProps) {
           const cleanUrl = matches[mediaIndex].split('?')[0];
           const isGiphy = cleanUrl.includes('giphy.com');
           result.push(
-            <div key={`media-${index}`} className="my-1">
+            <div key={`media-${index}`} className="my-1 max-w-md">
               <Image
                 src={cleanUrl}
                 alt="Embedded media"
@@ -219,53 +390,93 @@ export function PostComments({ postId }: PostCommentsProps) {
     return result;
   };
 
-  useEffect(() => {
-    const fetchComments = async () => {
-      setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500));
+  // Funktion zum Löschen eines Kommentars
+  const handleDeleteComment = async (commentId: string) => {
+    if (!commentId) {
+      console.error('Cannot delete comment with undefined ID');
+      return;
+    }
+    
+    try {
+      console.log(`Deleting comment with ID: ${commentId}`);
       
-      // Mock-Kommentare mit Premium-Styles
-      const mockComments: Comment[] = Array.from({ length: 5 }, (_, i) => ({
-        id: `comment-${i + 1}`,
-        user: {
-          id: i % 3 === 0 ? null : `user${i}`,
-          name: i % 3 === 0 ? 'Anonymous' : `User${i}`,
-          avatar: null,
-          isAnonymous: i % 3 === 0,
-          // Premium Style für jeden zweiten nicht-anonymen User
-          style: i % 3 !== 0 && i % 2 === 0 ? {
-            type: 'gradient',
-            gradient: ['purple-400', 'pink-600'],
-            animate: true
-          } : undefined
-        },
-        text: `This is a sample comment ${i + 1} for post ${postId}`,
-        likes: Math.floor(Math.random() * 50),
-        createdAt: new Date(Date.now() - i * 3600000).toISOString(),
-        ...(i % 2 === 0 ? {
-          replyTo: {
-            id: `comment-${i-1}`,
-            user: {
-              name: `User${i-1}`,
-              isAnonymous: false
-            },
-            preview: "Previous comment text..."
-          }
-        } : {})
-      }));
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-      setComments(mockComments);
-      setLoading(false);
-    };
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to delete comment: ${errorText}`);
+        throw new Error(`Failed to delete comment: ${response.status}`);
+      }
+      
+      console.log('Comment deleted successfully');
+      
+      // Entferne den Kommentar aus der UI
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Failed to delete comment. Please try again later.');
+    }
+  };
 
-    fetchComments();
-  }, [postId]);
+  // Funktion zum Starten der Bearbeitung eines Kommentars
+  const startEditComment = (comment: Comment) => {
+    setEditCommentId(comment.id);
+    setEditCommentText(comment.text);
+    setShowEditPreview(false);
+  };
+
+  // Funktion zum Speichern der Bearbeitung
+  const handleSaveEdit = async () => {
+    if (!editCommentId || !editCommentText.trim()) {
+      console.error('Cannot edit comment: Missing ID or content');
+      return;
+    }
+    
+    try {
+      console.log(`Editing comment with ID: ${editCommentId}`);
+      
+      const response = await fetch(`/api/comments/${editCommentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: editCommentText
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to update comment: ${errorText}`);
+        throw new Error(`Failed to update comment: ${response.status}`);
+      }
+      
+      const updatedComment = await response.json();
+      console.log('Comment updated successfully:', updatedComment);
+      
+      // Aktualisiere den Kommentar in der UI
+      setComments(prev => prev.map(comment => 
+        comment.id === editCommentId 
+          ? { ...comment, text: editCommentText } 
+          : comment
+      ));
+      
+      // Zurücksetzen des Bearbeitungsmodus
+      setEditCommentId(null);
+      setEditCommentText('');
+      setShowEditPreview(false);
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      alert('Failed to update comment. Please try again later.');
+    }
+  };
 
   if (loading) {
     return (
       <div className="space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="animate-pulse">
+          <div key={`loading-${i}`} className="animate-pulse">
             <div className="h-20 bg-gray-200 dark:bg-gray-800 rounded-xl" />
           </div>
         ))}
@@ -279,53 +490,63 @@ export function PostComments({ postId }: PostCommentsProps) {
         Comments ({comments.length})
       </h2>
 
-      {/* Neue Kommentar-Box */}
-      <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
-        <div className="flex gap-2 mb-3">
-          <button
-            onClick={() => setShowPreview(!showPreview)}
-            className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-              showPreview 
-                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-            }`}
-          >
-            {showPreview ? 'Edit' : 'Preview'}
-          </button>
-          <label className="ml-auto flex items-center gap-2 cursor-pointer">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Post Anonymously</span>
-            <div className="relative inline-flex items-center">
+      {/* Kommentar-Form */}
+      <div className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-8">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-medium">Add a Comment</h3>
+          <div className="flex items-center gap-2">
+            <label className="inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
+                value=""
                 checked={isAnonymous}
                 onChange={(e) => setIsAnonymous(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-7 h-4 bg-gray-200 dark:bg-gray-700 peer-checked:bg-purple-600 rounded-full transition-colors"></div>
-              <div className="absolute left-[2px] top-[2px] w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-3"></div>
-            </div>
-          </label>
+              <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+              <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                Post Anonymously
+              </span>
+            </label>
+            {showPreview && 
+              <button
+                onClick={() => setShowPreview(false)}
+                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg"
+              >
+                Edit
+              </button>
+            }
+            {!showPreview && 
+              <button
+                onClick={() => setShowPreview(true)}
+                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg"
+                disabled={!newComment}
+              >
+                Preview
+              </button>
+            }
+          </div>
         </div>
-
+        
         {showPreview ? (
-          <div className="min-h-[100px] p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50">
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              {newComment || <span className="text-gray-400 dark:text-gray-500">Nothing to preview</span>}
-            </div>
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 min-h-[100px] mb-3">
+            {renderCommentContent(newComment)}
           </div>
         ) : (
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Write a comment..."
-            className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm min-h-[100px]"
+            className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
+            rows={5}
           />
         )}
-
-        <div className="flex justify-between items-center mt-3">
-          <span className="text-xs text-gray-500">
+        
+        <div className="mt-3 flex justify-between items-center">
+          <div className="text-xs text-gray-500">
             {newComment.length}/500 characters
-          </span>
+          </div>
+          
           <div className="flex gap-2">
             <div className="relative">
               <button
@@ -373,194 +594,157 @@ export function PostComments({ postId }: PostCommentsProps) {
             </button>
             <button
               onClick={handleSubmitComment}
-              disabled={!newComment.trim()}
+              disabled={!newComment.trim() || isSubmitting}
               className="px-4 py-2 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isAnonymous ? 'Post Anonymously' : 'Post Comment'}
+              {isSubmitting ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Loading...
+                </span>
+              ) : (
+                isAnonymous ? 'Post Anonymously' : 'Post Comment'
+              )}
             </button>
           </div>
         </div>
       </div>
 
       <div className="space-y-4">
-        {comments.map((comment) => (
-          <div
-            key={comment.id}
-            className="p-4 rounded-xl bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800"
-          >
-            {/* Kommentar Header */}
-            <div className="flex items-center gap-3 mb-2">
-              <div className={`relative w-8 h-8 rounded-full overflow-hidden ${getAvatarStyle(comment.user.style)}`}>
-                <Image
-                  src={comment.user.avatar || DEFAULT_AVATAR}
-                  alt={comment.user.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              
-              <div className="flex-1">
-                {comment.user.isAnonymous ? (
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Anonymous</span>
-                ) : (
-                  <>
-                    <Link
-                      href={getUserUrl(comment.user.name)}
-                      className={`text-sm font-medium hover:underline ${getNickStyle(comment.user.style)}`}
-                    >
-                      {comment.user.name}
-                    </Link>
-                    {comment.user.style && (
-                      <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
-                        PREMIUM
-                      </span>
-                    )}
-                  </>
-                )}
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <span title={new Date(comment.createdAt).toLocaleString()}>
-                    {new Date(comment.createdAt).toLocaleDateString(undefined, {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
-                  </span>
-                  <span>•</span>
-                  <span>
-                    {new Date(comment.createdAt).toLocaleTimeString(undefined, {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Antwort-Vorschau */}
+        {comments.map((comment, index) => (
+          <div key={comment.id} id={`comment-${comment.id}`} className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl p-4">
+            {/* Reply to section */}
             {comment.replyTo && (
-              <div className="mb-3 pl-4 border-l-2 border-purple-200 dark:border-purple-800/30 bg-purple-50/30 dark:bg-purple-900/10 rounded-r-lg py-2">
-                <Link href={`/comments/${comment.replyTo.id}`} className="block hover:bg-purple-50/50 dark:hover:bg-purple-900/20 rounded transition-colors">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    Reply to{' '}
-                    {comment.replyTo.user.isAnonymous ? (
-                      <span className="text-gray-600 dark:text-gray-400">Anonymous</span>
-                    ) : (
-                      <span className="text-purple-600 hover:underline cursor-pointer" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (comment.replyTo?.user?.name) {
-                                window.location.href = getUserUrl(comment.replyTo.user.name);
-                              }
-                            }}>
-                        {comment.replyTo.user.name}
-                      </span>
-                    )}:
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 font-[family-name:var(--font-geist-sans)] line-clamp-1">
-                    {comment.replyTo.preview}
-                  </div>
+              <div className="mb-3 pl-3 py-2 border-l-2 border-purple-300 dark:border-purple-700 bg-purple-50/30 dark:bg-purple-900/10 rounded">
+                <Link href={`#comment-${comment.replyTo.id}`} className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                  <span className="font-medium">{comment.replyTo.user.name}</span>: {comment.replyTo.preview}
+                  {comment.replyTo.preview.length > 100 ? '...' : ''}
                 </Link>
               </div>
             )}
 
-            {/* Kommentar-Text mit Bild-Rendering */}
-            <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-              {renderCommentContent(comment.text)}
-            </div>
+            {/* Main comment content */}
+            <div className="flex items-start gap-3">
+              <Link href={getUserUrl(comment.user.name)} className="flex-shrink-0">
+                <div className={`relative w-10 h-10 rounded-lg overflow-hidden ${getAvatarStyle(comment.user.style)}`}>
+                  <Image
+                    src={comment.user.avatar || DEFAULT_AVATAR}
+                    alt={comment.user.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              </Link>
 
-            {/* Kommentar Footer */}
-            <div className="mt-3 flex items-center gap-4">
-              <button className="text-sm text-gray-500 hover:text-purple-500 transition-colors flex items-center gap-1">
-                <span className="text-base">❤️</span> {comment.likes}
-              </button>
-              <button
-                onClick={() => setReplyToId(comment.id)}
-                className="text-sm text-gray-500 hover:text-purple-500 transition-colors flex items-center gap-1"
-              >
-                <span className="text-base">💬</span> Reply
-              </button>
-            </div>
-
-            {/* Antwort-Textfeld */}
-            {replyToId === comment.id && (
-              <div className="mt-4 space-y-2">
-                <textarea
-                  name="reply"
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder={`Reply to ${comment.user.name}...`}
-                  className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
-                  rows={3}
-                />
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">
-                    {replyText.length}/500 characters
-                  </span>
-                  <div className="flex gap-2">
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowReplyGifSelector(!showReplyGifSelector);
-                          setShowReplyEmojiPicker(false);
-                        }}
-                        className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                        title="Add GIF"
-                      >
-                        🎨 GIF
-                      </button>
-                      {showReplyGifSelector && (
-                        <GifSelector
-                          onSelect={handleGifSelect}
-                          onClose={() => setShowReplyGifSelector(false)}
-                        />
-                      )}
-                    </div>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowReplyEmojiPicker(!showReplyEmojiPicker);
-                          setShowReplyGifSelector(false);
-                        }}
-                        className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                        title="Add emoji"
-                      >
-                        😊 Emoji
-                      </button>
-                      {showReplyEmojiPicker && (
-                        <EmojiPicker
-                          onSelect={handleEmojiSelect}
-                          onClose={() => setShowReplyEmojiPicker(false)}
-                        />
-                      )}
-                    </div>
-                    <button
-                      onClick={() => {
-                        setReplyToId(null);
-                        setReplyText('');
-                      }}
-                      className="px-3 py-1 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              <div className="flex-grow min-w-0">
+                <div className="flex justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <Link href={getUserUrl(comment.user.name)} className={`font-medium ${getNickStyle(comment.user.style)}`}>
+                      {comment.user.name}
+                    </Link>
+                    <Link 
+                      href={`#comment-${comment.id}`} 
+                      className="text-sm text-gray-500 hover:text-purple-500 transition-colors"
+                      title="Permalink to this comment"
                     >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => handleReply(comment.id)}
-                      disabled={!replyText.trim()}
-                      className="px-3 py-1 rounded-lg text-sm text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 disabled:opacity-50"
-                    >
-                      Reply
-                    </button>
+                      {new Date(comment.createdAt).toLocaleString()}
+                    </Link>
                   </div>
                 </div>
-                {replyText && (
-                  <div className="text-sm text-gray-800 dark:text-gray-200">
-                    {renderCommentContent(replyText)}
+
+                {editCommentId === comment.id ? (
+                  <div className="space-y-2">
+                    {showEditPreview ? (
+                      <div className="min-h-[100px] p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50">
+                        <div className="text-sm text-gray-800 dark:text-gray-200">
+                          {renderCommentContent(editCommentText) || <span className="text-gray-400 dark:text-gray-500">Nothing to preview</span>}
+                        </div>
+                      </div>
+                    ) : (
+                      <textarea
+                        value={editCommentText}
+                        onChange={(e) => setEditCommentText(e.target.value)}
+                        className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm min-h-[100px]"
+                        title="Edit comment"
+                        placeholder="Edit your comment..."
+                      />
+                    )}
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500">
+                        {editCommentText.length}/500 characters
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowEditPreview(!showEditPreview)}
+                          className={`px-3 py-1.5 text-sm rounded-lg ${
+                            showEditPreview 
+                              ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' 
+                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                          }`}
+                        >
+                          {showEditPreview ? 'Edit' : 'Preview'}
+                        </button>
+                        <button
+                          onClick={() => setEditCommentId(null)}
+                          className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSaveEdit}
+                          disabled={isSubmitting || !editCommentText.trim()}
+                          className={`px-4 py-1.5 rounded-lg text-sm font-medium ${
+                            isSubmitting || !editCommentText.trim()
+                              ? 'bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed'
+                              : 'bg-purple-500 text-white hover:bg-purple-600'
+                          }`}
+                        >
+                          {isSubmitting ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="prose dark:prose-invert max-w-none text-sm">
+                    {renderCommentContent(comment.text)}
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                {editCommentId !== comment.id && (
+                  <div className="mt-2 flex items-center gap-4">
+                    <button
+                      onClick={() => setReplyToId(comment.id)}
+                      className="text-sm text-gray-500 hover:text-purple-500 transition-colors flex items-center gap-1"
+                    >
+                      <span className="text-base">💬</span> Reply
+                    </button>
+
+                    {/* Bearbeiten und Löschen nur für eigene Kommentare */}
+                    {comment.user.isCurrentUser && (
+                      <>
+                        <button
+                          onClick={() => startEditComment(comment)}
+                          className="text-sm text-gray-500 hover:text-blue-500 transition-colors flex items-center gap-1"
+                        >
+                          <span className="text-base">✏️</span> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="text-sm text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1"
+                        >
+                          <span className="text-base">🗑️</span> Delete
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
-            )}
+            </div>
           </div>
         ))}
       </div>

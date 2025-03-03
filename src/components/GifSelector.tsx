@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 
 interface GifSelectorProps {
-  onSelect: (gifUrl: string) => void;
+  onSelect: (gifData: { url: string, id: string, source: string }) => void;
   onClose: () => void;
 }
 
@@ -19,7 +19,7 @@ export function GifSelector({ onSelect, onClose }: GifSelectorProps) {
   const [gifs, setGifs] = useState<GifData[]>([]);
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const searchTimeout = useRef<NodeJS.Timeout>();
+  const searchTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const searchGifs = async (term: string) => {
     setLoading(true);
@@ -97,7 +97,11 @@ export function GifSelector({ onSelect, onClose }: GifSelectorProps) {
             {gifs.map((gif) => (
               <button
                 key={gif.id}
-                onClick={() => onSelect(gif.url)}
+                onClick={() => onSelect({
+                  url: gif.url,
+                  id: gif.id,
+                  source: 'giphy'
+                })}
                 className="relative aspect-video rounded-lg overflow-hidden hover:ring-2 hover:ring-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 title={`Select GIF ${gif.id}`}
               >
