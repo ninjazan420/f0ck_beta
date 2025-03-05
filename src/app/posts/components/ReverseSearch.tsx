@@ -5,9 +5,9 @@ export function ReverseSearch({ imageUrl }: { imageUrl: string }) {
       return url; // URL ist bereits absolut
     }
     
-    // Verwende NEXTAUTH_URL anstelle von PUBLIC_URL
-    // In Produktionsumgebung wird der Wert aus .env.production genommen (https://beta.f0ck.org)
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://beta.f0ck.org';
+    // Immer die Produktions-URL verwenden für Reverse Search
+    // So wird verhindert, dass localhost-URLs an externe Dienste gesendet werden
+    const baseUrl = 'https://beta.f0ck.org';
     const sanitizedImageUrl = url.startsWith('/') ? url : `/${url}`;
     
     return `${baseUrl}${sanitizedImageUrl}`;
