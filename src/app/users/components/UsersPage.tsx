@@ -18,7 +18,7 @@ export interface Filters {
 export function UsersPage() {
   const [filters, setFilters] = useState<Filters>({
     search: '',
-    roles: ['member', 'premium', 'moderator', 'admin'], // Premium hinzugefügt
+    roles: ['member', 'premium', 'moderator', 'admin', 'banned'],
     isPremium: null,
     sortBy: 'most_active',
     timeRange: 'all'

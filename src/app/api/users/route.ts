@@ -24,7 +24,8 @@ const buildQuery = (search: string, roles: string[], isPremium: string | null): 
     member: 'user',
     premium: 'premium',
     moderator: 'moderator',
-    admin: 'admin'
+    admin: 'admin',
+    banned: 'banned'
   };
 
   if (roles.length > 0) {

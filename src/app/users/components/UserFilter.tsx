@@ -56,7 +56,7 @@ export function UserFilter({ filters, onFilterChange }: UserFilterProps) {
               User Roles
             </label>
             <div className="flex flex-wrap gap-2">
-              {(['member', 'premium', 'moderator', 'admin'] as UserRole[]).map(role => (
+              {(['member', 'premium', 'moderator', 'admin', 'banned'] as UserRole[]).map(role => (
                 <button
                   key={role}
                   onClick={() => handleRoleToggle(role)}
@@ -65,6 +65,7 @@ export function UserFilter({ filters, onFilterChange }: UserFilterProps) {
                       ? role === 'admin' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
                       : role === 'moderator' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                       : role === 'premium' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                      : role === 'banned' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
                       : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                   }`}
