@@ -627,7 +627,7 @@ export function PostDetails({ postId }: { postId: string }) {
           <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
             <div className="flex items-center gap-3">
               {post.uploader.id === 'anonymous' ? (
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0">
+                <div className="w-12 h-12 overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0">
                   <Image 
                     src={getImageUrlWithCacheBuster(DEFAULT_AVATAR)}
                     alt="Anonymous user avatar"
@@ -639,7 +639,7 @@ export function PostDetails({ postId }: { postId: string }) {
               ) : (
                 <Link 
                   href={`/user/${post.uploader.name}`}
-                  className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0"
+                  className="w-12 h-12 overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0"
                 >
                   <Image
                     src={getImageUrlWithCacheBuster(post.uploader.avatar || DEFAULT_AVATAR)}
