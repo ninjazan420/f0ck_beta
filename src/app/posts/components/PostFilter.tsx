@@ -32,9 +32,18 @@ export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleIn
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const toggleRating = (rating: ContentRating) => {
-    const newRatings = filters.contentRating.includes(rating)
-      ? filters.contentRating.filter(r => r !== rating)
-      : [...filters.contentRating, rating];
+    const newRatings = [...filters.contentRating];
+    
+    const index = newRatings.indexOf(rating);
+    
+    if (index >= 0) {
+      if (newRatings.length > 1) {
+        newRatings.splice(index, 1);
+      }
+    } else {
+      newRatings.push(rating);
+    }
+    
     onFilterChange({ ...filters, contentRating: newRatings });
   };
 
