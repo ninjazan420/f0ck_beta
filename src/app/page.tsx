@@ -110,7 +110,7 @@ export default function Home() {
             </div>
           </div>
           <div className="text-center text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">
-            Weitere Features terst...
+            Weitere Features folgen...
           </div>
         </div>
       </div>
