@@ -30,27 +30,27 @@ export function CommentsPage() {
 
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">      
-      <div className="container mx-auto px-4 py-4 max-w-4xl flex-grow">
-        {showFeedback && (
-          <div 
-            className={`
-              fixed inset-x-0 top-16 pointer-events-none z-50
-              flex items-center justify-center
-            `}
-          >
-            <div className={`
-              px-4 py-2 rounded-lg text-sm font-medium 
-              shadow-lg backdrop-blur-sm
-              animate-fade-in-out
-              ${showFeedback.type === 'success' 
-                ? 'bg-green-100/95 text-green-800 dark:bg-green-900/95 dark:text-green-400'
-                : 'bg-blue-100/95 text-blue-800 dark:bg-blue-900/95 dark:text-blue-400'}
-            `}>
-              {showFeedback.message}
-            </div>
+      {showFeedback && (
+        <div 
+          className={`
+            fixed inset-x-0 top-16 pointer-events-none z-50
+            flex items-center justify-center
+          `}
+        >
+          <div className={`
+            px-4 py-2 rounded-lg text-sm font-medium 
+            shadow-lg backdrop-blur-sm
+            animate-fade-in-out
+            ${showFeedback.type === 'success' 
+              ? 'bg-green-100/95 text-green-800 dark:bg-green-900/95 dark:text-green-400'
+              : 'bg-blue-100/95 text-blue-800 dark:bg-blue-900/95 dark:text-blue-400'}
+          `}>
+            {showFeedback.message}
           </div>
-        )}
-
+        </div>
+      )}
+      
+      <div className="container mx-auto px-4 py-4 max-w-4xl flex-grow">
         <div className="space-y-6">
           <CommentFilter 
             filters={filters} 

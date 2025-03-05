@@ -44,83 +44,93 @@ export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleIn
         <h3 className="text-sm font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400">
           Post Filter
         </h3>
-        <span className="text-xs text-gray-400 dark:text-gray-500">all fields optional</span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex-1 flex flex-wrap items-center gap-2 min-w-[300px]">
-          <input
-            type="text"
-            placeholder="🔍 Search titles, tags, descriptions..."
-            value={filters.searchText}
-            onChange={e => onFilterChange({ ...filters, searchText: e.target.value })}
-            className="w-60 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-          />
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <input
+          type="text"
+          placeholder="🔍 Search titles, tags, descriptions..."
+          value={filters.searchText}
+          onChange={e => onFilterChange({ ...filters, searchText: e.target.value })}
+          className="w-52 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+        />
+        
+        <input
+          type="text"
+          placeholder="👤 Uploader"
+          value={filters.uploader}
+          onChange={e => onFilterChange({ ...filters, uploader: e.target.value })}
+          className="w-28 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+        />
 
-          <input
-            type="text"
-            placeholder="👤 Uploader"
-            value={filters.uploader}
-            onChange={e => onFilterChange({ ...filters, uploader: e.target.value })}
-            className="w-32 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-          />
+        <input
+          type="text"
+          placeholder="💬 Commenter"
+          value={filters.commenter}
+          onChange={e => onFilterChange({ ...filters, commenter: e.target.value })}
+          className="w-28 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+        />
 
-          <input
-            type="text"
-            placeholder="💭 Commenter"
-            value={filters.commenter}
-            onChange={e => onFilterChange({ ...filters, commenter: e.target.value })}
-            className="w-32 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-          />
-          
-          <select
-            value={filters.sortBy}
-            onChange={e => onFilterChange({ ...filters, sortBy: e.target.value as keyof typeof SORT_OPTIONS })}
-            className="p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-          >
-            {Object.entries(SORT_OPTIONS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
+        <select
+          value={filters.sortBy}
+          onChange={e => onFilterChange({ ...filters, sortBy: e.target.value as keyof typeof SORT_OPTIONS })}
+          className="p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+        >
+          {Object.entries(SORT_OPTIONS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
 
+        <input
+          type="number"
+          min="0"
+          placeholder="❤️ Min likes"
+          value={filters.minLikes || ''}
+          onChange={e => onFilterChange({ ...filters, minLikes: parseInt(e.target.value) || 0 })}
+          className="w-24 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+        />
+        
+        <button
+          onClick={() => setShowDatePicker(!showDatePicker)}
+          className={`p-1.5 text-sm rounded-lg border ${showDatePicker ? 'border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50'}`}
+        >
+          📅 {filters.dateFrom || filters.dateTo ? 'Date filtered' : 'Date range'}
+        </button>
+      </div>
+
+      {/* Date Picker Row - Always visible when toggled */}
+      {showDatePicker && (
+        <div className="flex items-center gap-2 mb-2 p-2 bg-gray-100/80 dark:bg-gray-800/80 rounded-lg">
+          <span className="text-sm text-gray-500 dark:text-gray-400">From:</span>
           <input
-            type="number"
-            min="0"
-            placeholder="❤️ Min likes"
-            value={filters.minLikes || ''}
-            onChange={e => onFilterChange({ ...filters, minLikes: parseInt(e.target.value) || 0 })}
-            className="w-24 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+            type="date"
+            value={filters.dateFrom}
+            onChange={e => onFilterChange({ ...filters, dateFrom: e.target.value })}
+            className="p-1.5 text-sm rounded border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-700/90"
           />
-          
+          <span className="text-sm text-gray-500 dark:text-gray-400">To:</span>
+          <input
+            type="date"
+            value={filters.dateTo}
+            onChange={e => onFilterChange({ ...filters, dateTo: e.target.value })}
+            className="p-1.5 text-sm rounded border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-700/90"
+          />
           <button
-            onClick={() => setShowDatePicker(!showDatePicker)}
-            className="p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+            onClick={() => {
+              onFilterChange({ ...filters, dateFrom: '', dateTo: '' });
+              setShowDatePicker(false);
+            }}
+            className="ml-auto p-1 text-xs rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
           >
-            📅 {filters.dateFrom || filters.dateTo ? 'Date filtered' : 'Date range'}
+            Clear & Close
           </button>
-
-          {showDatePicker && (
-            <div className="absolute mt-32 p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg z-10">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={filters.dateFrom}
-                  onChange={e => onFilterChange({ ...filters, dateFrom: e.target.value })}
-                  className="p-1.5 text-sm rounded border border-gray-200 dark:border-gray-700 bg-transparent"
-                />
-                <span className="text-gray-400">-</span>
-                <input
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={e => onFilterChange({ ...filters, dateTo: e.target.value })}
-                  className="p-1.5 text-sm rounded border border-gray-200 dark:border-gray-700 bg-transparent"
-                />
-              </div>
-            </div>
-          )}
         </div>
+      )}
 
-        <div className="flex items-center gap-2 border-l border-gray-200 dark:border-gray-700 pl-2">
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => toggleRating('safe')}
             className={`px-2 py-1 rounded text-xs font-medium transition-colors

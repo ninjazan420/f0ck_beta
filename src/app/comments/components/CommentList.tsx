@@ -87,6 +87,14 @@ interface CommentListProps {
   limit?: number;
   status?: 'pending' | 'reported' | 'all' | 'approved';
   showModActions?: boolean;
+  filters?: {
+    username: string;
+    searchText: string;
+    dateFrom: string;
+    dateTo: string;
+    minLikes: number;
+  };
+  infiniteScroll?: boolean;
 }
 
 export function CommentList({ 
@@ -94,7 +102,9 @@ export function CommentList({
   initialPage = 1, 
   limit = 10,
   status = 'approved',
-  showModActions = false 
+  showModActions = false,
+  filters,
+  infiniteScroll = false
 }: CommentListProps) {
   const { data: session } = useSession();
   const [comments, setComments] = useState<any[]>([]);

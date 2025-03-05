@@ -25,7 +25,6 @@ export function CommentFilter({ filters, onFilterChange, infiniteScroll, onToggl
         <h3 className="text-sm font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400">
           Comment Filter
         </h3>
-        <span className="text-xs text-gray-400 dark:text-gray-500">all fields optional</span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -63,7 +62,7 @@ export function CommentFilter({ filters, onFilterChange, infiniteScroll, onToggl
           </button>
 
           {showDatePicker && (
-            <div className="absolute mt-2 p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg z-10">
+            <div className="absolute mt-2 p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg z-50">
               <div className="flex items-center gap-2 text-sm">
                 <input
                   type="date"
