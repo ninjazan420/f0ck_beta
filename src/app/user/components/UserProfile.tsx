@@ -17,6 +17,7 @@ interface ActivityItem {
     imageUrl: string;
     type: 'image' | 'video' | 'gif';
     nsfw?: boolean;
+    numericId?: string | number;
   };
   content?: string;
 }
@@ -384,7 +385,7 @@ export function UserProfile({ username }: { username: string }) {
                 <div className="text-xs text-gray-500">
                   on{' '}
                   <Link 
-                    href={`/post/${activity.post.id}`}
+                    href={`/post/${activity.post.numericId || activity.post.id}`}
                     className="text-purple-600 dark:text-purple-400 hover:underline"
                   >
                     {activity.post.title}
@@ -394,7 +395,7 @@ export function UserProfile({ username }: { username: string }) {
 
               {/* Thumbnail - immer anzeigen, unabhängig vom Kommentarinhalt */}
               <Link 
-                href={`/post/${activity.post.id}`}
+                href={`/post/${activity.post.numericId || activity.post.id}`}
                 className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden group"
               >
                 {activity.post.imageUrl && (

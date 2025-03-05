@@ -24,7 +24,7 @@
 .DS_Store
 *.pem
 *.vscode
-todo.txt
+_todo.txt
 
 
 # debug
