@@ -1,4 +1,4 @@
-# f0ck.org Beta v1.4.0
+# f0ck.org Beta v1.5.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still broken.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v1.4.0](#f0ckorg-beta-v140)
+- [f0ck.org Beta v1.5.0](#f0ckorg-beta-v150)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,11 +21,14 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v1.4.0 (Current)](#beta-v140-current)
+    - [Beta v1.5.0 (Current)](#beta-v150-current)
+      - [🔍 Search Improvements](#-search-improvements)
+      - [📱 Mobile Optimization](#-mobile-optimization)
+      - [🚀 Performance Enhancements](#-performance-enhancements)
+    - [Older Versions (click to expand)](#older-versions-click-to-expand)
       - [🔄 Updates](#-updates)
       - [💬 Complete Comment System](#-complete-comment-system)
       - [🛠️ Fixes](#️-fixes)
-    - [Older Versions (click to expand)](#older-versions-click-to-expand)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
 
@@ -148,7 +151,32 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v1.4.0 (Current)
+### Beta v1.5.0 (Current)
+
+#### 🔍 Search Improvements
+
+- Advanced post filtering with comprehensive search options now live
+- Support for filtering by uploader, commenter, likes, and date
+- Implemented sorting options (newest, oldest, most likes, most comments)
+- Pagination with page navigator adjusted to real pages
+
+#### 📱 Mobile Optimization
+
+- Postgrid optimized for mobile devices
+- Improved responsive layout for various screen sizes
+- Adjustments for better touch interaction
+
+#### 🚀 Performance Enhancements
+
+- Infinite scroll implemented for smoother user experience
+- User settings stored in localStorage for persistent filter preferences
+- Optimized API endpoints with support for offset and limit
+- Improved performance through more efficient database queries
+
+### Older Versions (click to expand)
+
+<details>
+<summary>Beta v1.4.0</summary>
 
 #### 🔄 Updates
 
@@ -174,8 +202,7 @@ NODE_ENV=development
 - Fixed routes and hotlinks for comments
 - Corrected meta title for /user/nickname
 - Implemented fix that automatically removes leftover MongoDB object IDs
-
-### Older Versions (click to expand)
+</details>
 
 <details>
 <summary>Beta v1.3.0</summary>
@@ -305,3 +332,4 @@ MIT License - © 2024 f0ck.org Team
 
 
 MIT License - © 2024 f0ck.org Team
+

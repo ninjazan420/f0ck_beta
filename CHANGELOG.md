@@ -2,6 +2,28 @@
 
 Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 
+## [1.5.0] - 2024-04-15
+
+### 🔍 Verbesserte Suchfunktion
+
+- Filter von /posts live geschaltet mit umfangreichen Suchoptionen
+- Unterstützung für Filterung nach Uploader, Kommentator, Likes und Datum
+- Sortieroptionen implementiert (neueste, älteste, meiste Likes, meiste Kommentare)
+- Paginierung mit Seitennavigator an echte Seiten angepasst
+
+### 📱 Mobile Optimierung
+
+- Postgrid auf mobile Geräte optimiert
+- Responsives Layout verbessert für verschiedene Bildschirmgrößen
+- Anpassungen für bessere Touch-Interaktion
+
+### 🚀 Leistungsverbesserungen
+
+- Infinite Scroll für flüssigere Benutzererfahrung implementiert
+- Speicherung von Benutzereinstellungen im localStorage für persistente Filtereinstellungen
+- Optimierte API-Endpunkte mit Unterstützung für Offset und Limit
+- Verbesserte Performance durch effizientere Datenbankabfragen
+
 ## [1.4.0] - 2024-03-30
 
 ### 🔄 Updates

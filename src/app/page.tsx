@@ -50,7 +50,7 @@ export default function Home() {
               Anonymous Imageboard platform for sharing Memes, Cats, and more
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Beta Version 1.4.0 - We build something new...
+              Beta Version 1.5.0 - We build something new...
             </p>
           </div>
         </div>
