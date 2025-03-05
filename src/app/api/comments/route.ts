@@ -80,7 +80,7 @@ export async function GET(req: Request) {
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
-        .populate('author', 'username avatar')
+        .populate('author', 'username avatar role')
         .populate({
           path: 'post',
           select: '_id id title numericId'
@@ -301,7 +301,7 @@ export async function POST(req: Request) {
 
     // Populate der Autor- und Reply-Informationen für die Antwort
     const populatedComment = await Comment.findById(comment._id)
-      .populate('author', 'username avatar')
+      .populate('author', 'username avatar role')
       .populate({
         path: 'replyTo',
         populate: {
@@ -421,7 +421,7 @@ export async function PATCH(req: Request) {
 
       // Kommentar mit Autor zurückgeben
       const populatedComment = await Comment.findById(comment._id)
-        .populate('author', 'username avatar')
+        .populate('author', 'username avatar role')
         .populate('replyTo');
 
       // Formatieren der Antwort für die UI

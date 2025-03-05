@@ -275,6 +275,35 @@ export function PostDetails({ postId }: { postId: string }) {
     } : null);
   };
 
+  // Role badge rendering function similar to the one used in comments
+  const getRoleBadge = (isAdmin: boolean, isModerator: boolean, isPremium: boolean) => {
+    if (isAdmin) {
+      return (
+        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-red-500 to-orange-500 text-white">
+          ADMIN
+        </span>
+      );
+    } else if (isModerator) {
+      return (
+        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/40 text-white border border-blue-500/50">
+          MOD
+        </span>
+      );
+    } else if (isPremium) {
+      return (
+        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
+          PREMIUM
+        </span>
+      );
+    } else {
+      return (
+        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-500/40 text-white border border-gray-500/50">
+          MEMBER
+        </span>
+      );
+    }
+  };
+
   useEffect(() => {
     const fetchPost = async () => {
       setLoading(true);
@@ -640,26 +669,13 @@ export function PostDetails({ postId }: { postId: string }) {
                       {post.uploader.name}
                     </Link>
                   )}
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
-                    post.uploader.admin ? 'bg-red-500/40 text-white border border-red-500/50' :
-                    post.uploader.moderator ? 'bg-blue-500/40 text-white border border-blue-500/50' :
-                    'bg-gray-500/40 text-white border border-gray-500/50'
-                  }`}>
-                    {post.uploader.admin ? 'ADMIN' :
-                     post.uploader.moderator ? 'MOD' :
-                     'MEMBER'}
-                  </span>
+                  {getRoleBadge(post.uploader.admin, post.uploader.moderator, post.uploader.premium)}
                 </div>
                 <div className="text-sm text-gray-500 flex items-center gap-2 flex-wrap">
                   {post.uploader.id === 'anonymous' ? (
                     <span>Posted on {new Date(post.uploadDate).toLocaleString()}</span>
                   ) : (
                     <span>Member since {new Date(post.uploader.joinDate).toLocaleString()}</span>
-                  )}
-                  {post.uploader.premium && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                      ⭐ PREMIUM
-                    </span>
                   )}
                 </div>
                 

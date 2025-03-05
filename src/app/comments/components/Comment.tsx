@@ -17,6 +17,7 @@ interface CommentProps {
       id: string;
       username: string;
       avatar: string | null;
+      role?: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
     };
     post: {
       id: string;
@@ -61,11 +62,43 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
   const [isHighlighted, setIsHighlighted] = useState(false);
 
   // Sicherstellen, dass data.author immer definiert ist
-  const author = data.author || { id: '', username: 'Anonymous', avatar: null };
+  const author = data.author || { id: '', username: 'Anonymous', avatar: null, role: 'user' };
   
   const formattedDate = new Date(data.createdAt).toLocaleString();
 
   const getUserUrl = (username: string) => `/user/${username.toLowerCase()}`;
+
+  // Role badge rendering function similar to UserProfile component
+  const getRoleBadge = (role?: string) => {
+    switch(role) {
+      case 'banned':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-black/40 text-white border border-black/50">
+            BANNED ✝
+          </span>
+        );
+      case 'admin':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-red-500 to-orange-500 text-white">
+            ADMIN
+          </span>
+        );
+      case 'moderator':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/40 text-white border border-blue-500/50">
+            MOD
+          </span>
+        );
+      case 'premium':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
+            PREMIUM
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
 
   // Implement highlight effect for anchor links
   useEffect(() => {
@@ -355,9 +388,9 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
         <div className="mb-3">
           <Link href={data.post ? 
             // Verwende immer die numerische ID, wenn sie vorhanden ist (fallback auf String-ID)
-            (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.replyTo.id || data.replyTo._id}` 
-              : `/post/${String(data.post.id)}#comment-${data.replyTo.id || data.replyTo._id}`)
-            : `#comment-${data.replyTo.id || data.replyTo._id}`} 
+            (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.replyTo.id}` 
+              : `/post/${String(data.post.id)}#comment-${data.replyTo.id}`)
+            : `#comment-${data.replyTo.id}`} 
             className="block group transition-all duration-200">
               
             <div className="pl-3 py-2 border-l-2 border-purple-400 dark:border-purple-500 
@@ -400,23 +433,23 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
           <Image
             src={author.avatar || DEFAULT_AVATAR}
             alt={author.username}
-            width={40}
-            height={40}
-            className="rounded-lg"
+            width={50}
+            height={50}
           />
         </Link>
 
         <div className="flex-grow min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center flex-wrap gap-2">
             <Link href={getUserUrl(author.username)} className="font-medium text-gray-900 dark:text-gray-100">
               {author.username}
             </Link>
+            {getRoleBadge(author.role)}
             <Link 
               href={data.post ? 
                 // Verwende immer die numerische ID, wenn sie vorhanden ist (fallback auf String-ID)
-                (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.id || data._id}` 
-                  : `/post/${String(data.post.id)}#comment-${data.id || data._id}`)
-                : `#comment-${data.id || data._id}`} 
+                (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.id}` 
+                  : `/post/${String(data.post.id)}#comment-${data.id}`)
+                : `#comment-${data.id}`} 
               className="text-sm text-gray-500 hover:text-purple-500"
               title="Link to the post containing this comment"
             >

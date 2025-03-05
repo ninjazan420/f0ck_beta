@@ -15,6 +15,7 @@ interface Comment {
     name: string;
     avatar: string | null;
     isAnonymous?: boolean;
+    role?: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
     style?: { type: string; color?: string; gradient?: string[]; animate?: boolean };
     isCurrentUser: boolean;
   };
@@ -91,6 +92,268 @@ export function PostComments({ postId }: PostCommentsProps) {
 
   // Hilfsfunktionen aus der Comment-Komponente
   const getUserUrl = (username: string) => `/user/${username.toLowerCase()}`;
+  
+  // Role badge rendering function similar to UserProfile component
+  const getRoleBadge = (role?: string) => {
+    switch(role) {
+      case 'banned':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-black/40 text-white border border-black/50">
+            BANNED ✝
+          </span>
+        );
+      case 'admin':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-red-500 to-orange-500 text-white">
+            ADMIN
+          </span>
+        );
+      case 'moderator':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/40 text-white border border-blue-500/50">
+            MOD
+          </span>
+        );
+      case 'premium':
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
+            PREMIUM
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const getNickStyle = (style?: { type: string; color?: string; gradient?: string[]; animate?: boolean }) => {
+    if (!style) return '';
+    
+    switch(style.type) {
+      case 'solid':
+        return `text-${style.color}`;
+      case 'gradient':
+        return `bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} bg-clip-text text-transparent`;
+      case 'animated':
+        return `animate-pulse bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} bg-clip-text text-transparent`;
+      default:
+        return '';
+    }
+  };
+
+  const getAvatarStyle = (style?: { type: string; color?: string; gradient?: string[]; animate?: boolean }) => {
+    if (!style) return '';
+    
+    switch(style.type) {
+      case 'solid':
+        return `ring-2 ring-${style.color}`;
+      case 'gradient':
+        return `ring-2 bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} ring-purple-400`;
+      case 'animated':
+        return `ring-2 bg-gradient-to-r from-${style.gradient?.[0]} to-${style.gradient?.[1]} ring-purple-400 animate-pulse`;
+      default:
+        return '';
+    }
+  };
+
+  const handleReply = async (commentId: string) => {
+    if (!replyText.trim()) return;
+    setIsSubmitting(true);
+    
+    try {
+      // Finde den Originalkommentar
+      const originalComment = comments.find(c => c.id === commentId);
+      if (!originalComment) {
+        throw new Error('Original comment not found');
+      }
+      
+      // Stelle sicher, dass eingeloggte Benutzer nicht unbeabsichtigt als anonym markiert werden
+      const effectiveIsAnonymous = !session?.user ? true : isAnonymous;
+      
+      console.log('Submitting reply:', {
+        content: replyText,
+        postId,
+        replyTo: commentId,
+        isAnonymous: effectiveIsAnonymous,
+      });
+      
+      // API-Aufruf zum Speichern des Kommentars
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: replyText,
+          postId,
+          replyTo: commentId,
+          isAnonymous: effectiveIsAnonymous,
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Failed to post reply: ${error}`);
+      }
+      
+      // Antwort wurde erfolgreich gespeichert
+      setReplyText('');
+      setReplyToId(null);
+      
+      // Aktualisiere die Kommentarliste
+      console.log('Reply saved successfully, refreshing comments');
+      setRefreshKey(prev => prev + 1);
+      
+    } catch (error) {
+      console.error('Error posting reply:', error);
+      alert(`Failed to post reply: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const fetchComments = async () => {
+    setLoading(true);
+    try {
+      console.log(`Fetching comments for postId: ${postId}`);
+      const response = await fetch(`/api/comments?postId=${postId}&page=1&limit=50`);
+      
+      if (!response.ok) {
+        console.error(`Failed to fetch comments: ${response.status} ${response.statusText}`);
+        throw new Error('Failed to fetch comments');
+      }
+      
+      const responseText = await response.text();
+      console.log(`Comments API response: ${responseText.substring(0, 200)}...`);
+      
+      let data;
+      try {
+'use client';
+import { useState, useEffect, ReactElement } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { EmojiPicker } from '@/components/EmojiPicker';
+import { GifSelector } from '@/components/GifSelector';
+import { useSession } from 'next-auth/react';
+
+const DEFAULT_AVATAR = '/images/defaultavatar.png';
+
+interface Comment {
+  id: string;
+  user: {      
+    id: string | null;
+    name: string;
+    avatar: string | null;
+    isAnonymous?: boolean;
+    role?: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
+    style?: { type: string; color?: string; gradient?: string[]; animate?: boolean };
+    isCurrentUser: boolean;
+  };
+  text: string;
+  likes: number;
+  createdAt: string;
+  replyTo?: {
+    id: string;
+    user: {
+      name: string;
+      isAnonymous?: boolean;
+    };
+    preview: string;
+  };
+  post?: {
+    id: string;
+    numericId?: string | number;
+  };
+}
+
+interface PostCommentsProps {
+  postId: string;
+}
+
+export function PostComments({ postId }: PostCommentsProps) {
+  const { data: session, status } = useSession();
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [replyToId, setReplyToId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [newComment, setNewComment] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(!session?.user);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showGifSelector, setShowGifSelector] = useState(false);
+  const [showReplyEmojiPicker, setShowReplyEmojiPicker] = useState(false);
+  const [showReplyGifSelector, setShowReplyGifSelector] = useState(false);
+  const [showReplyPreview, setShowReplyPreview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [editCommentId, setEditCommentId] = useState<string | null>(null);
+  const [editCommentText, setEditCommentText] = useState('');
+  const [showEditPreview, setShowEditPreview] = useState(false);
+  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
+
+  // Aktualisiere den isAnonymous-Status, wenn sich der Session-Status ändert
+  useEffect(() => {
+    setIsAnonymous(!session?.user);
+  }, [session]);
+
+  // Get the hash fragment from URL on page load and set it as the highlighted comment
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#comment-')) {
+        const commentId = hash.replace('#comment-', '');
+        setHighlightedCommentId(commentId);
+        
+        // Scroll to the element after a short delay to ensure it's rendered
+        setTimeout(() => {
+          const element = document.getElementById(`comment-${commentId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 500);
+        
+        // Clear the highlight after 3 seconds
+        setTimeout(() => {
+          setHighlightedCommentId(null);
+        }, 4000);
+      }
+    }
+  }, [comments]); // Re-run when comments change
+
+  // Hilfsfunktionen aus der Comment-Komponente
+  const getUserUrl = (username: string) => `/user/${username.toLowerCase()}`;
+  
+  // Role badge rendering function similar to UserProfile component
+  const getRoleBadge = (role?: string) => {
+    switch(role) {
+      case 'banned':
+        return (
+          <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-medium bg-black/40 text-white border border-black/50">
+            BANNED ✝
+          </span>
+        );
+      case 'admin':
+        return (
+          <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-red-500 to-orange-500 text-white">
+            ADMIN
+          </span>
+        );
+      case 'moderator':
+        return (
+          <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/40 text-white border border-blue-500/50">
+            MOD
+          </span>
+        );
+      case 'premium':
+        return (
+          <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/40 text-white border border-purple-500/50">
+            PREMIUM
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
   const getNickStyle = (style?: { type: string; color?: string; gradient?: string[]; animate?: boolean }) => {
     if (!style) return '';
     
@@ -217,7 +480,8 @@ export function PostComments({ postId }: PostCommentsProps) {
             name: comment.author?.username || 'Anonymous',
             avatar: comment.author?.avatar || null,
             isAnonymous: !comment.author,
-            isCurrentUser: isFromCurrentUser // Neues Flag für aktuelle Benutzerkommentare
+            isCurrentUser: isFromCurrentUser, // Neues Flag für aktuelle Benutzerkommentare
+            role: comment.author?.role || undefined
           },
           text: comment.content,
           likes: 0, // Anzahl der Likes sollte vom Server kommen
@@ -264,7 +528,8 @@ export function PostComments({ postId }: PostCommentsProps) {
           name: session?.user?.name || 'Anonymous',
           avatar: session?.user?.image || null,
           isAnonymous: !session?.user || isAnonymous,
-          isCurrentUser: true // Dieser Kommentar stammt vom aktuellen Benutzer
+          isCurrentUser: true, // Dieser Kommentar stammt vom aktuellen Benutzer
+          role: savedComment.author?.role || undefined
         },
         text: savedComment.content,
         likes: 0,
@@ -692,6 +957,7 @@ export function PostComments({ postId }: PostCommentsProps) {
                     <Link href={getUserUrl(comment.user.name)} className={`font-medium ${getNickStyle(comment.user.style)}`}>
                       {comment.user.name}
                     </Link>
+                    {getRoleBadge(comment.user.role)}
                     <Link 
                       href={`#comment-${comment.id}`} 
                       className="text-sm text-gray-500 hover:text-purple-500 transition-colors"

@@ -42,7 +42,8 @@ export async function DELETE(
     }
 
     // Kommentar finden
-    const comment = await Comment.findById(id);
+    const comment = await Comment.findById(id)
+      .populate('author', 'username avatar role');
     if (!comment) {
       console.error(`DELETE: Comment not found with ID: ${id}`);
       return NextResponse.json(
@@ -130,7 +131,8 @@ export async function PATCH(
     }
 
     // Kommentar finden
-    const comment = await Comment.findById(id);
+    const comment = await Comment.findById(id)
+      .populate('author', 'username avatar role');
     if (!comment) {
       console.error(`PATCH: Comment not found with ID: ${id}`);
       return NextResponse.json(
