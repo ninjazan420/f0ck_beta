@@ -29,6 +29,10 @@ interface Comment {
     };
     preview: string;
   };
+  post?: {
+    id: string;
+    numericId?: string | number;
+  };
 }
 
 interface PostCommentsProps {
@@ -227,6 +231,12 @@ export function PostComments({ postId }: PostCommentsProps) {
               },
               preview: comment.replyTo.content.substring(0, 100)
             }
+          } : {}),
+          ...(comment.post ? {
+            post: {
+              id: comment.post.id,
+              numericId: comment.post.numericId
+            }
           } : {})
         };
       });
@@ -259,6 +269,10 @@ export function PostComments({ postId }: PostCommentsProps) {
         text: savedComment.content,
         likes: 0,
         createdAt: savedComment.createdAt || new Date().toISOString(),
+        post: {
+          id: savedComment.post || postId,
+          numericId: postId // Wir nehmen die numeric ID aus der Prop
+        },
         ...(savedComment.replyTo ? {
           replyTo: {
             id: savedComment.replyTo._id || savedComment.replyTo.id,
@@ -652,7 +666,7 @@ export function PostComments({ postId }: PostCommentsProps) {
             {/* Reply to section */}
             {comment.replyTo && (
               <div className="mb-3 pl-3 py-2 border-l-2 border-purple-300 dark:border-purple-700 bg-purple-50/30 dark:bg-purple-900/10 rounded">
-                <Link href={`#comment-${comment.replyTo.id}`} className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                <Link href={`/post/${comment.post?.numericId || postId}#comment-${comment.replyTo.id}`} className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
                   <span className="font-medium">{comment.replyTo.user.name}</span>: {comment.replyTo.preview}
                   {comment.replyTo.preview.length > 100 ? '...' : ''}
                 </Link>

@@ -8,6 +8,9 @@ import { PostComments } from './PostComments';
 import { ReverseSearch } from './ReverseSearch';
 import { CommentList } from '@/app/comments/components/CommentList';
 import { getImageUrlWithCacheBuster } from '@/lib/utils';
+import { useSession } from 'next-auth/react';
+import { EmojiPicker } from '@/components/EmojiPicker';
+import { GifSelector } from '@/components/GifSelector';
 
 const DEFAULT_AVATAR = '/images/defaultavatar.png';
 
@@ -119,6 +122,119 @@ export function PostDetails({ postId }: { postId: string }) {
   const [loading, setLoading] = useState(true);
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
+  
+  // Zustände für Kommentare
+  const { data: session } = useSession();
+  const [newComment, setNewComment] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(!session?.user);
+  const [showPreview, setShowPreview] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showGifSelector, setShowGifSelector] = useState(false);
+  const [selectedGif, setSelectedGif] = useState<{ url: string, source: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [refreshComments, setRefreshComments] = useState(0); // State für Kommentar-Aktualisierung
+
+  // Aktualisiere den isAnonymous-Status, wenn sich der Session-Status ändert
+  useEffect(() => {
+    setIsAnonymous(!session?.user);
+  }, [session]);
+  
+  // Funktionen für Kommentare
+  const handleEmojiSelect = (emoji: string) => {
+    const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
+    if (textarea) {
+      const start = textarea.selectionStart || 0;
+      const end = textarea.selectionEnd || 0;
+      const text = textarea.value;
+      const before = text.substring(0, start);
+      const after = text.substring(end);
+      setNewComment(before + emoji + after);
+    }
+    setShowEmojiPicker(false);
+  };
+
+  const handleGifSelect = (gifData: { url: string, id: string, source: string }) => {
+    setSelectedGif({ url: gifData.url, source: gifData.source });
+    setShowGifSelector(false);
+  };
+
+  const handleSubmitComment = async () => {
+    if ((!newComment.trim() && !selectedGif) || isSubmitting) return;
+    setIsSubmitting(true);
+    
+    try {
+      let finalContent = newComment;
+      if (selectedGif) {
+        finalContent = finalContent.trim() + ` [GIF:${selectedGif.url}] `;
+      }
+      
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: finalContent,
+          postId,
+          isAnonymous
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to post comment: ${errorText}`);
+        throw new Error('Failed to post comment');
+      }
+
+      // Die API sendet den erstellten Kommentar zurück
+      const savedComment = await response.json();
+      console.log('Comment posted successfully:', savedComment);
+
+      // Zurücksetzen des Formulars
+      setNewComment('');
+      setSelectedGif(null);
+      setShowPreview(false);
+      
+      // Nur die Kommentarliste aktualisieren
+      setRefreshComments(prev => prev + 1);
+      
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      alert('Failed to post comment. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Renderung von Kommentarinhalten mit GIFs und Links
+  const renderCommentContent = (text: string) => {
+    if (!text) return null;
+    
+    // GIF-Vorschau anzeigen, wenn vorhanden
+    if (selectedGif) {
+      return (
+        <div className="space-y-2">
+          <span className="whitespace-pre-wrap">{text}</span>
+          {selectedGif && (
+            <div className="mt-2 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 max-w-sm">
+              <Image
+                src={selectedGif.url}
+                alt="GIF"
+                width={300}
+                height={200}
+                className="w-full h-auto"
+                unoptimized={true}
+              />
+              <div className="bg-black/10 dark:bg-white/10 px-2 py-1 text-[10px] text-gray-600 dark:text-gray-400">
+                via {selectedGif.source}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    
+    // Einfacher Text für die Vorschau
+    return <span className="whitespace-pre-wrap">{text}</span>;
+  };
 
   // Voting Handler
   const handleVote = (type: 'like' | 'dislike') => {
@@ -336,10 +452,142 @@ export function PostDetails({ postId }: { postId: string }) {
           {/* Comments Section */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Comments</h2>
+            
+            {/* Kommentarbox */}
+            <div className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium">Add a Comment</h3>
+                <div className="flex items-center gap-2">
+                  <label className="inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={isAnonymous}
+                      onChange={(e) => setIsAnonymous(e.target.checked)}
+                    />
+                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                    <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                      Post Anonymously
+                    </span>
+                  </label>
+                  {showPreview ? (
+                    <button
+                      onClick={() => setShowPreview(false)}
+                      className="px-3 py-1.5 text-sm rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+                    >
+                      Edit
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowPreview(true)}
+                      className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                      disabled={!newComment}
+                    >
+                      Preview
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              {showPreview ? (
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 min-h-[100px] mb-3">
+                  {renderCommentContent(newComment)}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Write a comment..."
+                    className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
+                    rows={5}
+                  />
+                  
+                  {/* GIF-Vorschau */}
+                  {selectedGif && (
+                    <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 max-w-sm">
+                      <Image
+                        src={selectedGif.url}
+                        alt="GIF"
+                        width={300}
+                        height={200}
+                        className="w-full h-auto"
+                        unoptimized={true}
+                      />
+                      <div className="bg-black/10 dark:bg-white/10 px-2 py-1 text-[10px] text-gray-600 dark:text-gray-400">
+                        via {selectedGif.source}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <div className="flex justify-between items-center mt-3">
+                <div className="text-xs text-gray-500">
+                  {newComment.length}/500 characters
+                </div>
+                
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowGifSelector(!showGifSelector);
+                      setShowEmojiPicker(false);
+                    }}
+                    className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    🎨 GIF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEmojiPicker(!showEmojiPicker);
+                      setShowGifSelector(false);
+                    }}
+                    className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    😊 Emoji
+                  </button>
+                  <button
+                    onClick={() => setNewComment('')}
+                    className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubmitComment}
+                    disabled={(!newComment.trim() && !selectedGif) || isSubmitting}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                      (!newComment.trim() && !selectedGif) || isSubmitting
+                        ? 'bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed'
+                        : 'bg-purple-500 text-white hover:bg-purple-600'
+                    }`}
+                  >
+                    Post Comment
+                  </button>
+                </div>
+              </div>
+              
+              {showEmojiPicker && (
+                <EmojiPicker
+                  onSelect={handleEmojiSelect}
+                  onClose={() => setShowEmojiPicker(false)}
+                />
+              )}
+              
+              {showGifSelector && (
+                <GifSelector
+                  onSelect={handleGifSelect}
+                  onClose={() => setShowGifSelector(false)}
+                />
+              )}
+            </div>
+            
             <CommentList 
               postId={postId} 
               status="approved" 
-              limit={20} 
+              limit={20}
+              key={`comments-${refreshComments}`} // Wichtig: Key zum Neurendern der Kommentarliste
             />
           </div>
         </div>

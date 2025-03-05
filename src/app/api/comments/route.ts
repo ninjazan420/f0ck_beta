@@ -107,6 +107,14 @@ export async function GET(req: Request) {
         }
       }
       
+      // Stelle sicher, dass die Antworten auf Kommentare korrekte IDs haben
+      if (processedComment.replyTo) {
+        processedComment.replyTo.id = processedComment.replyTo._id.toString();
+      }
+      
+      // Stelle sicher, dass der Kommentar eine explizite ID hat
+      processedComment.id = processedComment._id.toString();
+      
       return processedComment;
     });
 
@@ -137,11 +145,19 @@ export async function POST(req: Request) {
     // Hole request body
     const body = await req.json();
     const { content, postId, replyTo, isAnonymous } = body;
-    console.log('Received comment data:', { content, postId, isAnonymous });
+    console.log('Received comment data:', { content, postId, replyTo, isAnonymous });
 
-    if (!content || !postId) {
+    if (!content) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required field: content' },
+        { status: 400 }
+      );
+    }
+
+    // Entweder postId oder replyTo muss vorhanden sein
+    if (!postId && !replyTo) {
+      return NextResponse.json(
+        { error: 'Either postId or replyTo must be provided' },
         { status: 400 }
       );
     }
@@ -158,36 +174,65 @@ export async function POST(req: Request) {
 
     await dbConnect();
     
-    // Zuerst den Post anhand der numerischen ID finden
-    let post;
-    if (!mongoose.isValidObjectId(postId)) {
-      // Versuchen, die numerische ID zu konvertieren
-      const numericId = Number(postId);
-      if (isNaN(numericId)) {
-        return NextResponse.json(
-          { error: 'Invalid post ID format' },
-          { status: 400 }
-        );
-      }
-      
-      // Post mit der numerischen ID suchen
+    let postObjectId;
+    
+    // Wenn replyTo vorhanden ist, aber kein postId, finde den übergeordneten Kommentar
+    // und verwende dessen Post-ID
+    if (replyTo && !postId) {
       try {
-        const Post = mongoose.model('Post');
-        post = await Post.findOne({ id: numericId });
-        if (!post) {
-          console.log(`Post with numeric ID ${numericId} not found`);
+        const parentComment = await Comment.findById(replyTo).populate('post');
+        if (!parentComment) {
           return NextResponse.json(
-            { error: 'Post not found' },
+            { error: 'Parent comment not found' },
             { status: 404 }
           );
         }
-        console.log(`Found post with numeric ID ${numericId}, MongoDB ID: ${post._id}`);
+        
+        console.log(`Found parent comment, using its post ID: ${parentComment.post}`);
+        postObjectId = parentComment.post;
       } catch (error) {
-        console.error('Error finding post by numeric ID:', error);
+        console.error('Error finding parent comment:', error);
         return NextResponse.json(
-          { error: 'Error finding post' },
+          { error: 'Error finding parent comment' },
           { status: 500 }
         );
+      }
+    } 
+    // Wenn postId vorhanden ist, verarbeite es wie bisher
+    else if (postId) {
+      // Zuerst den Post anhand der numerischen ID finden
+      if (!mongoose.isValidObjectId(postId)) {
+        // Versuchen, die numerische ID zu konvertieren
+        const numericId = Number(postId);
+        if (isNaN(numericId)) {
+          return NextResponse.json(
+            { error: 'Invalid post ID format' },
+            { status: 400 }
+          );
+        }
+        
+        // Post mit der numerischen ID suchen
+        try {
+          const Post = mongoose.model('Post');
+          const post = await Post.findOne({ id: numericId });
+          if (!post) {
+            console.log(`Post with numeric ID ${numericId} not found`);
+            return NextResponse.json(
+              { error: 'Post not found' },
+              { status: 404 }
+            );
+          }
+          console.log(`Found post with numeric ID ${numericId}, MongoDB ID: ${post._id}`);
+          postObjectId = post._id;
+        } catch (error) {
+          console.error('Error finding post by numeric ID:', error);
+          return NextResponse.json(
+            { error: 'Error finding post' },
+            { status: 500 }
+          );
+        }
+      } else {
+        postObjectId = postId;
       }
     }
 
@@ -233,7 +278,7 @@ export async function POST(req: Request) {
     const commentData = {
       content,
       author: actualIsAnonymous ? null : author, // Null für anonyme Kommentare
-      post: post ? post._id : postId, // Verwende die MongoDB ID des Posts, wenn gefunden
+      post: postObjectId, // Verwende die MongoDB ID des Posts, wenn gefunden
       replyTo,
       // Alle Kommentare werden standardmäßig als "approved" markiert
       status: 'approved'
@@ -249,48 +294,36 @@ export async function POST(req: Request) {
     } catch (saveError) {
       console.error('Error saving comment:', saveError);
       return NextResponse.json(
-        { error: 'Failed to save comment', details: saveError instanceof Error ? saveError.message : 'Unknown error' },
+        { error: 'Failed to save comment' },
         { status: 500 }
       );
     }
 
-    // Kommentar mit Autor zurückgeben
+    // Populate der Autor- und Reply-Informationen für die Antwort
     const populatedComment = await Comment.findById(comment._id)
       .populate('author', 'username avatar')
-      .populate('replyTo');
-    console.log('Populated comment after save:', JSON.stringify(populatedComment));
+      .populate({
+        path: 'replyTo',
+        populate: {
+          path: 'author',
+          select: 'username avatar'
+        }
+      })
+      .populate({
+        path: 'post',
+        select: '_id id title numericId'
+      });
 
-    // Sicherstellen, dass die Antwort das korrekte Format für die UI hat
-    const formattedComment = {
-      _id: populatedComment._id,
-      id: populatedComment._id.toString(), // Explizites ID-Feld als String
-      content: populatedComment.content,
-      author: actualIsAnonymous ? {
-        _id: null,
-        id: null,
-        username: 'Anonymous',
-        avatar: null
-      } : populatedComment.author ? {
-        _id: populatedComment.author._id,
-        id: populatedComment.author._id.toString(), // Explizites ID-Feld als String
-        username: populatedComment.author.username || 'User',
-        avatar: populatedComment.author.avatar
-      } : {
-        _id: null,
-        id: null,
-        username: 'Anonymous',
-        avatar: null
-      },
-      post: {
-        id: postId,
-        title: ''
-      },
-      status: populatedComment.status || 'approved',
-      createdAt: populatedComment.createdAt
-    };
+    // Stelle sicher, dass wir die numerische ID des Posts für die Antwort bereitstellen
+    const populatedCommentObj = populatedComment.toObject();
+    if (populatedCommentObj.post) {
+      // Wenn der Post ein Objekt ist und eine numericId oder id hat, setze diese als numericId
+      if (typeof populatedCommentObj.post === 'object') {
+        populatedCommentObj.post.numericId = postObjectId?.id || populatedCommentObj.post.numericId || populatedCommentObj.post.id;
+      }
+    }
 
-    console.log('Formatted comment for UI:', formattedComment);
-    return NextResponse.json(formattedComment);
+    return NextResponse.json(populatedCommentObj);
   } catch (error) {
     console.error('Error creating comment:', error);
     return NextResponse.json(

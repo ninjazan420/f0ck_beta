@@ -352,17 +352,44 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
     >
       {/* Reply to section */}
       {data.replyTo && (
-        <div className="mb-2 pl-2 border-l-2 border-gray-300 dark:border-gray-600">
-          <Link href={data.post?.id ? 
-            (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.replyTo.id}` : `/post/${data.post.id}#comment-${data.replyTo.id}`)
-            : `#comment-${data.replyTo.id}`} 
-            className="text-sm text-gray-600 dark:text-gray-400">
-            <span className="font-medium">{data.replyTo.author?.username || 'Anonymous'}</span>: 
-            <span className="inline-block">
-              {data.replyTo.content.length > 100 
-                ? data.replyTo.content.substring(0, 100) + '...'
-                : data.replyTo.content}
-            </span>
+        <div className="mb-3">
+          <Link href={data.post ? 
+            // Verwende immer die numerische ID, wenn sie vorhanden ist (fallback auf String-ID)
+            (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.replyTo.id || data.replyTo._id}` 
+              : `/post/${String(data.post.id)}#comment-${data.replyTo.id || data.replyTo._id}`)
+            : `#comment-${data.replyTo.id || data.replyTo._id}`} 
+            className="block group transition-all duration-200">
+              
+            <div className="pl-3 py-2 border-l-2 border-purple-400 dark:border-purple-500 
+                       bg-purple-50 dark:bg-purple-900/20 rounded-r-md
+                       hover:bg-purple-100 dark:hover:bg-purple-900/30 
+                       hover:border-l-3 hover:border-purple-500 dark:hover:border-purple-400
+                       transition-all duration-200">
+              <div className="flex items-center gap-1 mb-0.5">
+                <span className="text-xs text-purple-600 dark:text-purple-400 font-medium flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-corner-up-left">
+                    <polyline points="9 14 4 9 9 4"></polyline>
+                    <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                  </svg>
+                  Reply to
+                </span>
+                <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">
+                  {data.replyTo.author?.username || 'Anonymous'}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-external-link">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                </span>
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 break-all">
+                {data.replyTo.content.length > 100 
+                  ? data.replyTo.content.substring(0, 100) + '...'
+                  : data.replyTo.content}
+              </div>
+            </div>
           </Link>
         </div>
       )}
@@ -385,10 +412,11 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
               {author.username}
             </Link>
             <Link 
-              href={data.post?.id ? 
-                // Versuche zuerst die numericId zu verwenden, wenn vorhanden, sonst die normale ID
-                (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.id}` : `/post/${data.post.id}#comment-${data.id}`) 
-                : `#comment-${data.id}`} 
+              href={data.post ? 
+                // Verwende immer die numerische ID, wenn sie vorhanden ist (fallback auf String-ID)
+                (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.id || data._id}` 
+                  : `/post/${String(data.post.id)}#comment-${data.id || data._id}`)
+                : `#comment-${data.id || data._id}`} 
               className="text-sm text-gray-500 hover:text-purple-500"
               title="Link to the post containing this comment"
             >

@@ -105,6 +105,10 @@ export async function GET(req: Request) {
               // Wenn post ein Objekt ist mit _id und id
               if (typeof activity.targetId.post === 'object' && activity.targetId.post) {
                 formattedActivity.target.postId = activity.targetId.post.id || activity.targetId.post._id;
+                // Wenn die numerische ID verfügbar ist, diese auch speichern
+                if (activity.targetId.post.id) {
+                  formattedActivity.target.numericPostId = activity.targetId.post.id;
+                }
               } else {
                 // Wenn post direkt eine ID ist
                 formattedActivity.target.postId = activity.targetId.post;

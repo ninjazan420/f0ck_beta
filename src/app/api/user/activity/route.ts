@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db/mongodb';
 import Comment from '@/models/Comment';
 import Post from '@/models/Post';
 import User from '@/models/User';
+import mongoose from 'mongoose';
 
 export async function GET(req: Request) {
   try {
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
     })
     .sort({ createdAt: -1 })
     .limit(5)
-    .populate('post', 'title imageUrl thumbnailUrl contentRating');
+    .populate('post', 'title imageUrl thumbnailUrl contentRating numericId id _id');
 
     // Posts des Benutzers abrufen
     const posts = await Post.find({
@@ -42,23 +43,63 @@ export async function GET(req: Request) {
       });
 
     // Alle Aktivitäten kombinieren
-    let activities = [];
+    interface ActivityItem {
+      id: string;
+      type: 'comment' | 'post' | 'like';
+      text: string;
+      content?: string;
+      date: string;
+      emoji: string;
+      post: {
+        id: string;
+        numericId?: string | number;
+        title: string;
+        imageUrl?: string;
+        type?: 'image' | 'video' | 'gif';
+      };
+    }
+
+    let activities: ActivityItem[] = [];
 
     // Kommentar-Aktivitäten
     if (comments && comments.length > 0) {
-      activities = activities.concat(comments.map(comment => {
+      // Stelle sicher, dass alle benötigten Posts mit numericId verfügbar sind
+      const processedComments = await Promise.all(comments.map(async (comment) => {
         // Stelle sicher, dass wir den Post richtig abbilden
         let postId = null;
+        let postNumericId = null;
+        
         if (comment.post) {
           if (typeof comment.post === 'object') {
-            // Wenn es ein Objekt ist, versuche die numerische ID oder _id zu verwenden
-            postId = comment.post.id || comment.post._id;
+            // Wenn der Post ein Objekt ist, bevorzuge numericId
+            postNumericId = comment.post.numericId || comment.post.id;
+            postId = comment.post._id;
           } else {
             // Wenn es eine direkte Referenz ist
             postId = comment.post;
+            
+            // Versuchen, den Post zu finden und die numericId zu extrahieren
+            try {
+              const relatedPost = await Post.findById(comment.post);
+              if (relatedPost) {
+                postNumericId = relatedPost.numericId || relatedPost.id;
+              }
+            } catch (err) {
+              console.error('Error fetching related post:', err);
+            }
           }
         }
 
+        return {
+          comment,
+          postData: {
+            id: postId,
+            numericId: postNumericId
+          }
+        };
+      }));
+
+      activities = activities.concat(processedComments.map(({comment, postData}) => {
         return {
           id: comment._id.toString(),
           type: 'comment',
@@ -67,9 +108,11 @@ export async function GET(req: Request) {
           date: comment.createdAt,
           emoji: '💬',
           post: {
-            id: postId,
+            id: postData.id, // Original MongoDB ID beibehalten
+            numericId: postData.numericId, // Numerische ID explizit setzen
             title: comment.post?.title || 'Unknown Post',
-            imageUrl: comment.post?.thumbnailUrl || comment.post?.imageUrl
+            imageUrl: comment.post?.thumbnailUrl || comment.post?.imageUrl,
+            type: comment.post?.type || 'image'
           }
         };
       }));
@@ -85,9 +128,10 @@ export async function GET(req: Request) {
         emoji: '🖼️',
         post: {
           // Nutze die numerische ID, wenn verfügbar, sonst die Mongo-ID
-          id: post.id || post._id.toString(),
+          id: post.numericId || post.id || post._id.toString(),
           title: post.title,
-          imageUrl: post.thumbnailUrl || post.imageUrl
+          imageUrl: post.thumbnailUrl || post.imageUrl,
+          type: post.type || 'image'
         }
       })));
     }
@@ -102,9 +146,10 @@ export async function GET(req: Request) {
         emoji: '❤️',
         post: {
           // Nutze die numerische ID, wenn verfügbar, sonst die Mongo-ID
-          id: post.id || post._id.toString(),
+          id: post.numericId || post.id || post._id.toString(),
           title: post.title,
-          imageUrl: post.thumbnailUrl || post.imageUrl
+          imageUrl: post.thumbnailUrl || post.imageUrl,
+          type: post.type || 'image'
         }
       })));
     }

@@ -430,18 +430,21 @@ export function CommentList({
     }
     
     try {
+      console.log('Posting reply with params:', { content, postId, replyTo: parentId, isAnonymous });
       const response = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content,
-          postId,
-          parentId,
+          postId, // Dies könnte undefined sein, wenn auf der /comments-Seite
+          replyTo: parentId, // Änderung von parentId zu replyTo, wie die API es erwartet
           isAnonymous
         })
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Reply error response:', errorData);
         throw new Error('Failed to post reply');
       }
       
@@ -559,7 +562,7 @@ export function CommentList({
               avatar: comment.user?.avatar || null
             },
             post: {
-              // Stellen Sie sicher, dass post.id korrekt ist
+              // Stelle sicher, dass post.id korrekt ist
               id: comment.post?._id || comment.post?.id || 
                   (typeof comment.post === 'string' ? comment.post : '') || 
                   postId || '',

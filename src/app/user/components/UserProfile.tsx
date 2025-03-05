@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
+import { ReactElement } from 'react';
 
 interface ActivityItem {
   id: string;
@@ -114,6 +116,104 @@ export function UserProfile({ username }: { username: string }) {
       fetchActivity();
     }
   }, [username, notFound]);
+
+  // Rendering-Funktion für den Kommentarinhalt mit GIF-Support
+  const renderCommentContent = (text: string) => {
+    if (!text) return null;
+    
+    // Einfacherer GIF-Platzhalter: [GIF:url]
+    const gifRegex = /\[GIF:(https?:\/\/[^\]]+)\]/gi;
+    
+    // Verbesserte Regex für URL-Erkennung - erfasst mehr Bildformate und URLs
+    const urlRegex = /(https?:\/\/[^\s]+\.(gif|png|jpg|jpeg|webp|bmp))(?:\?[^\s]*)?/gi;
+    
+    // Suche nach GIF-Platzhaltern und Standard-URLs
+    const gifMatches = Array.from(text.matchAll(gifRegex) || []);
+    const urlMatches = text.match(urlRegex) || [];
+    
+    // Wenn weder GIFs noch Bilder gefunden wurden, gib den Text zurück
+    if (gifMatches.length === 0 && urlMatches.length === 0) {
+      return <span className="whitespace-pre-wrap">{text}</span>;
+    }
+    
+    // Ersetze GIF-Platzhalter und URLs mit Markierungen und teile den Text
+    let processedText = text;
+    
+    // Ersetze zuerst GIF-Platzhalter
+    processedText = processedText.replace(gifRegex, '\n[gif-media]\n');
+    
+    // Dann ersetze URL-Medien, aber nicht die, die bereits als GIF markiert sind
+    const tempProcessedText = processedText;
+    urlMatches.forEach(url => {
+      // Prüfe, ob die URL bereits als GIF verarbeitet wurde
+      if (!gifMatches.some(match => match[1] === url) && tempProcessedText.includes(url)) {
+        processedText = processedText.replace(url, '\n[url-media]\n');
+      }
+    });
+    
+    const textParts = processedText.split('\n');
+    const result: ReactElement[] = [];
+    let gifIndex = 0;
+    let urlIndex = 0;
+    
+    textParts.forEach((part, index) => {
+      if (part === '[gif-media]') {
+        if (gifIndex < gifMatches.length) {
+          const match = gifMatches[gifIndex];
+          const url = match[1];
+          const isGiphy = url.includes('giphy.com');
+          
+          result.push(
+            <div key={`gif-${index}`} className="my-2">
+              <Image
+                src={url}
+                alt="GIF"
+                width={400}
+                height={300}
+                className=""
+                unoptimized
+              />
+              {isGiphy && (
+                <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
+                  Powered by GIPHY
+                </div>
+              )}
+            </div>
+          );
+          gifIndex++;
+        }
+      } else if (part === '[url-media]') {
+        if (urlIndex < urlMatches.length) {
+          // Überspringe URLs, die bereits als GIFs verarbeitet wurden
+          while (urlIndex < urlMatches.length && 
+                 gifMatches.some(match => match[1] === urlMatches[urlIndex])) {
+            urlIndex++;
+          }
+          
+          if (urlIndex < urlMatches.length) {
+            const url = urlMatches[urlIndex];
+            result.push(
+              <div key={`url-${index}`} className="my-2">
+                <Image
+                  src={url}
+                  alt="Media"
+                  width={400}
+                  height={300}
+                  className=""
+                  unoptimized
+                />
+              </div>
+            );
+            urlIndex++;
+          }
+        }
+      } else if (part.trim() !== '') {
+        result.push(<span key={`text-${index}`} className="whitespace-pre-wrap">{part}</span>);
+      }
+    });
+    
+    return <>{result}</>;
+  };
 
   const getRoleBadge = (role: string) => {
     switch(role) {
@@ -276,9 +376,9 @@ export function UserProfile({ username }: { username: string }) {
                 </div>
                 {activity.content && activity.type === 'comment' && (
                   <div className="text-sm text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-900/30 p-2 rounded border border-gray-200 dark:border-gray-700">
-                    {activity.content.length > 100 
+                    {activity.content.length > 100 && !activity.content.includes('[GIF:')
                       ? `${activity.content.substring(0, 100)}...` 
-                      : activity.content}
+                      : renderCommentContent(activity.content)}
                   </div>
                 )}
                 <div className="text-xs text-gray-500">
@@ -292,13 +392,13 @@ export function UserProfile({ username }: { username: string }) {
                 </div>
               </div>
 
-              {/* Thumbnail */}
+              {/* Thumbnail - immer anzeigen, unabhängig vom Kommentarinhalt */}
               <Link 
                 href={`/post/${activity.post.id}`}
                 className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden group"
               >
-                <div className={`absolute inset-0 bg-cover bg-center`}>
-                  {activity.post.imageUrl && (
+                {activity.post.imageUrl && (
+                  <div className="w-full h-full">
                     <Image
                       src={activity.post.imageUrl}
                       alt={activity.post.title}
@@ -309,8 +409,8 @@ export function UserProfile({ username }: { username: string }) {
                       }`}
                       priority
                     />
-                  )}
-                </div>
+                  </div>
+                )}
                 {activity.post.type === 'video' && (
                   <div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-black/50 flex items-center justify-center">
                     <div className="w-2 h-2 border-l-[4px] border-l-white border-y-[2px] border-y-transparent" />

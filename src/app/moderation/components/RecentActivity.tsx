@@ -22,6 +22,7 @@ interface Activity {
     title?: string;
     numericId?: number | string;
     imageUrl?: string;
+    postId?: string | { numericId?: number | string; id?: string };
   } | null;
 }
 
@@ -89,7 +90,14 @@ export function RecentActivity() {
         const postId = activity.target.numericId || activity.target.id;
         return `/post/${postId}`;
       case 'comment': 
-        if (activity.target.numericId) {
+        if (activity.target.postId) {
+          if (typeof activity.target.postId === 'object' && activity.target.postId) {
+            const numericId = activity.target.postId.numericId || activity.target.postId.id;
+            return `/post/${numericId}#comment-${activity.target.id}`;
+          }
+          return `/post/${activity.target.postId}#comment-${activity.target.id}`;
+        }
+        else if (activity.target.numericId) {
           const numericId = typeof activity.target.numericId === 'number' ? 
             activity.target.numericId : 
             activity.target.numericId;
