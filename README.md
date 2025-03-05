@@ -1,4 +1,4 @@
-# f0ck.org Beta v1.3.0
+# f0ck.org Beta v1.4.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still broken.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v1.3.0](#f0ckorg-beta-v130)
+- [f0ck.org Beta v1.4.0](#f0ckorg-beta-v140)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,7 +21,10 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v1.3.0 (Current)](#beta-v130-current)
+    - [Beta v1.4.0 (Current)](#beta-v140-current)
+      - [🔄 Updates](#-updates)
+      - [💬 Complete Comment System](#-complete-comment-system)
+      - [🛠️ Fixes](#️-fixes)
     - [Older Versions (click to expand)](#older-versions-click-to-expand)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
@@ -145,7 +148,37 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v1.3.0 (Current)
+### Beta v1.4.0 (Current)
+
+#### 🔄 Updates
+
+- Moderation page improved with additional features
+- Functioning comment stream implemented
+- Prepared reported content system
+- Added API route for moderator comment deletion
+- Added quote functionality for comments
+- Implemented badges in comments that respect banned users in filter list
+
+#### 💬 Complete Comment System
+
+- Enhanced comment functionality with GIF and emoji integration
+- User comment editing and deletion capabilities
+- Improved reply threading for nested discussions
+- API endpoints for comment management (GET, POST, PATCH, DELETE)
+- Enhanced error handling for comments
+- Support for anonymous commenting without login
+- Extended permission system for comment moderation
+
+#### 🛠️ Fixes
+
+- Fixed routes and hotlinks for comments
+- Corrected meta title for /user/nickname
+- Implemented fix that automatically removes leftover MongoDB object IDs
+
+### Older Versions (click to expand)
+
+<details>
+<summary>Beta v1.3.0</summary>
 
 - 💬 Comment System Enhancement
   - Live comment functionality activated
@@ -154,8 +187,7 @@ NODE_ENV=development
   - Editing and deleting capabilities for users
   - GIF support in comments with GIPHY integration
   - Anonymous commenting option
-
-### Older Versions (click to expand)
+</details>
 
 <details>
 <summary>Beta v1.2.2</summary>
@@ -268,5 +300,8 @@ NODE_ENV=development
 - [Ko-fi](https://ko-fi.com/f0ck_org)
 
 ## 📜 License
+
+MIT License - © 2024 f0ck.org Team
+
 
 MIT License - © 2024 f0ck.org Team
