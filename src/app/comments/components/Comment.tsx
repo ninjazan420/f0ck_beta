@@ -66,7 +66,11 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
   
   const formattedDate = new Date(data.createdAt).toLocaleString();
 
-  const getUserUrl = (username: string) => `/user/${username.toLowerCase()}`;
+  const getUserUrl = (username: string) => {
+    // Kein Link für Anonymous-Nutzer
+    if (username === 'Anonymous') return '';
+    return `/user/${username.toLowerCase()}`;
+  };
 
   // Role badge rendering function similar to UserProfile component
   const getRoleBadge = (role?: string) => {
@@ -438,20 +442,37 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
 
       {/* Main comment content */}
       <div className="flex items-start gap-3">
-        <Link href={getUserUrl(author.username)} className="flex-shrink-0">
-          <Image
-            src={author.avatar || DEFAULT_AVATAR}
-            alt={author.username}
-            width={50}
-            height={50}
-          />
-        </Link>
+        {author.username === 'Anonymous' ? (
+          <div className="flex-shrink-0">
+            <Image
+              src={author.avatar || DEFAULT_AVATAR}
+              alt={author.username}
+              width={50}
+              height={50}
+            />
+          </div>
+        ) : (
+          <Link href={getUserUrl(author.username)} className="flex-shrink-0">
+            <Image
+              src={author.avatar || DEFAULT_AVATAR}
+              alt={author.username}
+              width={50}
+              height={50}
+            />
+          </Link>
+        )}
 
         <div className="flex-grow min-w-0">
           <div className="flex items-center flex-wrap gap-2">
-            <Link href={getUserUrl(author.username)} className="font-medium text-gray-900 dark:text-gray-100">
-              {author.username}
-            </Link>
+            {author.username === 'Anonymous' ? (
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                {author.username}
+              </span>
+            ) : (
+              <Link href={getUserUrl(author.username)} className="font-medium text-gray-900 dark:text-gray-100">
+                {author.username}
+              </Link>
+            )}
             {getRoleBadge(author.role)}
             <Link 
               href={data.post ? 
