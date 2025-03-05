@@ -2,7 +2,7 @@
 
 Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 
-## [1.5.0] - 2024-04-15
+## [1.5.0] - 05.03.2025
 
 ### 🔍 Verbesserte Suchfunktion
 
@@ -24,7 +24,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Optimierte API-Endpunkte mit Unterstützung für Offset und Limit
 - Verbesserte Performance durch effizientere Datenbankabfragen
 
-## [1.4.0] - 2024-03-30
+## [1.4.0] - 03.03.2025
 
 ### 🔄 Updates
 
@@ -51,7 +51,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Meta-Titel für /user/nickname korrigiert
 - Fix implementiert, der übrig gebliebene MongoDB-Objekt-IDs automatisch löscht
 
-## [1.3.0] - 2024-03-15
+## [1.3.0] - 01.03.2025
 
 ### 💬 Kommentarsystem-Erweiterung
 
@@ -62,7 +62,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - GIF-Unterstützung in Kommentaren mit GIPHY-Integration
 - Option für anonymes Kommentieren
 
-## [1.2.2] - 2024-03-02
+## [1.2.2] - 28.02.2025
 
 ### 👤 Verbesserungen der Benutzerprofile
 
