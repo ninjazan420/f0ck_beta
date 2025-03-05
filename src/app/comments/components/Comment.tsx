@@ -254,7 +254,16 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
   };
 
   const canModerate = session?.user?.role && ['moderator', 'admin'].includes(session.user.role);
-  const isAuthor = session?.user?.id === author.id;
+  
+  // Debug-Informationen für die Autorisierung
+  console.log('Comment authorization check:', {
+    authorId: author.id,
+    sessionUserId: session?.user?.id,
+    canModerate,
+    sessionUserRole: session?.user?.role
+  });
+  
+  const isAuthor = session?.user?.id && author.id && (session.user.id === author.id);
   const isPending = data.status === 'pending';
   const isRejected = data.status === 'rejected';
 

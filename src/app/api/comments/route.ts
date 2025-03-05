@@ -393,8 +393,19 @@ export async function PATCH(req: Request) {
     // Für Bearbeitung von Inhalten
     if (content !== undefined) {
       // Prüfen, ob der Benutzer der Autor ist oder Moderator/Admin
-      const isAuthor = comment.author && comment.author.toString() === session.user.id;
+      console.log('Author check in /api/comments:', {
+        commentAuthor: comment.author,
+        sessionUserId: session.user.id,
+        userRole: user.role
+      });
+      
+      const isAuthor = comment.author && 
+        (typeof comment.author === 'object' && comment.author._id 
+          ? comment.author._id.toString() === session.user.id 
+          : comment.author.toString() === session.user.id);
       const isModerator = ['moderator', 'admin'].includes(user.role);
+      
+      console.log('Authorization result in /api/comments:', { isAuthor, isModerator });
 
       if (!isAuthor && !isModerator) {
         return NextResponse.json(

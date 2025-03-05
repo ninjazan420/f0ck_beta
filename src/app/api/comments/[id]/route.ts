@@ -62,8 +62,19 @@ export async function DELETE(
     }
 
     // Prüfen ob Benutzer der Autor ist oder Admin/Moderator-Rechte hat
-    const isAuthor = comment.author && comment.author.toString() === session.user.id;
+    console.log('Author check:', {
+      commentAuthor: comment.author,
+      sessionUserId: session.user.id,
+      userRole: user.role
+    });
+    
+    const isAuthor = comment.author && 
+      (comment.author._id 
+        ? comment.author._id.toString() === session.user.id 
+        : comment.author.toString() === session.user.id);
     const isModerator = ['admin', 'moderator'].includes(user.role);
+    
+    console.log('Authorization result:', { isAuthor, isModerator });
 
     if (!isAuthor && !isModerator) {
       return NextResponse.json(
@@ -150,9 +161,22 @@ export async function PATCH(
       );
     }
 
-    // Prüfen ob Benutzer der Autor ist
-    const isAuthor = comment.author && comment.author.toString() === session.user.id;
-    if (!isAuthor) {
+    // Prüfen ob Benutzer der Autor ist oder Admin/Moderator-Rechte hat
+    console.log('Author check:', {
+      commentAuthor: comment.author,
+      sessionUserId: session.user.id,
+      userRole: user.role
+    });
+    
+    const isAuthor = comment.author && 
+      (comment.author._id 
+        ? comment.author._id.toString() === session.user.id 
+        : comment.author.toString() === session.user.id);
+    const isModerator = ['admin', 'moderator'].includes(user.role);
+    
+    console.log('Authorization result:', { isAuthor, isModerator });
+
+    if (!isAuthor && !isModerator) {
       return NextResponse.json(
         { error: 'Not authorized to edit this comment' },
         { status: 403 }
