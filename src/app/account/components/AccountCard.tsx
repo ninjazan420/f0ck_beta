@@ -335,6 +335,7 @@ export function AccountCard() {
 
   // Avatar-Handling-Funktion
   const handleAvatarChange = (newAvatarUrl: string | null) => {
+    // Setze den neuen Avatar-URL im Profil
     setProfile(prev => ({
       ...prev,
       avatarUrl: newAvatarUrl

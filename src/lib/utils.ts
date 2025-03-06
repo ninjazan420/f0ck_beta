@@ -32,10 +32,10 @@ export function getImageUrlWithCacheBuster(url: string): string {
   
   // Wenn es sich um ein Bild aus dem uploads-Verzeichnis handelt, nutze die API-Route
   if (url.startsWith('/uploads/')) {
-    // Entferne das führende /uploads/
-    const imagePath = url.substring(9);
+    // Wir behalten die Ordnerstruktur bei und entfernen nur das '/uploads/'
+    const imagePath = url.substring(9); // Entfernt nur '/uploads/'
+    
     // Nutze die API-Route mit dem Bildpfad und einem Timestamp
-    // Anstatt den gesamten Pfad zu kodieren, verwenden wir den Pfad direkt
     return `/api/images/${imagePath}?t=${Date.now()}`;
   }
   

@@ -103,7 +103,7 @@ export const Navbar = () => {
               <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                 {session?.user?.avatar ? (
                   <Image 
-                    src={session.user.avatar} 
+                    src={getImageUrlWithCacheBuster(session.user.avatar)} 
                     alt="Avatar" 
                     width={24} 
                     height={24} 
@@ -226,7 +226,7 @@ export const Navbar = () => {
               <Link href="/account">
                 {session?.user?.avatar ? (
                   <Image 
-                    src={session.user.avatar} 
+                    src={getImageUrlWithCacheBuster(session.user.avatar)} 
                     alt="Avatar" 
                     width={32} 
                     height={32} 
@@ -256,7 +256,7 @@ export const Navbar = () => {
                   <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                     {session?.user?.avatar ? (
                       <Image 
-                        src={session.user.avatar} 
+                        src={getImageUrlWithCacheBuster(session.user.avatar)} 
                         alt="Avatar" 
                         width={40} 
                         height={40} 
