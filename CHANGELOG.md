@@ -2,7 +2,7 @@
 
 Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 
-## [1.6.0] - 2024-05-20
+## [1.6.0] -
 
 ### 🏷️ Tag-System - Vollständig implementiert
 
@@ -53,11 +53,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Optimierte API-Endpunkte mit Unterstützung für Offset und Limit
 - Verbesserte Performance durch effizientere Datenbankabfragen
 
-<<<<<<< HEAD
 ## [1.4.0] -
-=======
-## [1.4.0] - 03.03.2025
->>>>>>> fd163ecfc27e296834e06511444e1a13cbfae331
 
 ### 🔄 Updates
 
@@ -84,11 +80,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Meta-Titel für /user/nickname korrigiert
 - Fix implementiert, der übrig gebliebene MongoDB-Objekt-IDs automatisch löscht
 
-<<<<<<< HEAD
 ## [1.3.0] -
-=======
-## [1.3.0] - 01.03.2025
->>>>>>> fd163ecfc27e296834e06511444e1a13cbfae331
 
 ### 💬 Kommentarsystem-Erweiterung
 
@@ -99,11 +91,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - GIF-Unterstützung in Kommentaren mit GIPHY-Integration
 - Option für anonymes Kommentieren
 
-<<<<<<< HEAD
 ## [1.2.2] -
-=======
-## [1.2.2] - 28.02.2025
->>>>>>> fd163ecfc27e296834e06511444e1a13cbfae331
 
 ### 👤 Verbesserungen der Benutzerprofile
 
