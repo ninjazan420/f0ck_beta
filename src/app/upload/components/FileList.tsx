@@ -21,13 +21,15 @@ export function FileList({
   urls, 
   onRemoveFile, 
   onRemoveUrl,
-  onUpdateRating
+  onUpdateRating,
+  onItemsUpdate
 }: { 
   files: File[];
   urls: string[];
   onRemoveFile: (index: number) => void;
   onRemoveUrl: (index: number) => void;
   onUpdateRating?: (fileName: string, rating: 'safe' | 'sketchy' | 'unsafe') => void;
+  onItemsUpdate?: (items: FileItem[]) => void;
 }) {
   const [items, setItems] = useState<FileItem[]>([]);
 
@@ -83,6 +85,12 @@ export function FileList({
     loadFiles();
   }, [files, urls]);
 
+  useEffect(() => {
+    if (onItemsUpdate && items.length > 0) {
+      onItemsUpdate(items);
+    }
+  }, [items, onItemsUpdate]);
+
   const handleRemove = (item: FileItem) => {
     if (item.type === 'file') {
       onRemoveFile(item.index);
@@ -92,19 +100,19 @@ export function FileList({
   };
 
   const isValidTag = (tag: string): boolean => {
-    // Erlaubt: Buchstaben (inkl. Umlaute), Zahlen, Bindestriche
-    const tagRegex = /^[a-zA-ZäöüÄÖÜß0-9-]+$/;
+    // Erlaubt: Buchstaben inkl. deutscher Umlaute und Zahlen, keine Unterstriche, keine Sonderzeichen
+    const tagRegex = /^[a-z0-9äöüß]+$/;
     return tagRegex.test(tag);
   };
 
   const addTag = (id: string, tag: string) => {
-    const cleanTag = tag.trim();
+    const cleanTag = tag.trim().toLowerCase().replace(/\s+/g, '');
     if (!cleanTag) return;
 
     if (!isValidTag(cleanTag)) {
       setItems(prev => prev.map(item =>
         item.id === id ? 
-          { ...item, error: 'Tags can only contain letters, numbers and hyphens' } 
+          { ...item, error: 'Tags können nur Buchstaben, deutsche Umlaute und Zahlen enthalten' } 
           : item
       ));
       return;
@@ -264,7 +272,7 @@ export function FileList({
                   ))}
                   <input
                     type="text"
-                    placeholder={item.tags.length >= 10 ? "Max tags reached" : "Add tag..."}
+                    placeholder={item.tags.length >= 10 ? "Maximum of 10 tags reached" : "Add tag (e.g. artwork, anime)"}
                     className="px-2 py-1 text-sm border rounded bg-transparent text-gray-700 dark:text-gray-300 disabled:opacity-50"
                     onKeyDown={e => handleTagInput(item.id, e)}
                     disabled={item.tags.length >= 10}

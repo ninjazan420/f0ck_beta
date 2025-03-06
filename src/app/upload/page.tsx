@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
@@ -9,6 +9,21 @@ import { UploadOptions } from './components/UploadOptions';
 import { FileList } from './components/FileList';
 import { UrlInput } from './components/UrlInput';
 
+// Define the FileItem interface to match the one in FileList.tsx
+interface FileItem {
+  id: string;
+  name: string;
+  type: 'file' | 'url';
+  size?: number;
+  tags: string[];
+  index: number;
+  thumbnail?: string;
+  dimensions?: { width: number; height: number };
+  format?: string;
+  contentRating: 'safe' | 'sketchy' | 'unsafe';
+  error?: string;
+}
+
 export default function UploadPage() {
   const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
@@ -16,6 +31,14 @@ export default function UploadPage() {
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [fileRatings, setFileRatings] = useState<{[key: string]: 'safe' | 'sketchy' | 'unsafe'}>({});
+  // Add state to store file items with their tags
+  const [fileItems, setFileItems] = useState<FileItem[]>([]);
+
+  // Function to get tags for a specific file
+  const getFileTags = (fileName: string): string[] => {
+    const fileItem = fileItems.find(item => item.name === fileName && item.type === 'file');
+    return fileItem?.tags || [];
+  };
 
   const handleFileDrop = (newFiles: File[]) => {
     const validFiles = newFiles.filter(file => {
@@ -65,6 +88,12 @@ export default function UploadPage() {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('rating', fileRatings[file.name] || 'safe');
+        
+        // Add individual file tags to the form data
+        const fileTags = getFileTags(file.name);
+        if (fileTags.length > 0) {
+          formData.append('tags', JSON.stringify(fileTags));
+        }
 
         const response = await fetch('/api/upload', {
           method: 'POST',
@@ -109,6 +138,7 @@ export default function UploadPage() {
     setFiles([]);
     setUrls([]);
     setError(null);
+    setFileItems([]);
   };
 
   const updateFileRating = (fileName: string, rating: 'safe' | 'sketchy' | 'unsafe') => {
@@ -116,6 +146,11 @@ export default function UploadPage() {
       ...prev,
       [fileName]: rating
     }));
+  };
+
+  // Update fileItems when FileList component updates its items
+  const handleFileItemsUpdate = (items: FileItem[]) => {
+    setFileItems(items);
   };
 
   const hasFiles = files.length > 0 || urls.length > 0;
@@ -167,6 +202,7 @@ export default function UploadPage() {
                   onRemoveFile={handleRemoveFile}
                   onRemoveUrl={handleRemoveUrl}
                   onUpdateRating={updateFileRating}
+                  onItemsUpdate={handleFileItemsUpdate}
                 />
               </>
             )}

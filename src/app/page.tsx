@@ -21,6 +21,16 @@ const PINNED_POST = {
   createdAt: '2023-12-24T12:00:00Z',
 };
 
+const mockStats = {
+  postsCount: 42069,
+  totalUsers: 8008,
+  newPostsToday: 1337,
+  activeUsers: 420,
+  tagCount: 9001,
+  commentsCount: 13370,
+  createdAt: '2023-12-24T12:00:00Z',
+};
+
 export default function Home() {
   const [stats, setStats] = useState({ activeUsers: 0, newPosts: 0, newComments: 0 });
 
@@ -96,21 +106,21 @@ export default function Home() {
           <div className="flex justify-between items-center gap-4 rounded-xl p-4 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
             <div className="text-center flex-1">
               <div className="text-xl font-light tracking-tight text-gray-900 dark:text-gray-300">{stats.activeUsers}</div>
-              <div className="text-xs font-medium text-gray-500 dark:text-gray-500">Aktive Nutzer</div>
+              <div className="text-xs font-medium text-gray-500 dark:text-gray-500">Active Users</div>
             </div>
             <div className="h-8 w-px bg-gray-200 dark:bg-gray-700"></div>
             <div className="text-center flex-1">
               <div className="text-xl font-light tracking-tight text-gray-900 dark:text-gray-300">{stats.newComments}</div>
-              <div className="text-xs font-medium text-gray-500 dark:text-gray-500">Kommentare (24h)</div>
+              <div className="text-xs font-medium text-gray-500 dark:text-gray-500">Comments (24h)</div>
             </div>
             <div className="h-8 w-px bg-gray-200 dark:bg-gray-700"></div>
             <div className="text-center flex-1">
               <div className="text-xl font-light tracking-tight text-gray-900 dark:text-gray-300">{stats.newPosts}</div>
-              <div className="text-xs font-medium text-gray-500 dark:text-gray-500">Neue Posts (24h)</div>
+              <div className="text-xs font-medium text-gray-500 dark:text-gray-500">New Posts (24h)</div>
             </div>
           </div>
           <div className="text-center text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">
-            Weitere Features folgen...
+            More features coming soon...
           </div>
         </div>
       </div>

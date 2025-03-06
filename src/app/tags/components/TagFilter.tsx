@@ -1,10 +1,8 @@
-import { TagType, SortBy } from './TagsPage';
+import { SortBy } from './TagsPage';
 
 interface TagFilterProps {
   filters: {
     search: string;
-    types: TagType[];
-    minPosts: number;
     sortBy: SortBy;
     author: string;
     usedBy: string;
@@ -28,28 +26,6 @@ export function TagFilter({ filters, onFilterChange }: TagFilterProps) {
               placeholder="Search tags..."
               className="w-full px-4 py-2 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700"
             />
-          </div>
-
-          {/* Type Filter */}
-          <div className="flex flex-wrap gap-2">
-            {(['general', 'character', 'copyright', 'artist', 'meta'] as TagType[]).map(type => (
-              <button
-                key={type}
-                onClick={() => {
-                  const newTypes = filters.types.includes(type)
-                    ? filters.types.filter(t => t !== type)
-                    : [...filters.types, type];
-                  onFilterChange({ ...filters, types: newTypes });
-                }}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                  filters.types.includes(type)
-                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </button>
-            ))}
           </div>
 
           {/* Time Range */}
@@ -126,25 +102,6 @@ export function TagFilter({ filters, onFilterChange }: TagFilterProps) {
                 className="w-full px-3 py-1.5 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm"
               />
             </div>
-          </div>
-
-          {/* Min Posts Compact Version */}
-          <div className="flex items-center gap-4">
-            <label htmlFor="minPosts" className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-              Min. posts:
-            </label>
-            <select
-              id="minPosts"
-              value={filters.minPosts}
-              onChange={(e) => onFilterChange({ ...filters, minPosts: Number(e.target.value) })}
-              className="flex-1 px-3 py-1.5 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm"
-            >
-              <option value="0">Any</option>
-              <option value="10">10+</option>
-              <option value="100">100+</option>
-              <option value="1000">1,000+</option>
-              <option value="10000">10,000+</option>
-            </select>
           </div>
         </div>
       </div>

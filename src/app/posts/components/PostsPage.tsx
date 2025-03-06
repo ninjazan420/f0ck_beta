@@ -38,6 +38,23 @@ export function PostsPage() {
     sortBy: 'newest' as 'newest' | 'oldest' | 'most_liked' | 'most_commented'
   });
 
+  // Effect zum Auslesen von URL-Parametern (wie tag)
+  useEffect(() => {
+    const tagParam = searchParams.get('tag');
+    
+    if (tagParam) {
+      console.log('Tag parameter found in URL:', tagParam);
+      // Nur setzen, wenn noch nicht in den Tags vorhanden
+      setFilters(prev => {
+        if (!prev.tags.includes(tagParam)) {
+          console.log('Adding tag to filters:', tagParam);
+          return { ...prev, tags: [...prev.tags, tagParam] };
+        }
+        return prev;
+      });
+    }
+  }, [searchParams]);
+
   // Update URL when page changes
   useEffect(() => {
     if (typeof window !== 'undefined' && !infiniteScroll) {

@@ -12,6 +12,16 @@ import type { Metadata } from 'next'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const jetBrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono' })
 
+// Keep initialization code but make it run only once
+let hasInitialized = false;
+
+if (!hasInitialized) {
+  import('@/lib/init').then(({ initializeDatabase }) => {
+    initializeDatabase().catch(console.error);
+    hasInitialized = true;
+  });
+}
+
 export const metadata: Metadata = {
   title: "Home | " + siteConfig.name,
   description: "Anonymous Imageboard platform for sharing Memes, Cats, and more",

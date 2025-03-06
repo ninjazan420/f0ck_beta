@@ -95,6 +95,14 @@ export function PostGrid({
         });
       }
       
+      // Füge Tags-Filter hinzu
+      if (filters.tags?.length) {
+        console.log('Adding tags to API request:', filters.tags);
+        filters.tags.forEach(tag => {
+          queryParams.append('tag', tag);
+        });
+      }
+      
       const response = await fetch(`/api/posts?${queryParams.toString()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch posts');

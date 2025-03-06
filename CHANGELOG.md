@@ -2,7 +2,36 @@
 
 Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 
-## [1.5.0] - 2024-04-15
+## [1.6.0] - 2024-05-20
+
+### 🏷️ Tag-System - Vollständig implementiert
+
+- **Posts mit Tags organisieren und finden**: Das komplette Tag-System ist jetzt live! Nutzer können ihre Uploads mit bis zu 10 Tags versehen und so die Auffindbarkeit und Organisation von Inhalten verbessern.
+- **Vereinfachte Tag-Struktur**: Ein einheitliches Tag-System ohne Kategorien-Unterscheidung macht das Taggen intuitiver und benutzerfreundlicher.
+- **Leistungsstarke Tag-Suche**: Finde genau das, was du suchst - filtere Posts anhand von Tags und kombiniere diese mit anderen Suchkriterien.
+- **Verbesserte Benutzererfahrung**:
+  - Klare Fehlermeldung bei Erreichen des Limits von 10 Tags pro Upload
+  - Optimierte Tag-Filter mit intuitiver, aufgeräumter Oberfläche
+  - Intelligente Tag-Validierung für konsistente Taxonomie
+
+### 🔍 Wichtige Funktionsverbesserungen
+
+- **Reverse Image Search repariert**: Die Bildersuche nach ähnlichen Bildern funktioniert jetzt zuverlässig.
+- **Optimiertes Filter-Verhalten**: Das Verhalten der Filter für "Safe", "Sketchy" und "Unsafe" Inhalte wurde verbessert und logischer gestaltet.
+- **Anonyme Beiträge vereinfacht**: Entfernung irreführender Links zu "Anonymous" in Kommentaren und Uploads, da es keinen expliziten Anonymous-Account gibt.
+
+### 🎨 UI-Verbesserungen
+
+- **Konsistentes Avatar-Design**: Avatare in der Userbox unter /post/id wurden auf ein einheitliches, kantiges Design angepasst.
+- **Verbesserte visuelle Hierarchie** für eine klarere Benutzeroberfläche.
+
+### 🛠️ Technische Verbesserungen
+
+- Vollständige Überarbeitung des Tag-Modells in der Datenbank
+- Optimierte API-Endpunkte für Tag-Operationen
+- Verbesserte Leistung bei Tag-basierten Suchanfragen
+
+## [1.5.0] -
 
 ### 🔍 Verbesserte Suchfunktion
 
@@ -24,7 +53,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Optimierte API-Endpunkte mit Unterstützung für Offset und Limit
 - Verbesserte Performance durch effizientere Datenbankabfragen
 
-## [1.4.0] - 2024-03-30
+## [1.4.0] -
 
 ### 🔄 Updates
 
@@ -51,7 +80,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Meta-Titel für /user/nickname korrigiert
 - Fix implementiert, der übrig gebliebene MongoDB-Objekt-IDs automatisch löscht
 
-## [1.3.0] - 2024-03-15
+## [1.3.0] -
 
 ### 💬 Kommentarsystem-Erweiterung
 
@@ -62,7 +91,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - GIF-Unterstützung in Kommentaren mit GIPHY-Integration
 - Option für anonymes Kommentieren
 
-## [1.2.2] - 2024-03-02
+## [1.2.2] -
 
 ### 👤 Verbesserungen der Benutzerprofile
 
@@ -77,7 +106,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Entfernung der redundanten Statistikbox in den Post-Ansichten
 - Verbesserte visuelle Konsistenz in der gesamten Anwendung
 
-## [1.2.0] - 2024-03-02
+## [1.2.0] -
 
 ### 🐳 Docker-Integration
 
@@ -93,7 +122,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Verbesserte Berechtigungen für Uploads
 - Aktualisierte Abhängigkeiten
 
-## [1.1.1] - 2024-02-20
+## [1.1.1] -
 
 ### 🖼️ UI/UX-Verbesserungen
 
@@ -115,7 +144,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Reduzierte Bundle-Größe
 - Verbesserte Bildladeprozesse
 
-## [1.1.0] - 2024-02-01
+## [1.1.0] -
 
 ### 🎨 Upload-System
 
@@ -142,7 +171,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Schnellere Ladezeiten
 - Optimierte Thumbnails
 
-## [1.0.7] - 2024-01-15
+## [1.0.7] -
 
 ### 💬 Erweitertes Kommentarsystem
 
@@ -165,7 +194,7 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Bearbeitung von Meldungen
 - Moderationswerkzeuge
 
-## [1.0.6] - 2024-01-01
+## [1.0.6] -
 
 ### 🎨 Erweitertes Kommentarsystem
 

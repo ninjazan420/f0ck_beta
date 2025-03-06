@@ -1,97 +1,111 @@
-import { NextResponse } from 'next/server';
-import { processUpload, initializeUploadDirectories } from '@/lib/upload';
-import { getServerSession } from 'next-auth/next';
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import connectToDatabase from '@/lib/db/mongodb';
+import { processUpload } from '@/lib/upload';
 import { initializeUploadDirectory } from '@/lib/init';
+import { initializeUploadDirectories } from '@/lib/upload';
+// Kommentiere den Rate Limiter aus
+// import { rateLimit } from '@/lib/rateLimit';
+import dbConnect from '@/lib/db/mongodb';
 import { revalidatePath } from 'next/cache';
 
-// Initialisiere den Upload-Ordner beim Aufruf der Upload-API
+// Initialize upload directories
 initializeUploadDirectory().catch(console.error);
+initializeUploadDirectories().catch(console.error);
 
-export async function POST(req: Request) {
+// Kommentiere den Rate Limiter aus
+// Initialize rate limiter
+// const limiter = rateLimit({
+//   interval: 60 * 1000, // 1 minute
+//   uniqueTokenPerInterval: 500
+// });
+
+export async function POST(request: NextRequest) {
   try {
-    // Stelle sicher, dass wir mit der Datenbank verbunden sind
-    await connectToDatabase();
+    // Connect to database
+    await dbConnect();
+    
+    // Kommentiere Rate Limiting aus
+    // Rate limiting
+    // try {
+    //   await limiter.check(10, 'UPLOAD_RATE_LIMIT');
+    // } catch {
+    //   return NextResponse.json(
+    //     { error: 'Rate limit exceeded. Please try again later.' },
+    //     { status: 429 }
+    //   );
+    // }
 
-    // Optional: Hole User-Session wenn vorhanden
+    // Get user session (if authenticated)
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
-
-    const formData = await req.formData();
+    
+    // Parse form data
+    const formData = await request.formData();
     const files = formData.getAll('file') as File[];
-    const rating = formData.get('rating') as string;
+    const rating = formData.get('rating') as 'safe' | 'sketchy' | 'unsafe' || 'safe';
+    
+    // Get tags if provided
+    let tags: string[] = [];
+    const tagsData = formData.get('tags');
+    if (tagsData) {
+      try {
+        tags = JSON.parse(tagsData as string);
+      } catch (e) {
+        console.error('Error parsing tags:', e);
+      }
+    }
     
     if (!files.length) {
       return NextResponse.json(
-        { error: 'No files uploaded' },
+        { error: 'No file provided' },
         { status: 400 }
       );
     }
 
-    // Stelle sicher, dass die Upload-Ordner existieren
-    await initializeUploadDirectories();
-
-    // Verarbeite jeden Upload sequentiell
     const results = [];
+
     for (const file of files) {
-      try {
-        // Konvertiere die File zu einem Buffer
-        const buffer = Buffer.from(await file.arrayBuffer());
-        
-        // Überprüfe, ob das Rating gültig ist
-        const validRating = ['safe', 'sketchy', 'unsafe'].includes(rating) 
-          ? rating as 'safe' | 'sketchy' | 'unsafe' 
-          : 'safe';
-        
-        // Verarbeite den Upload (User-ID ist optional)
-        const processedUpload = await processUpload(
-          buffer, 
-          file.name, 
-          file.type,
-          userId,
-          validRating
-        );
-        
-        results.push({
-          success: true,
-          file: {
-            id: processedUpload.id,
-            filename: processedUpload.filename,
-            originalName: file.name,
-            contentType: processedUpload.contentType,
-            size: processedUpload.size,
-            dimensions: processedUpload.dimensions,
-            url: processedUpload.originalPath,
-            thumbnailUrl: processedUpload.thumbnailPath,
-            rating: validRating,
-            uploadDate: new Date().toISOString(),
-            uploader: userId ? 'User' : 'Anonymous'
-          }
-        });
-      } catch (error) {
-        console.error('Error processing file:', file.name, error);
-        results.push({
-          success: false,
-          file: file.name,
-          error: 'Failed to process file'
-        });
-      }
+      // Convert file to buffer for processing
+      const buffer = Buffer.from(await file.arrayBuffer());
+      
+      // Process the upload
+      const processedUpload = await processUpload(
+        buffer,
+        file.name,
+        file.type,
+        userId,
+        rating,
+        tags
+      );
+
+      results.push({
+        id: processedUpload.id,
+        filename: processedUpload.filename,
+        url: processedUpload.originalPath,
+        thumbnailUrl: processedUpload.thumbnailPath,
+        rating: rating,
+        uploadDate: new Date().toISOString(),
+        tags: tags,
+        uploader: userId ? 'User' : 'Anonymous'
+      });
     }
-    
-    // Revalidiere die Post-Daten nach dem Upload
-    revalidatePath('/posts');
-    revalidatePath('/api/posts');
-    
-    return NextResponse.json({
+
+    // Revalidate paths if needed
+    if (results.length > 0) {
+      revalidatePath('/');
+      revalidatePath('/posts');
+    }
+
+    return NextResponse.json({ 
       success: true,
-      file: results.length === 1 ? results[0].file : undefined,  // Für einzelne Uploads
-      files: results.length > 1 ? results : undefined           // Für multiple Uploads
+      files: results,
+      file: results[0] // For backward compatibility
     });
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json(
-      { error: 'Failed to upload files' },
+      { error: 'Failed to process upload' },
       { status: 500 }
     );
   }

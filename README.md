@@ -1,4 +1,4 @@
-# f0ck.org Beta v1.5.0
+# f0ck.org Beta v1.6.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still broken.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v1.5.0](#f0ckorg-beta-v150)
+- [f0ck.org Beta v1.6.0](#f0ckorg-beta-v160)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,7 +21,11 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v1.5.0 (Current)](#beta-v150-current)
+    - [Beta v1.6.0 (Current)](#beta-v160-current)
+      - [🏷️ Tag System Fully Implemented](#️-tag-system-fully-implemented)
+      - [🔍 Key Functional Improvements](#-key-functional-improvements)
+      - [🎨 UI Refinements](#-ui-refinements)
+    - [Beta v1.5.0](#beta-v150)
       - [🔍 Search Improvements](#-search-improvements)
       - [📱 Mobile Optimization](#-mobile-optimization)
       - [🚀 Performance Enhancements](#-performance-enhancements)
@@ -151,7 +155,28 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v1.5.0 (Current)
+### Beta v1.6.0 (Current)
+
+#### 🏷️ Tag System Fully Implemented
+
+- **Organize and discover content with tags**: The complete tag system is now live, allowing users to add up to 10 tags per upload
+- **Simplified tag structure**: Unified tag system without category distinctions for more intuitive tagging
+- **Powerful tag search**: Find exactly what you're looking for by filtering posts with tags combined with other search criteria
+- **Enhanced user experience** with clear error messaging and improved tag validation
+- **Performance optimizations** for tag-based searches and filtering
+
+#### 🔍 Key Functional Improvements
+
+- **Fixed Reverse Image Search**: The similar image search feature now works reliably
+- **Improved content filtering**: Optimized behavior for Safe/Sketchy/Unsafe content filters
+- **Streamlined anonymous posts**: Removed misleading "Anonymous" links in comments and uploads
+
+#### 🎨 UI Refinements
+
+- Consistent avatar styling in post details view
+- Enhanced visual hierarchy for better usability
+
+### Beta v1.5.0
 
 #### 🔍 Search Improvements
 

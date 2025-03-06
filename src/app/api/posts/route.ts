@@ -44,6 +44,9 @@ export async function GET(req: Request) {
     const dateTo = url.searchParams.get('dateTo') || '';
     const sortBy = url.searchParams.get('sortBy') || 'newest';
     const contentRating = url.searchParams.getAll('contentRating');
+    const tags = url.searchParams.getAll('tag');
+    
+    console.log('API received tag parameters:', tags);
     
     // Build query object
     const query: any = {};
@@ -54,6 +57,13 @@ export async function GET(req: Request) {
         { title: { $regex: search, $options: 'i' } },
         { tags: { $regex: search, $options: 'i' } }
       ];
+    }
+    
+    // Tag filter
+    if (tags && tags.length > 0) {
+      // Alle angegebenen Tags müssen im Post enthalten sein (UND-Verknüpfung)
+      query.tags = { $all: tags };
+      console.log('Filtering posts by tags:', tags);
     }
     
     // Uploader filter

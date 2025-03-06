@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import sharp from 'sharp';
 import Post from '@/models/Post';
+import Tag from '@/models/Tag';
 import { Types } from 'mongoose';
 import crypto from 'crypto';
 import User from '@/models/User';
@@ -43,6 +44,7 @@ interface ProcessedUpload {
     width: number;
     height: number;
   };
+  tags: string[];
 }
 
 export async function processUpload(
@@ -50,18 +52,36 @@ export async function processUpload(
   originalFilename: string, 
   contentType: string,
   userId?: string,
-  contentRating: 'safe' | 'sketchy' | 'unsafe' = 'safe'
+  contentRating: 'safe' | 'sketchy' | 'unsafe' = 'safe',
+  tags: string[] = []
 ): Promise<ProcessedUpload> {
   try {
     // Verarbeite das Bild mit Sharp
     const image = sharp(file);
     const metadata = await image.metadata();
 
+    // Process tags
+    const processedTags: string[] = [];
+    if (tags && tags.length > 0) {
+      for (const tagName of tags) {
+        // Find or create the tag
+        const tag = await Tag.findOrCreate(tagName);
+        
+        // Increment post count for the tag
+        await Tag.findByIdAndUpdate(tag._id, {
+          $inc: { postsCount: 1, newPostsToday: 1, newPostsThisWeek: 1 }
+        });
+        
+        processedTags.push(tag.name);
+      }
+    }
+
     // Erstelle einen neuen Post in der Datenbank
     const post = new Post({
       title: originalFilename,
       author: userId || null, // Wenn kein userId, dann null für anonymen Upload
       contentRating: contentRating, // Setze das contentRating
+      tags: processedTags, // Setze die Tags
       meta: {
         width: metadata.width || 0,
         height: metadata.height || 0,
@@ -114,7 +134,8 @@ export async function processUpload(
       dimensions: {
         width: metadata.width || 0,
         height: metadata.height || 0
-      }
+      },
+      tags: processedTags
     };
   } catch (error) {
     console.error('Error processing upload:', error);

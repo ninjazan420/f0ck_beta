@@ -320,6 +320,16 @@ export function PostDetails({ postId }: { postId: string }) {
         // Detailliertes Debugging für Bio-Daten
         console.log('API response für Post:', JSON.stringify(postData, null, 2));
         console.log('API author data:', postData.author);
+        
+        // Detailliertes Debugging für Tag-Daten
+        console.log('API tags data:', postData.tags);
+        console.log('Tags type:', typeof postData.tags);
+        console.log('Is tags array?', Array.isArray(postData.tags));
+        if (Array.isArray(postData.tags)) {
+          console.log('Tags length:', postData.tags.length);
+          console.log('First tag (if exists):', postData.tags[0]);
+        }
+        
         if (postData.author) {
           console.log('Author bio exists?', postData.author.hasOwnProperty('bio'));
           console.log('Author bio value:', postData.author.bio);
