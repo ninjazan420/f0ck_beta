@@ -8,7 +8,7 @@ interface UserQuery {
 }
 
 // Optimierte Query-Building
-const buildQuery = (search: string, roles: string[], isPremium: string | null): UserQuery => {
+const buildQuery = (search: string, roles: string[], isPremium: string | null, timeRange: string | null): UserQuery => {
   const query: UserQuery = { $and: [] };
   
   if (search) {
@@ -38,6 +38,29 @@ const buildQuery = (search: string, roles: string[], isPremium: string | null): 
     query.$and!.push({ role: isPremium === 'true' ? 'premium' : { $ne: 'premium' } });
   }
 
+  // Filter by registration period (createdAt)
+  if (timeRange && timeRange !== 'all') {
+    const now = new Date();
+    let startDate = new Date();
+    
+    switch (timeRange) {
+      case 'day':
+        startDate.setDate(now.getDate() - 1); // Last 24 hours
+        break;
+      case 'week':
+        startDate.setDate(now.getDate() - 7); // Last 7 days
+        break;
+      case 'month':
+        startDate.setMonth(now.getMonth() - 1); // Last 30 days
+        break;
+      case 'year':
+        startDate.setFullYear(now.getFullYear() - 1); // Last year
+        break;
+    }
+    
+    query.$and!.push({ createdAt: { $gte: startDate } });
+  }
+
   return query.$and!.length ? query : {};
 };
 
@@ -52,8 +75,9 @@ export async function GET(request: Request) {
     const sortBy = searchParams.get('sortBy') || 'lastSeen';
     const roles = searchParams.get('roles')?.split(',') || [];
     const isPremium = searchParams.get('isPremium');
+    const timeRange = searchParams.get('timeRange') || 'all';
 
-    const query = buildQuery(search, roles, isPremium);
+    const query = buildQuery(search, roles, isPremium, timeRange);
 
     // Sortierung bestimmen
     let sort = {};

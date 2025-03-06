@@ -41,7 +41,8 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
           search: filters.search,
           sortBy: filters.sortBy,
           roles: filters.roles.join(','),
-          isPremium: filters.isPremium?.toString() || ''
+          isPremium: filters.isPremium?.toString() || '',
+          timeRange: filters.timeRange
         });
 
         const response = await fetch(`/api/users?${searchParams}`);
