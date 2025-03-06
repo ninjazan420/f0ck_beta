@@ -7,6 +7,7 @@ interface IUser extends mongoose.Document {
   username: string;
   password: string;
   bio?: string;
+  avatar?: string;
   createdAt: Date;
   lastSeen: Date;
   updatedAt: Date;
@@ -39,6 +40,11 @@ const userSchema = new mongoose.Schema({
     maxLength: 140,
     default: '',
     index: true, // Expliziter Index
+  },
+  avatar: {
+    type: String,
+    required: false,
+    default: null,
   },
   favorites: [{
     type: mongoose.Schema.Types.ObjectId,

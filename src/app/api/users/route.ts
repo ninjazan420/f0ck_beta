@@ -111,6 +111,7 @@ export async function GET(request: Request) {
             lastSeen: 1,
             role: 1,
             premium: '$isPremium',
+            avatar: 1,
             stats: {
               $mergeObjects: {
                 uploads: { $size: { $ifNull: ["$uploads", []] } },

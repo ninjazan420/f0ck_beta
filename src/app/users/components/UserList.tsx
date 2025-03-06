@@ -1,7 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Filters } from './UsersPage';
+import { getImageUrlWithCacheBuster } from '@/lib/utils';
 
 export interface UserListProps {
   filters: Filters;
@@ -24,6 +26,7 @@ interface User {
     likes?: number;
     tags?: number;
   };
+  avatar?: string | null;
 }
 
 export function UserList({ filters, page, totalPages, onPageChange }: UserListProps) {
@@ -80,8 +83,18 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
           >
             <div className="flex items-start gap-4">
               {/* Avatar */}
-              <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                <span className="text-xl">{user.username[0].toUpperCase()}</span>
+              <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+                {user.avatar ? (
+                  <Image 
+                    src={getImageUrlWithCacheBuster(user.avatar)} 
+                    alt={`${user.username}'s avatar`}
+                    width={64}
+                    height={64}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <span className="text-xl">{user.username[0].toUpperCase()}</span>
+                )}
               </div>
               <div className="flex-grow">
                 <div className="flex items-center gap-2">

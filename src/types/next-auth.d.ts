@@ -6,6 +6,7 @@ declare module "next-auth" {
     username?: string
     email?: string
     role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned'
+    avatar?: string | null
   }
   
   interface Session extends DefaultSession {
@@ -14,6 +15,7 @@ declare module "next-auth" {
       username?: string
       email?: string
       role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned'
+      avatar?: string | null
     } & DefaultSession["user"]
   }
 }
@@ -23,5 +25,6 @@ declare module "next-auth/jwt" {
     id: string
     username?: string
     role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned'
+    avatar?: string | null
   }
 }

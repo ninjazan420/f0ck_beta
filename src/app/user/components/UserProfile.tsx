@@ -297,11 +297,21 @@ export function UserProfile({ username }: { username: string }) {
             }`}>
               <div className={`relative ${userData?.premium ? 'p-[2px]' : ''}`}>
                 <div className="w-32 h-32 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-4xl text-gray-400">
-                      {userData?.username?.[0]?.toUpperCase()}
-                    </span>
-                  </div>
+                  {userData?.avatar ? (
+                    <Image 
+                      src={getImageUrlWithCacheBuster(userData.avatar)} 
+                      alt={`${userData.username}'s avatar`} 
+                      width={128} 
+                      height={128} 
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-4xl text-gray-400">
+                        {userData?.username?.[0]?.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { StatusBanner } from './StatusBanner';
 import { useState, useEffect } from 'react';
 import { usePageMeta } from '@/context/PageMetaContext';
+import Image from 'next/image';
 
 type MenuItem = {
   label: string;
@@ -100,9 +101,19 @@ export const Navbar = () => {
           component: (
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
-                <div className="text-xs text-gray-400">
-                 {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
-                </div>
+                {session?.user?.avatar ? (
+                  <Image 
+                    src={session.user.avatar} 
+                    alt="Avatar" 
+                    width={24} 
+                    height={24} 
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="text-xs text-gray-400">
+                    {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
+                  </div>
+                )}
               </div>
               <Link href="/account" className="font-mono">
                 {truncateUsername(session?.user?.username)}
@@ -213,9 +224,19 @@ export const Navbar = () => {
           {isAuthenticated && (
             <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
               <Link href="/account">
-                <div className="text-sm text-gray-400">
-                  {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
-                </div>
+                {session?.user?.avatar ? (
+                  <Image 
+                    src={session.user.avatar} 
+                    alt="Avatar" 
+                    width={32} 
+                    height={32} 
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="text-sm text-gray-400">
+                    {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
+                  </div>
+                )}
               </Link>
             </div>
           )}
@@ -233,9 +254,19 @@ export const Navbar = () => {
               {isAuthenticated && (
                 <div className="flex items-center gap-3 px-4 py-3 mb-2 border-b border-gray-100 dark:border-gray-800">
                   <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
-                    <div className="text-lg text-gray-500 dark:text-gray-400">
-                      {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
-                    </div>
+                    {session?.user?.avatar ? (
+                      <Image 
+                        src={session.user.avatar} 
+                        alt="Avatar" 
+                        width={40} 
+                        height={40} 
+                        className="object-cover w-full h-full"
+                      />
+                    ) : (
+                      <div className="text-lg text-gray-500 dark:text-gray-400">
+                        {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <div className="font-mono font-medium">{truncateUsername(session?.user?.username)}</div>

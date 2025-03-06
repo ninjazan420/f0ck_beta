@@ -12,8 +12,6 @@ import { useSession } from 'next-auth/react';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { GifSelector } from '@/components/GifSelector';
 
-const DEFAULT_AVATAR = '/images/defaultavatar.png';
-
 interface PostData {
   id: string;
   title: string;
@@ -636,67 +634,37 @@ export function PostDetails({ postId }: { postId: string }) {
           {/* Uploader Info - Nach oben verschoben */}
           <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
             <div className="flex items-center gap-3">
-              {post.uploader.id === 'anonymous' ? (
-                <div className="w-12 h-12 overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0">
-                  <Image 
-                    src={getImageUrlWithCacheBuster(DEFAULT_AVATAR)}
-                    alt="Anonymous user avatar"
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-cover"
-                  />
+              <Link href={`/user/${post.uploader.id}`}>
+                <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  {post.uploader.avatar ? (
+                    <Image 
+                      src={getImageUrlWithCacheBuster(post.uploader.avatar)} 
+                      alt={post.uploader.name} 
+                      width={40} 
+                      height={40} 
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <div className="text-lg text-gray-400">
+                      {post.uploader.name[0]?.toUpperCase() ?? '?'}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <Link 
-                  href={`/user/${post.uploader.name}`}
-                  className="w-12 h-12 overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0"
-                >
-                  <Image
-                    src={getImageUrlWithCacheBuster(post.uploader.avatar || DEFAULT_AVATAR)}
-                    alt={`${post.uploader.name}'s avatar`}
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-cover"
-                  />
+              </Link>
+              <div>
+                <Link href={`/user/${post.uploader.id}`} className="font-medium hover:underline">
+                  {post.uploader.name}
                 </Link>
-              )}
-              
-              <div className="flex-grow">
-                <div className="flex items-center gap-2">
-                  {post.uploader.id === 'anonymous' ? (
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {post.uploader.name}
-                    </span>
-                  ) : (
-                    <Link 
-                      href={`/user/${post.uploader.name}`}
-                      className={`font-medium ${
-                        post.uploader.premium 
-                          ? 'bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent' 
-                          : 'text-gray-900 dark:text-gray-100'
-                      } hover:opacity-80 transition-opacity`}
-                    >
-                      {post.uploader.name}
-                    </Link>
-                  )}
+                <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
                   {getRoleBadge(post.uploader.admin, post.uploader.moderator, post.uploader.premium)}
+                  <span>
+                    {new Date(post.uploadDate).toLocaleDateString('de-DE', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </span>
                 </div>
-                <div className="text-sm text-gray-500 flex items-center gap-2 flex-wrap">
-                  {post.uploader.id === 'anonymous' ? (
-                    <span>Posted on {new Date(post.uploadDate).toLocaleString()}</span>
-                  ) : (
-                    <span>Member since {new Date(post.uploader.joinDate).toLocaleString()}</span>
-                  )}
-                </div>
-                
-                {/* Benutzer-Bio direkt unter den Namen, wenn vorhanden und nicht anonymous */}
-                {post.uploader.id !== 'anonymous' && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {post.uploader.bio ? post.uploader.bio : 'Dieser Benutzer hat noch keine Bio hinzugefügt.'}
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
 
