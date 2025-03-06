@@ -23,7 +23,7 @@ export function ReverseSearch({ imageUrl }: { imageUrl: string }) {
     },
     {
       name: 'Yandex',
-      url: `https://yandex.com/images/search?url=${encodeURIComponent(fullImageUrl)}`
+      url: `https://yandex.com/images/search?rpt=imageview&url=${encodeURIComponent(fullImageUrl)}`
     },
     {
       name: 'SauceNAO',
