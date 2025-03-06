@@ -23,6 +23,9 @@ export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void 
   // Handle clipboard paste events
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
+      // Verhindere doppelte Verarbeitung von Daten
+      e.preventDefault(); // Füge dies hinzu, um das Standardverhalten zu verhindern
+      
       if (e.clipboardData && e.clipboardData.files.length > 0) {
         // Convert FileList to Array
         const files = Array.from(e.clipboardData.files);

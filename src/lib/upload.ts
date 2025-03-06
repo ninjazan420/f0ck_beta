@@ -106,8 +106,13 @@ export async function processUpload(
     const filename = `${imageId}.jpg`; // Wir speichern alles als JPG
     const thumbnailFilename = `thumb_${filename}`; // Thumbnail mit Präfix
 
+    // Stelle sicher, dass die Upload-Verzeichnisse existieren
+    await initializeUploadDirectories();
+
     // Speichere das Originalbild
-    await writeFile(join(UPLOAD_DIRS.original, filename), file);
+    const originalPath = join(UPLOAD_DIRS.original, filename);
+    await writeFile(originalPath, file);
+    console.log(`Original image saved to: ${originalPath}`);
 
     // Erstelle und speichere das Thumbnail
     const thumbnail = await image
@@ -117,12 +122,15 @@ export async function processUpload(
       })
       .toBuffer();
 
-    await writeFile(join(UPLOAD_DIRS.thumbnails, thumbnailFilename), thumbnail);
+    const thumbnailPath = join(UPLOAD_DIRS.thumbnails, thumbnailFilename);
+    await writeFile(thumbnailPath, thumbnail);
+    console.log(`Thumbnail saved to: ${thumbnailPath}`);
 
     // Aktualisiere den Post mit den Bildpfaden
     post.imageUrl = `/uploads/original/${filename}`;
     post.thumbnailUrl = `/uploads/thumbnails/${thumbnailFilename}`;
     await post.save();
+    console.log(`Saved image paths to database: ${post.imageUrl}, ${post.thumbnailUrl}`);
 
     return {
       id: post.id,

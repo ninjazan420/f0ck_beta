@@ -25,21 +25,25 @@ export function getRandomLogo(): string {
 /**
  * Fügt einen Timestamp als Cache-Buster zu einem Bildpfad hinzu.
  * Verhindert, dass Bilder im Browser-Cache zwischengespeichert werden.
- * Bilder aus dem uploads-Verzeichnis werden über die API-Route geliefert.
+ * Berücksichtigt sowohl lokale als auch Live-Server-Umgebungen.
  */
 export function getImageUrlWithCacheBuster(url: string): string {
   if (!url) return url;
   
-  // Wenn es sich um ein Bild aus dem uploads-Verzeichnis handelt, nutze die API-Route
-  if (url.startsWith('/uploads/')) {
-    // Wir behalten die Ordnerstruktur bei und entfernen nur das '/uploads/'
-    const imagePath = url.substring(9); // Entfernt nur '/uploads/'
-    
-    // Nutze die API-Route mit dem Bildpfad und einem Timestamp
-    return `/api/images/${imagePath}?t=${Date.now()}`;
+  // Wenn die URL bereits absolut ist, füge nur den Timestamp hinzu
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}t=${Date.now()}`;
   }
   
-  // Füge für andere Bilder einfach einen Timestamp hinzu
+  // Für Bilder aus dem Upload-Verzeichnis
+  if (url.startsWith('/uploads/')) {
+    // Füge einen Timestamp als Cache-Buster hinzu
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}t=${Date.now()}`;
+  }
+  
+  // Für andere URLs auch einfach einen Timestamp hinzufügen
   const separator = url.includes('?') ? '&' : '?';
   return `${url}${separator}t=${Date.now()}`;
 }

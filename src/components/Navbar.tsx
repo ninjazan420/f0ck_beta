@@ -6,6 +6,7 @@ import { StatusBanner } from './StatusBanner';
 import { useState, useEffect } from 'react';
 import { usePageMeta } from '@/context/PageMetaContext';
 import Image from 'next/image';
+import { getImageUrlWithCacheBuster } from '@/lib/utils';
 
 type MenuItem = {
   label: string;

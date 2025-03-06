@@ -31,10 +31,10 @@ export async function GET(
     
     // Log the requested path for debugging
     console.log('Requested image path:', imagePath);
-    console.log('Full file path:', join(process.cwd(), 'public', 'uploads', imagePath));
     
     // Construct the path to the file in public/uploads
     const filePath = join(process.cwd(), 'public', 'uploads', imagePath);
+    console.log('Full file path:', filePath);
     
     // Read the image file
     const data = await readFile(filePath);
