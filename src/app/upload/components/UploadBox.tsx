@@ -1,10 +1,12 @@
 'use client';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 
 const ALLOWED_EXTENSIONS = ['.jpg', '.png', '.gif', '.webm', '.mp4', '.mov', '.swf', '.avif', '.heif', '.heic', '.webp'];
 
 export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void }) {
+  const dropzoneRef = useRef<HTMLDivElement>(null);
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     onFileDrop(acceptedFiles);
   }, [onFileDrop]);
@@ -18,9 +20,43 @@ export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void 
     }
   });
 
+  // Handle clipboard paste events
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      if (e.clipboardData && e.clipboardData.files.length > 0) {
+        // Convert FileList to Array
+        const files = Array.from(e.clipboardData.files);
+        onFileDrop(files);
+      } else if (e.clipboardData && e.clipboardData.items) {
+        // Check for image items in clipboard
+        const imageFiles: File[] = [];
+        Array.from(e.clipboardData.items).forEach(item => {
+          // Check if item is an image
+          if (item.type.indexOf('image') !== -1) {
+            const file = item.getAsFile();
+            if (file) imageFiles.push(file);
+          }
+        });
+        
+        if (imageFiles.length > 0) {
+          onFileDrop(imageFiles);
+        }
+      }
+    };
+
+    // Add event listener to the document
+    document.addEventListener('paste', handlePaste);
+    
+    // Clean up
+    return () => {
+      document.removeEventListener('paste', handlePaste);
+    };
+  }, [onFileDrop]);
+
   return (
     <div
       {...getRootProps()}
+      ref={dropzoneRef}
       className={`
         relative h-48 rounded-lg overflow-hidden transition-all duration-300
         border-2 border-dashed p-8 text-center cursor-pointer
@@ -38,7 +74,8 @@ export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void 
         </div>
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Allowed extensions: {ALLOWED_EXTENSIONS.join(', ')}<br/>
-          You can also use directlinks like YouTube, Twitter, Instagram, Twitch clips and more!
+          You can also use directlinks like YouTube, Twitter, Instagram, Twitch clips and more!<br/>
+          <span className="font-medium">Pro tip: You can paste (Ctrl+V) images directly from your clipboard!</span>
         </p>
       </div>
       {isDragActive && (

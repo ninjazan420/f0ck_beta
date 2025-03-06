@@ -141,4 +141,88 @@ export async function processUpload(
     console.error('Error processing upload:', error);
     throw new Error('Failed to process upload');
   }
+}
+
+// Function to download an image from URL and create a temp file
+export async function downloadImageFromUrl(url: string): Promise<{
+  file: Buffer;
+  filename: string;
+  contentType: string;
+  tempFilePath: string;
+  previewUrl: string;
+  dimensions: { width: number; height: number };
+}> {
+  try {
+    // Extract filename from URL
+    const urlObj = new URL(url);
+    const pathSegments = urlObj.pathname.split('/');
+    let filename = pathSegments[pathSegments.length - 1];
+    
+    // If filename doesn't have an extension, add .jpg as default
+    if (!filename.includes('.')) {
+      filename += '.jpg';
+    }
+    
+    // Download the image
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to download image: ${response.statusText}`);
+    }
+    
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // Generate a thumbnail and get dimensions
+    const image = sharp(buffer);
+    const metadata = await image.metadata();
+    
+    // Create a temporary thumbnail
+    // Generiere eine eindeutige ID für die temporäre Datei
+    const tempId = generateImageId();
+    // Entferne ungültige Dateizeichen aus dem Dateinamen
+    const safeFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_'); 
+    const tempFilename = `temp_${tempId}_${safeFilename}`;
+    const tempFilePath = join(UPLOAD_DIRS.temp, tempFilename);
+    
+    // Erstelle einen Web-Pfad (URL) für die temporäre Datei
+    const publicTempUrl = `/uploads/temp/${tempFilename}`;
+    
+    console.log('Saving temporary file to:', tempFilePath);
+    console.log('Public URL will be:', publicTempUrl);
+    
+    // Stelle sicher, dass das temp-Verzeichnis existiert
+    try {
+      await mkdir(UPLOAD_DIRS.temp, { recursive: true });
+    } catch (err) {
+      console.error('Error creating temp directory:', err);
+    }
+    
+    // Save the temporary thumbnail
+    const thumbnail = await image
+      .resize(400, 400, {
+        fit: 'cover',
+        position: 'centre'
+      })
+      .toBuffer();
+    
+    // Speichere die temporäre Datei
+    await writeFile(tempFilePath, thumbnail);
+    
+    return {
+      file: buffer,
+      filename: safeFilename,
+      contentType,
+      tempFilePath, // Lokaler Dateipfad (für Backend)
+      previewUrl: publicTempUrl, // URL-Pfad (für Frontend)
+      dimensions: {
+        width: metadata.width || 0,
+        height: metadata.height || 0
+      }
+    };
+  } catch (error) {
+    console.error('Error downloading image:', error);
+    throw new Error('Failed to download image from URL');
+  }
 } 

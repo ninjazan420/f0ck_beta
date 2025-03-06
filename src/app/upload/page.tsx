@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
 import { UploadBox } from './components/UploadBox';
 import { UploadOptions } from './components/UploadOptions';
 import { FileList } from './components/FileList';
-import { UrlInput } from './components/UrlInput';
+import { UrlInput, PreviewImageUrlData } from './components/UrlInput';
 
 // Define the FileItem interface to match the one in FileList.tsx
 interface FileItem {
@@ -27,20 +27,22 @@ interface FileItem {
 export default function UploadPage() {
   const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
-  const [urls, setUrls] = useState<string[]>([]);
+  const [urlData, setUrlData] = useState<PreviewImageUrlData[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessingUrls, setIsProcessingUrls] = useState(false);
   const [fileRatings, setFileRatings] = useState<{[key: string]: 'safe' | 'sketchy' | 'unsafe'}>({});
   // Add state to store file items with their tags
   const [fileItems, setFileItems] = useState<FileItem[]>([]);
 
-  // Function to get tags for a specific file
-  const getFileTags = (fileName: string): string[] => {
+  // Function to get tags for a specific file - mit useCallback
+  const getFileTags = useCallback((fileName: string): string[] => {
     const fileItem = fileItems.find(item => item.name === fileName && item.type === 'file');
     return fileItem?.tags || [];
-  };
+  }, [fileItems]);
 
-  const handleFileDrop = (newFiles: File[]) => {
+  // File handling functions mit useCallback
+  const handleFileDrop = useCallback((newFiles: File[]) => {
     const validFiles = newFiles.filter(file => {
       const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB limit
       const isValidType = [
@@ -72,11 +74,82 @@ export default function UploadPage() {
       setFiles(prevFiles => [...prevFiles, ...validFiles]);
       setError(null);
     }
-  };
+  }, []);
 
-  const handleUpload = async () => {
-    if (files.length === 0) {
-      setError('Please choose a file to upload.');
+  // Handle URL add
+  const handleUrlAdd = useCallback((newUrlData: PreviewImageUrlData) => {
+    try {
+      new URL(newUrlData.url); // URL validation
+      setUrlData(prevUrls => [...prevUrls, newUrlData]);
+      setError(null);
+    } catch {
+      setError('Ungültige URL');
+    }
+  }, []);
+
+  // Handle file and URL removals
+  const handleRemoveFile = useCallback((index: number) => {
+    setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+  }, []);
+
+  const handleRemoveUrl = useCallback((index: number) => {
+    setUrlData(prevUrls => prevUrls.filter((_, i) => i !== index));
+  }, []);
+
+  const handleClearAll = useCallback(() => {
+    setFiles([]);
+    setUrlData([]);
+    setError(null);
+    setFileItems([]);
+  }, []);
+
+  // Update ratings 
+  const updateFileRating = useCallback((fileName: string, rating: 'safe' | 'sketchy' | 'unsafe') => {
+    setFileRatings(prev => ({
+      ...prev,
+      [fileName]: rating
+    }));
+  }, []);
+
+  // Update fileItems
+  const handleFileItemsUpdate = useCallback((items: FileItem[]) => {
+    setFileItems(items);
+  }, []);
+
+  // Updated to check both files and urlData
+  const hasFiles = files.length > 0 || urlData.length > 0;
+
+  // Listen for paste events that might contain multiple files or URLs
+  useEffect(() => {
+    // Vermeidet den Zyklus, indem wir handleFileDrop im Callback cachen
+    const handleGlobalPaste = (e: ClipboardEvent) => {
+      // Check for text in clipboard, could be a URL
+      if (e.clipboardData && e.clipboardData.getData('text')) {
+        const text = e.clipboardData.getData('text');
+        // Try to parse as URL
+        try {
+          new URL(text);
+          // It's a valid URL - we'll let the UrlInput component handle this
+        } catch (e) {
+          // Not a URL, ignore
+        }
+      }
+      
+      // Check for files in clipboard
+      if (e.clipboardData && e.clipboardData.files.length > 0) {
+        const filesArray = Array.from(e.clipboardData.files);
+        handleFileDrop(filesArray);
+      }
+    };
+    
+    window.addEventListener('paste', handleGlobalPaste);
+    return () => window.removeEventListener('paste', handleGlobalPaste);
+  }, [handleFileDrop]); // handleFileDrop ist jetzt stable dank useCallback
+
+  // Process files and URLs
+  const handleUpload = useCallback(async () => {
+    if (files.length === 0 && urlData.length === 0) {
+      setError('Please choose a file to upload or add an image URL.');
       return;
     }
 
@@ -84,6 +157,7 @@ export default function UploadPage() {
     setError(null);
 
     try {
+      // Process files first
       for (const file of files) {
         const formData = new FormData();
         formData.append('file', file);
@@ -101,59 +175,98 @@ export default function UploadPage() {
         });
 
         const data = await response.json();
+        console.log('Upload response data:', data);
 
         if (!response.ok) {
           throw new Error(data.error || 'Upload fehlgeschlagen');
         }
 
-        // Weiterleitung zur Post-Seite des letzten Uploads
-        router.push(`/post/${data.file.id}`);
+        // Only redirect if this is the only item to upload
+        if (files.length === 1 && urlData.length === 0) {
+          // Stelle sicher, dass die ID korrekt ist
+          const postId = data.file.id;
+          console.log('Redirecting to post ID:', postId);
+          
+          // Explizite Umwandlung in String für die URL
+          router.push(`/post/${String(postId)}`);
+        }
+      }
+
+      // Process URLs with downloaded images
+      for (const item of urlData) {
+        // If we have a tempFilePath, use it directly in the API call
+        if (item.tempFilePath) {
+          const formData = new FormData();
+          // We don't need to fetch the URL again since we already have the temp file
+          formData.append('imageUrl', item.url);
+          formData.append('tempFilePath', item.tempFilePath);
+          formData.append('rating', 'safe'); // Default to safe for now
+          
+          // Get tags if available
+          const urlTags = fileItems.find(fi => fi.name === item.url)?.tags || [];
+          if (urlTags.length > 0) {
+            formData.append('tags', JSON.stringify(urlTags));
+          }
+
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+
+          const data = await response.json();
+          console.log('URL upload with tempFile response:', data);
+
+          if (!response.ok) {
+            throw new Error(data.error || 'URL-Upload fehlgeschlagen');
+          }
+
+          // Only redirect if this is the last item and we have no files
+          if (urlData.indexOf(item) === urlData.length - 1 && files.length === 0) {
+            const postId = data.file.id;
+            console.log('Redirecting to post ID (URL with temp):', postId);
+            router.push(`/post/${String(postId)}`);
+          }
+        } else {
+          // Fall back to the old method if we don't have a temp file
+          const formData = new FormData();
+          formData.append('imageUrl', item.url);
+          formData.append('rating', 'safe');
+          
+          const urlTags = fileItems.find(fi => fi.name === item.url)?.tags || [];
+          if (urlTags.length > 0) {
+            formData.append('tags', JSON.stringify(urlTags));
+          }
+
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+
+          const data = await response.json();
+          console.log('URL upload fallback response:', data);
+
+          if (!response.ok) {
+            throw new Error(data.error || 'URL-Upload fehlgeschlagen');
+          }
+
+          if (urlData.indexOf(item) === urlData.length - 1 && files.length === 0) {
+            const postId = data.file.id;
+            console.log('Redirecting to post ID (URL fallback):', postId);
+            router.push(`/post/${String(postId)}`);
+          }
+        }
+      }
+
+      // If we have both files and URLs, redirect to the recent uploads
+      if (files.length > 0 && urlData.length > 0) {
+        router.push('/posts');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload fehlgeschlagen');
     } finally {
       setIsUploading(false);
     }
-  };
-
-  const handleUrlAdd = (url: string) => {
-    try {
-      new URL(url); // URL validation
-      setUrls(prevUrls => [...prevUrls, url]);
-      setError(null);
-    } catch {
-      setError('Ungültige URL');
-    }
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
-  };
-
-  const handleRemoveUrl = (index: number) => {
-    setUrls(prevUrls => prevUrls.filter((_, i) => i !== index));
-  };
-
-  const handleClearAll = () => {
-    setFiles([]);
-    setUrls([]);
-    setError(null);
-    setFileItems([]);
-  };
-
-  const updateFileRating = (fileName: string, rating: 'safe' | 'sketchy' | 'unsafe') => {
-    setFileRatings(prev => ({
-      ...prev,
-      [fileName]: rating
-    }));
-  };
-
-  // Update fileItems when FileList component updates its items
-  const handleFileItemsUpdate = (items: FileItem[]) => {
-    setFileItems(items);
-  };
-
-  const hasFiles = files.length > 0 || urls.length > 0;
+  }, [files, urlData, fileRatings, fileItems, getFileTags, router]);
 
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
@@ -185,20 +298,20 @@ export default function UploadPage() {
                     </button>
                     <button
                       onClick={handleUpload}
-                      disabled={isUploading}
+                      disabled={isUploading || isProcessingUrls}
                       className={`px-6 py-2 rounded-lg text-white font-medium transition-colors ${
-                        isUploading
+                        isUploading || isProcessingUrls
                           ? 'bg-purple-400 cursor-not-allowed'
                           : 'bg-purple-500 hover:bg-purple-600'
                       }`}
                     >
-                      {isUploading ? 'Uploading...' : 'Upload'}
+                      {isUploading ? 'Uploading...' : isProcessingUrls ? 'Processing URLs...' : 'Upload'}
                     </button>
                   </div>
                 </div>
                 <FileList 
                   files={files} 
-                  urls={urls}
+                  urls={urlData.map(item => item.url)}
                   onRemoveFile={handleRemoveFile}
                   onRemoveUrl={handleRemoveUrl}
                   onUpdateRating={updateFileRating}

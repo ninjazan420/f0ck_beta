@@ -1,6 +1,8 @@
 'use client';
-import { useState, useEffect, KeyboardEvent } from 'react';
+import { useState, useEffect, useCallback, useMemo, KeyboardEvent } from 'react';
 import Image from 'next/image';
+import { v4 as uuidv4 } from 'uuid';
+import { PreviewImageUrlData } from './UrlInput'; // Import the type
 
 interface FileItem {
   id: string;
@@ -16,101 +18,115 @@ interface FileItem {
   error?: string; // Für Tag-Fehlermeldungen
 }
 
-export function FileList({ 
-  files, 
-  urls, 
-  onRemoveFile, 
-  onRemoveUrl,
-  onUpdateRating,
-  onItemsUpdate
-}: { 
+interface Props {
   files: File[];
-  urls: string[];
+  urls: (string | PreviewImageUrlData)[]; // Updated to accept both simple strings and PreviewImageUrlData
   onRemoveFile: (index: number) => void;
   onRemoveUrl: (index: number) => void;
-  onUpdateRating?: (fileName: string, rating: 'safe' | 'sketchy' | 'unsafe') => void;
-  onItemsUpdate?: (items: FileItem[]) => void;
-}) {
-  const [items, setItems] = useState<FileItem[]>([]);
+  onUpdateRating: (fileName: string, rating: 'safe' | 'sketchy' | 'unsafe') => void;
+  onItemsUpdate: (items: FileItem[]) => void;
+}
+
+export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRating, onItemsUpdate }: Props) {
+  const [fileItems, setFileItems] = useState<FileItem[]>([]);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [currentTag, setCurrentTag] = useState('');
 
   useEffect(() => {
-    const processFile = async (file: File, index: number): Promise<FileItem> => {
-      let thumbnail = '';
-      let dimensions;
-      const format = file.type;
+    // Process files and create new file items
+    const processFiles = files.map((file, index) => {
+      // Try to find any existing item for this file
+      const existingItem = fileItems.find(
+        (item) => item.type === 'file' && item.name === file.name && item.index === index
+      );
 
-      if (file.type.startsWith('image/')) {
-        thumbnail = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
-        });
-
-        // Bildabmessungen ermitteln
-        dimensions = await new Promise<{ width: number; height: number }>((resolve) => {
-          const img = document.createElement('img');
-          img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-          img.src = thumbnail;
-        });
+      // If exists, keep its properties, otherwise create new
+      if (existingItem) {
+        return existingItem;
       }
 
+      // For new files, create thumbnail
+      const url = URL.createObjectURL(file);
+
       return {
-        id: Math.random().toString(36),
+        id: uuidv4(),
         name: file.name,
-        type: 'file',
+        type: 'file' as const,
         size: file.size,
         tags: [],
         index,
-        thumbnail,
-        dimensions,
-        format,
-        contentRating: 'safe'
+        thumbnail: url,
+        contentRating: 'safe' as const,
       };
-    };
+    });
 
-    const loadFiles = async () => {
-      const newFiles = await Promise.all(files.map((file, index) => processFile(file, index)));
-      const newUrls = urls.map((url, index) => ({
-        id: Math.random().toString(36),
+    // Process URLs and create new URL items
+    const processUrls = urls.map((urlItem, index) => {
+      // Check if we have a string or an object
+      const url = typeof urlItem === 'string' ? urlItem : urlItem.url;
+      const previewUrl = typeof urlItem !== 'string' ? urlItem.previewUrl : undefined;
+      
+      // Try to find any existing item for this URL
+      const existingItem = fileItems.find(
+        (item) => item.type === 'url' && item.name === url && item.index === index
+      );
+
+      // If exists, keep its properties, otherwise create new
+      if (existingItem) {
+        return existingItem;
+      }
+
+      return {
+        id: uuidv4(),
         name: url,
         type: 'url' as const,
         tags: [],
         index,
-        contentRating: 'safe' as const
-      }));
+        thumbnail: previewUrl || '/uploads/temp/placeholder.jpg', // Verwende den existierenden temp-Ordner
+        contentRating: 'safe' as const,
+      };
+    });
 
-      setItems([...newFiles, ...newUrls]);
-    };
+    // Combine file items and URL items
+    const newFileItems = [...processFiles, ...processUrls];
 
-    loadFiles();
-  }, [files, urls]);
-
-  useEffect(() => {
-    if (onItemsUpdate && items.length > 0) {
-      onItemsUpdate(items);
+    // *** KRITISCHER FIX: Nur aktualisieren, wenn sich die Daten tatsächlich geändert haben ***
+    // Vergleiche die neuen Items mit den aktuellen Items, um unnötige Aktualisierungen zu vermeiden
+    const hasChanges = 
+      newFileItems.length !== fileItems.length || 
+      JSON.stringify(newFileItems.map(item => ({...item, id: null}))) !== 
+      JSON.stringify(fileItems.map(item => ({...item, id: null})));
+    
+    if (hasChanges) {
+      setFileItems(newFileItems);
+      
+      // Nur wenn es tatsächlich Änderungen gibt und der Callback existiert
+      if (onItemsUpdate) {
+        onItemsUpdate(newFileItems);
+      }
     }
-  }, [items, onItemsUpdate]);
+  }, [files, urls, fileItems.length]); // Entferne fileItems aus der Dependency-Liste, füge nur fileItems.length hinzu
 
-  const handleRemove = (item: FileItem) => {
+  const handleRemove = useCallback((item: FileItem) => {
     if (item.type === 'file') {
       onRemoveFile(item.index);
     } else {
       onRemoveUrl(item.index);
     }
-  };
+  }, [onRemoveFile, onRemoveUrl]);
 
-  const isValidTag = (tag: string): boolean => {
-    // Erlaubt: Buchstaben inkl. deutscher Umlaute und Zahlen, keine Unterstriche, keine Sonderzeichen
-    const tagRegex = /^[a-z0-9äöüß]+$/;
-    return tagRegex.test(tag);
-  };
+  const isValidTag = useCallback((tag: string): boolean => {
+    const regex = /^[\p{L}\p{N}]+$/u; // Erlaubt Buchstaben und Zahlen (inkl. Umlaute)
+    return regex.test(tag);
+  }, []);
 
-  const addTag = (id: string, tag: string) => {
-    const cleanTag = tag.trim().toLowerCase().replace(/\s+/g, '');
+  const addTag = useCallback((id: string, tag: string) => {
+    const cleanTag = tag.trim().toLowerCase().slice(0, 20); // Maximum 20 Zeichen
+    
     if (!cleanTag) return;
-
+    
     if (!isValidTag(cleanTag)) {
-      setItems(prev => prev.map(item =>
+      setFileItems(prev => prev.map(item =>
         item.id === id ? 
           { ...item, error: 'Tags können nur Buchstaben, deutsche Umlaute und Zahlen enthalten' } 
           : item
@@ -118,65 +134,70 @@ export function FileList({
       return;
     }
 
-    setItems(prev => prev.map(item => {
+    setFileItems(prev => prev.map(item => {
       if (item.id === id) {
         if (item.tags.length >= 10) {
-          return { ...item, error: 'Maximum of 10 tags per upload reached' };
+          return { ...item, error: 'Maximal 10 Tags erlaubt' };
         }
-        return { ...item, tags: [...item.tags, cleanTag], error: undefined };
+        
+        if (item.tags.includes(cleanTag)) {
+          return { ...item, error: 'Tag existiert bereits' };
+        }
+        
+        return { 
+          ...item, 
+          tags: [...item.tags, cleanTag],
+          error: undefined
+        };
       }
       return item;
     }));
-  };
+  }, [isValidTag]);
 
-  const removeTag = (id: string, tagIndex: number) => {
-    setItems(prev => prev.map(item =>
+  const removeTag = useCallback((id: string, tagIndex: number) => {
+    setFileItems(prev => prev.map(item =>
       item.id === id ? 
         { ...item, tags: item.tags.filter((_, i) => i !== tagIndex) } 
         : item
     ));
-  };
+  }, []);
 
-  const updateContentRating = (id: string, rating: FileItem['contentRating']) => {
+  const updateContentRating = useCallback((id: string, rating: FileItem['contentRating']) => {
     // Finde das aktuelle Item
-    const currentItem = items.find(item => item.id === id);
+    const currentItem = fileItems.find(item => item.id === id);
     
     // Aktualisiere die Items
-    setItems(prev => 
+    setFileItems(prev => 
       prev.map(item => item.id === id ? { ...item, contentRating: rating } : item)
     );
     
-    // Rufe den Callback separat auf, außerhalb des setItems
-    if (currentItem && onUpdateRating && currentItem.type === 'file') {
-      // Verwende setTimeout, um sicherzustellen, dass der Callback nach dem Rendering aufgerufen wird
-      setTimeout(() => {
-        onUpdateRating(currentItem.name, rating);
-      }, 0);
+    // Rufe den Callback auf, wenn das Item existiert
+    if (currentItem && onUpdateRating) {
+      onUpdateRating(currentItem.name, rating);
     }
-  };
+  }, [fileItems, onUpdateRating]);
 
-  const handleTagInput = (id: string, e: KeyboardEvent<HTMLInputElement>) => {
-    const input = e.currentTarget;
-    const value = input.value.trim();
-
-    if ((e.key === 'Enter' || e.key === ',' || e.key === ' ') && value) {
-      // Entferne Komma und Leerzeichen am Ende
-      const tag = value.replace(/[,\s]+$/, '');
-      addTag(id, tag);
-      input.value = '';
-      e.preventDefault(); // Verhindert das Hinzufügen des Trennzeichens
+  const handleTagInput = useCallback((id: string, e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const input = e.currentTarget;
+      if (input.value.trim()) {
+        addTag(id, input.value);
+        input.value = '';
+        setCurrentTag('');
+      }
     }
-  };
+  }, [addTag]);
 
-  const clearAllTags = (id: string) => {
-    setItems(prev => prev.map(item =>
+  const clearAllTags = useCallback((id: string) => {
+    setFileItems(prev => prev.map(item =>
       item.id === id ? { ...item, tags: [], error: undefined } : item
     ));
-  };
+  }, []);
 
   return (
     <div className="space-y-4">
-      {items.map((item) => (
+      {fileItems.map((item) => (
         <div key={item.id} className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50">
           <div className="flex gap-4">
             {item.thumbnail && (
