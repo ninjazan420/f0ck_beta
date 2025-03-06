@@ -155,8 +155,12 @@ export function PostGrid({
       }
     };
 
+    // Sofortiger Aufruf, um Verzögerung zu vermeiden
     fetchInitialPosts();
-  }, [page, filters]);
+    
+    // Keine Abhängigkeit von externen Variablen, die sich ändern könnten
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, JSON.stringify(filters)]);
 
   // Handle infinite scroll to load more pages
   useEffect(() => {

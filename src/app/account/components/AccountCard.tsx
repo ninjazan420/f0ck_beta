@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { AvatarPicker } from './AvatarPicker';
 import { ReactElement } from 'react';
+import { AlertCircle, Pencil, Eye, Save, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { getImageUrlWithCacheBuster } from '@/lib/utils';
 
 interface ActivityItem {
   id: string;
@@ -114,18 +117,15 @@ export function AccountCard() {
           comments: userData.stats?.comments || 0,
           tags: userData.stats?.tags || 0
         }));
+        
+        // Direkt nach dem Laden der Benutzerdaten auch die Aktivitäten laden
+        fetchActivity();
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
-
-    if (session?.user) {
-      fetchUserData();
-    }
-  }, [session]);
-
-  // Neue useEffect für Aktivitäten
-  useEffect(() => {
+    
+    // Funktion zum Laden der Aktivitäten
     const fetchActivity = async () => {
       try {
         const response = await fetch('/api/user/activity');
@@ -149,7 +149,7 @@ export function AccountCard() {
     };
 
     if (session?.user) {
-      fetchActivity();
+      fetchUserData();
     }
   }, [session]);
 
@@ -591,7 +591,7 @@ export function AccountCard() {
                 {activity.post.imageUrl && (
                   <div
                     className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${activity.post.imageUrl})` }}
+                    style={{ backgroundImage: `url(${getImageUrlWithCacheBuster(activity.post.imageUrl)})` }}
                   ></div>
                 )}
                 {activity.post.type === "video" && (

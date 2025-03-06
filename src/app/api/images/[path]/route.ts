@@ -8,22 +8,29 @@ export async function GET(
 ) {
   try {
     // Get path parameter (may include subdirectories)
-    // Sicherstellen, dass params aufgelöst ist
+    // Stelle sicher, dass das pfad-Parameter aufgelöst wird
     const resolvedParams = await Promise.resolve(params);
-    const pathParts = resolvedParams.path.split('/');
-    const decodedPath = pathParts.map(part => decodeURIComponent(part)).join('/');
+    
+    // Da wir jetzt den Pfad direkt ohne URL-Kodierung verwenden, müssen wir 
+    // sicherstellen, dass der Pfad korrekt ist und keine unerlaubten Zugriffe ermöglicht
+    let imagePath = resolvedParams.path;
+    
+    // Sicherheitscheck: Verhindere Directory Traversal Angriffe
+    if (imagePath.includes('..') || imagePath.startsWith('/') || imagePath.startsWith('\\')) {
+      return new NextResponse('Invalid path', { status: 400 });
+    }
     
     // Determine image type
-    const imageType = decodedPath.endsWith('.png') 
+    const imageType = imagePath.endsWith('.png') 
       ? 'image/png' 
-      : decodedPath.endsWith('.jpg') || decodedPath.endsWith('.jpeg') 
+      : imagePath.endsWith('.jpg') || imagePath.endsWith('.jpeg') 
         ? 'image/jpeg' 
-        : decodedPath.endsWith('.gif') 
+        : imagePath.endsWith('.gif') 
           ? 'image/gif' 
           : 'image/jpeg';
     
     // Construct the path to the file in public/uploads
-    const filePath = join(process.cwd(), 'public', 'uploads', decodedPath);
+    const filePath = join(process.cwd(), 'public', 'uploads', imagePath);
     
     // Read the image file
     const data = await readFile(filePath);

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { ReactElement } from 'react';
+import { getImageUrlWithCacheBuster } from '@/lib/utils';
 
 interface ActivityItem {
   id: string;
@@ -80,19 +81,16 @@ export function UserProfile({ username }: { username: string }) {
           role: data.role || 'user'
         });
         setNotFound(false);
+        
+        // Direkt nach dem Laden der Benutzerdaten die Aktivitäten laden
+        fetchActivity();
       } catch (error) {
         console.error('Error fetching user:', error);
         setNotFound(true);
       }
     };
-
-    if (username) {
-      fetchUserData();
-    }
-  }, [username]);
-
-  // Neue useEffect für Aktivitäten
-  useEffect(() => {
+    
+    // Funktion zum Laden der Aktivitäten
     const fetchActivity = async () => {
       try {
         console.log('Fetching activities for user:', username);
@@ -113,10 +111,10 @@ export function UserProfile({ username }: { username: string }) {
       }
     };
 
-    if (username && !notFound) {
-      fetchActivity();
+    if (username) {
+      fetchUserData();
     }
-  }, [username, notFound]);
+  }, [username]);
 
   // Rendering-Funktion für den Kommentarinhalt mit GIF-Support
   const renderCommentContent = (text: string) => {
@@ -407,7 +405,7 @@ export function UserProfile({ username }: { username: string }) {
                 {activity.post.imageUrl && (
                   <div className="w-full h-full">
                     <Image
-                      src={activity.post.imageUrl}
+                      src={getImageUrlWithCacheBuster(activity.post.imageUrl)}
                       alt={activity.post.title}
                       width={64}
                       height={64}

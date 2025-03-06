@@ -53,7 +53,7 @@ export function PostsPage() {
         return prev;
       });
     }
-  }, [searchParams]);
+  }, [searchParams, filters.contentRating]);
 
   // Update URL when page changes
   useEffect(() => {

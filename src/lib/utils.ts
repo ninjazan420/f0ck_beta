@@ -35,7 +35,8 @@ export function getImageUrlWithCacheBuster(url: string): string {
     // Entferne das führende /uploads/
     const imagePath = url.substring(9);
     // Nutze die API-Route mit dem Bildpfad und einem Timestamp
-    return `/api/images/${encodeURIComponent(imagePath)}?t=${Date.now()}`;
+    // Anstatt den gesamten Pfad zu kodieren, verwenden wir den Pfad direkt
+    return `/api/images/${imagePath}?t=${Date.now()}`;
   }
   
   // Füge für andere Bilder einfach einen Timestamp hinzu
