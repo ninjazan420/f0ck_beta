@@ -332,8 +332,14 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
                 unoptimized
               />
               {isGiphy && (
-                <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                  Powered by GIPHY
+                <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-1 pl-1">
+                  <Image
+                    src="/powered_by_giphy.png"
+                    alt="Powered by GIPHY"
+                    width={150}
+                    height={22}
+                    unoptimized
+                  />
                 </div>
               )}
             </div>
@@ -367,7 +373,13 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
                 />
                 {isGiphy && (
                   <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                    Powered by GIPHY
+                    <Image 
+                      src="/powered_by_giphy.png" 
+                      alt="Powered by GIPHY" 
+                      width={70} 
+                      height={20}
+                      unoptimized
+                    />
                   </div>
                 )}
               </div>
@@ -643,7 +655,13 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
                       />
                       {selectedGif.source === 'giphy' && (
                         <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                          Powered by GIPHY
+                          <Image 
+                            src="/powered_by_giphy.png" 
+                            alt="Powered by GIPHY" 
+                            width={70} 
+                            height={20}
+                            unoptimized
+                          />
                         </div>
                       )}
                     </div>

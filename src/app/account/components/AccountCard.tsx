@@ -288,7 +288,13 @@ export function AccountCard() {
               />
               {isGiphy && (
                 <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                  Powered by GIPHY
+                  <Image 
+                    src="/powered_by_giphy.png" 
+                    alt="Powered by GIPHY" 
+                    width={150} 
+                    height={22}
+                    unoptimized
+                  />
                 </div>
               )}
             </div>
