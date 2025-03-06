@@ -2,7 +2,6 @@
 
 Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 
-<<<<<<< HEAD
 ## [1.6.0] - 2024-05-20
 
 ### 🏷️ Tag-System - Vollständig implementiert
@@ -33,9 +32,6 @@ Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 - Verbesserte Leistung bei Tag-basierten Suchanfragen
 
 ## [1.5.0] -
-=======
-## [1.5.0] - 05.03.2025
->>>>>>> fd163ecfc27e296834e06511444e1a13cbfae331
 
 ### 🔍 Verbesserte Suchfunktion
 
