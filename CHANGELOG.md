@@ -2,6 +2,34 @@
 
 Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 
+## [1.7.0] -
+
+### 👤 Verbesserte Benutzeroberfläche
+
+- **Neue Avatar-Funktionen**: Implementation eines neu gestalteten Account-Cards mit verbesserten Avatar-Funktionalitäten für Benutzer
+- **Optimierte Navigation zwischen Posts**: 
+  - Unterstützung für Pfeil-Links/Rechts und A/D-Tasten zum Blättern durch Posts
+  - Post-Navigator repariert, sodass nur der aktuelle Zustand berücksichtigt wird
+
+### 🚀 Neue Funktionalitäten
+
+- **Erweiterte Upload-Möglichkeiten**: 
+  - Copy & Paste-Funktion implementiert
+  - Direktes Hochladen über Image-Grabbing hinzugefügt
+- **Technische Verbesserungen**:
+  - UUID Linter-Fehler durch Hinzufügen von uuid.d.ts behoben
+
+### 🛠️ Fehlerbehebungen
+
+- **Reparierte Filter und Suche**:
+  - Registrierungszeitraum-Filter wiederhergestellt
+  - Yandex in der Reverse-Image-Search repariert
+- **Verbesserte Bildanzeige**:
+  - Korrektur von Thumbnail- und Bild-URLs
+  - Problem mit nicht ladenden "Sketchy"/"Unsafe" Posts beim ersten Besuch behoben
+- **Optimierte Feeds**:
+  - Aktivitäts-Feed auf /users/id und /account repariert, der manchmal nicht geladen wurde
+
 ## [1.6.0] -
 
 ### 🏷️ Tag-System - Vollständig implementiert

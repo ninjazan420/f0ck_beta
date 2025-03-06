@@ -1,4 +1,4 @@
-# f0ck.org Beta v1.6.0
+# f0ck.org Beta v1.7.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still broken.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v1.6.0](#f0ckorg-beta-v160)
+- [f0ck.org Beta v1.7.0](#f0ckorg-beta-v170)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,18 +21,18 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v1.6.0 (Current)](#beta-v160-current)
+    - [Beta v1.7.0 (Current)](#beta-v170-current)
+      - [👤 Improved User Interface](#-improved-user-interface)
+      - [🚀 New Features](#-new-features)
+      - [🛠️ Bug Fixes](#️-bug-fixes)
+    - [Beta v1.6.0](#beta-v160)
       - [🏷️ Tag System Fully Implemented](#️-tag-system-fully-implemented)
       - [🔍 Key Functional Improvements](#-key-functional-improvements)
       - [🎨 UI Refinements](#-ui-refinements)
-    - [Beta v1.5.0](#beta-v150)
+    - [Older Versions (click to expand)](#older-versions-click-to-expand)
       - [🔍 Search Improvements](#-search-improvements)
       - [📱 Mobile Optimization](#-mobile-optimization)
       - [🚀 Performance Enhancements](#-performance-enhancements)
-    - [Older Versions (click to expand)](#older-versions-click-to-expand)
-      - [🔄 Updates](#-updates)
-      - [💬 Complete Comment System](#-complete-comment-system)
-      - [🛠️ Fixes](#️-fixes)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
 
@@ -155,7 +155,35 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v1.6.0 (Current)
+### Beta v1.7.0 (Current)
+
+#### 👤 Improved User Interface
+
+- **New avatar functionality**: Implementation of a redesigned account card with enhanced avatar features
+- **Optimized post navigation**: 
+  - Support for left/right arrows and A/D keys to browse through posts
+  - Fixed post navigator to consider only the current state
+
+#### 🚀 New Features
+
+- **Enhanced upload capabilities**: 
+  - Implemented Copy & Paste functionality
+  - Added direct uploading via image grabbing
+- **Technical improvements**:
+  - Fixed UUID linter error by adding uuid.d.ts
+
+#### 🛠️ Bug Fixes
+
+- **Fixed filters and search**:
+  - Restored registration period filter
+  - Fixed Yandex in reverse image search
+- **Improved image display**:
+  - Fixed thumbnail and image URLs
+  - Fixed "Sketchy"/"Unsafe" posts not loading on first visit
+- **Optimized feeds**:
+  - Fixed activity feed on /users/id and /account that sometimes didn't load
+
+### Beta v1.6.0
 
 #### 🏷️ Tag System Fully Implemented
 
@@ -175,8 +203,6 @@ NODE_ENV=development
 
 - Consistent avatar styling in post details view
 - Enhanced visual hierarchy for better usability
-
-### Beta v1.5.0
 
 #### 🔍 Search Improvements
 
