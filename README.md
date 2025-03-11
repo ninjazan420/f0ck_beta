@@ -1,4 +1,4 @@
-# f0ck.org Beta v2.0.0
+# f0ck.org Beta v2.1.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still broken.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v2.0.0](#f0ckorg-beta-v200)
+- [f0ck.org Beta v2.1.0](#f0ckorg-beta-v210)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)

@@ -2,6 +2,30 @@
 
 Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 
+## [2.1.0] -
+
+### 🛡️ Verbessertes Moderationssystem
+
+- **Umfassende Moderationstools**:
+  - Vollständige Implementierung der Kommentarsperrung für Posts
+  - Verbesserte Moderatorenfunktionen direkt auf der Post-Seite
+  - Intuitive Bedienoberfläche für Moderatoren
+  - Konsistente Sperrung von Kommentaren bei deaktivierten Posts
+
+### 📚 Wiki-System
+
+- **Neue Wiki-Funktionalität**:
+  - Hinzufügung eines Wiki-Systems zur Dokumentation
+  - Wiki-Verzeichnis zur .gitignore hinzugefügt für lokale Wikis
+  - Verbesserte Benutzerdokumentation
+
+### 🐛 Fehlerbehebungen
+
+- **Verbesserte Kommentarfunktionen**:
+  - Behoben: Kommentarboxen respektieren jetzt korrekt den deaktivierten Status
+  - Verbesserte visuelle Rückmeldung für deaktivierte Kommentare
+  - Konsistente Statusanzeige für Kommentardeaktivierung
+
 ## [2.0.0] -
 
 ### 🚀 State of the Art der Beta-Website
