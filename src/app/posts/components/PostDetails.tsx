@@ -722,6 +722,48 @@ export function PostDetails({ postId }: { postId: string }) {
           {/* Tags */}
           <PostTags tags={post.tags} />
 
+          {/* Moderator Actions - nur für Moderatoren und Admins sichtbar */}
+          {session?.user?.role && ['moderator', 'admin'].includes(session.user.role) && (
+            <div className="p-4 rounded-xl bg-red-50/80 dark:bg-red-900/30 backdrop-blur-sm border border-red-200 dark:border-red-800 mb-4">
+              <h3 className="text-lg font-medium text-red-800 dark:text-red-300 mb-2">Moderator Actions</h3>
+              <div className="flex flex-wrap gap-2">
+                <button 
+                  onClick={async () => {
+                    if (confirm('Diesen Post wirklich löschen?')) {
+                      try {
+                        const response = await fetch('/api/moderation/actions', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            action: 'delete',
+                            targetType: 'post',
+                            targetId: post.id,
+                            reason: 'Moderation - Post deletion'
+                          })
+                        });
+                        
+                        if (response.ok) {
+                          // Erfolg - zur Homepage umleiten
+                          window.location.href = '/';
+                        } else {
+                          alert('Fehler beim Löschen des Posts');
+                        }
+                      } catch (error) {
+                        console.error('Error deleting post:', error);
+                        alert('Fehler beim Löschen des Posts');
+                      }
+                    }
+                  }}
+                  className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                >
+                  Post löschen
+                </button>
+                
+                {/* Weitere Moderationsbuttons können hier hinzugefügt werden */}
+              </div>
+            </div>
+          )}
+
           {/* Reverse Image Search - jetzt über den Metadaten */}
           <ReverseSearch imageUrl={post.imageUrl} />
           

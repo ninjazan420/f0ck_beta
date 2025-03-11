@@ -6,6 +6,7 @@ import ModLog from '@/models/ModLog';
 import User from '@/models/User';
 import Comment from '@/models/Comment';
 import Post from '@/models/Post';
+import mongoose from 'mongoose';
 
 export async function POST(req: Request) {
   try {
@@ -29,15 +30,28 @@ export async function POST(req: Request) {
 
     // Zielobjekt finden
     let Model;
+    let target;
+    
     switch (targetType) {
       case 'user':
         Model = User;
+        target = await Model.findById(targetId);
         break;
       case 'comment':
         Model = Comment;
+        target = await Model.findById(targetId);
         break;
       case 'post':
         Model = Post;
+        // Versuche zuerst, den Post durch seine MongoDB ObjectId zu finden
+        if (mongoose.Types.ObjectId.isValid(targetId)) {
+          target = await Model.findById(targetId);
+        }
+        
+        // Wenn nicht gefunden, versuche als numerische ID zu finden
+        if (!target) {
+          target = await Model.findOne({ id: parseInt(targetId, 10) });
+        }
         break;
       default:
         return NextResponse.json(
@@ -46,7 +60,6 @@ export async function POST(req: Request) {
         );
     }
 
-    const target = await Model.findById(targetId);
     if (!target) {
       return NextResponse.json(
         { error: 'Target not found' },
@@ -113,7 +126,7 @@ export async function POST(req: Request) {
       moderator: session.user.id,
       action,
       targetType,
-      targetId,
+      targetId: target._id, // Speichere die MongoDB ObjectId im Log
       reason,
       metadata: {
         previousState,
