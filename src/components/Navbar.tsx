@@ -17,15 +17,33 @@ type MenuItem = {
 );
 
 export const Navbar = () => {
-  const { data: session, status } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const isAuthenticated = status === 'authenticated';
   const [showLogoutBanner, setShowLogoutBanner] = useState(false);
   const [showSuccessLogout, setShowSuccessLogout] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [forceUpdate, setForceUpdate] = useState(0);
   
   // Import der Seitenmetadaten
   const { title, description } = usePageMeta();
+
+  // Avatar-Aktualisierungs-Listener
+  useEffect(() => {
+    const handleAvatarUpdate = () => {
+      // Force rerender
+      setForceUpdate(prev => prev + 1);
+      
+      // Force session refresh
+      updateSession();
+    };
+    
+    window.addEventListener('avatar-updated', handleAvatarUpdate);
+    
+    return () => {
+      window.removeEventListener('avatar-updated', handleAvatarUpdate);
+    };
+  }, [updateSession]);
 
   // Erkennen der Bildschirmgröße
   useEffect(() => {
@@ -36,7 +54,7 @@ export const Navbar = () => {
     // Initial check
     checkIfMobile();
     
-    // Event Listener für Resize
+    // Event Listener for Resize
     window.addEventListener('resize', checkIfMobile);
     
     // Cleanup
@@ -45,7 +63,7 @@ export const Navbar = () => {
     };
   }, []);
   
-  // Schließen des Menüs, wenn die Seite gewechselt wird
+  // Close menu when page changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [title]);
@@ -104,11 +122,13 @@ export const Navbar = () => {
               <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                 {session?.user?.avatar ? (
                   <Image 
+                    key={forceUpdate}
                     src={getImageUrlWithCacheBuster(session.user.avatar)} 
                     alt="Avatar" 
                     width={24} 
                     height={24} 
                     className="object-cover w-full h-full"
+                    unoptimized={true}
                   />
                 ) : (
                   <div className="text-xs text-gray-400">
@@ -227,6 +247,7 @@ export const Navbar = () => {
               <Link href="/account">
                 {session?.user?.avatar ? (
                   <Image 
+                    key={forceUpdate}
                     src={getImageUrlWithCacheBuster(session.user.avatar)} 
                     alt="Avatar" 
                     width={32} 
@@ -251,12 +272,13 @@ export const Navbar = () => {
             }`}
           >
             <div className="container mx-auto py-2">
-              {/* Avatar-Bereich */}
+              {/* Avatar area */}
               {isAuthenticated && (
                 <div className="flex items-center gap-3 px-4 py-3 mb-2 border-b border-gray-100 dark:border-gray-800">
                   <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                     {session?.user?.avatar ? (
                       <Image 
+                        key={forceUpdate}
                         src={getImageUrlWithCacheBuster(session.user.avatar)} 
                         alt="Avatar" 
                         width={40} 
@@ -272,7 +294,7 @@ export const Navbar = () => {
                   <div>
                     <div className="font-mono font-medium">{truncateUsername(session?.user?.username)}</div>
                     <Link href="/account" className="text-xs text-purple-600 dark:text-purple-400">
-                      Profil verwalten
+                      Manage profile
                     </Link>
                   </div>
                 </div>

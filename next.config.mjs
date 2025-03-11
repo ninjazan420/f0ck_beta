@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: 'standalone',
+  output: 'standalone',
   poweredByHeader: false,
   reactStrictMode: true,
 //  swcMinify: true,
@@ -19,7 +19,7 @@ const nextConfig = {
     return config;
   },
   images: {
-    domains: ['localhost', 'beta.f0ck.org'],
+    domains: ['beta.f0ck.org', 'localhost'],
     unoptimized: true,
     minimumCacheTTL: 0,
     remotePatterns: [
@@ -62,7 +62,15 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'i.giphy.com'
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
+      },
     ],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
@@ -70,8 +78,41 @@ const nextConfig = {
   async headers() {
     return [
       {
+        source: '/uploads/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, OPTIONS',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+        ],
+      },
+      {
         source: '/api/images/:path*',
         headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, OPTIONS',
+          },
           {
             key: 'Cache-Control',
             value: 'no-store, no-cache, must-revalidate, proxy-revalidate',

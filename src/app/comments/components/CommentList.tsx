@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { ReactElement } from 'react';
 import { useSession } from 'next-auth/react';
 import { commentSocket } from '@/lib/websocket/commentSocket';
+import { getImageUrlWithCacheBuster } from '@/lib/utils';
 
 interface CommentData {
   id: string;
@@ -213,7 +214,7 @@ export function CommentList({
           result.push(
             <div key={`gif-${index}`} className="my-2">
               <Image
-                src={url}
+                src={getImageUrlWithCacheBuster(url)}
                 alt="GIF"
                 width={400}
                 height={300}
@@ -253,7 +254,7 @@ export function CommentList({
             result.push(
               <div key={`media-${index}`} className="my-2">
                 <Image
-                  src={cleanUrl}
+                  src={getImageUrlWithCacheBuster(cleanUrl)}
                   alt="Embedded media"
                   width={400}
                   height={300}

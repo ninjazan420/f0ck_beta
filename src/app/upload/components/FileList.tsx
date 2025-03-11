@@ -121,7 +121,8 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
   }, []);
 
   const addTag = useCallback((id: string, tag: string) => {
-    const cleanTag = tag.trim().toLowerCase().slice(0, 20); // Maximum 20 Zeichen
+    const cleanTag = tag.trim().toLowerCase().slice(0, 20);
+    console.log(`Tag hinzufügen: "${cleanTag}" zu Item mit ID ${id}`);
     
     if (!cleanTag) return;
     
@@ -134,33 +135,55 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
       return;
     }
 
-    setFileItems(prev => prev.map(item => {
-      if (item.id === id) {
-        if (item.tags.length >= 10) {
-          return { ...item, error: 'Maximal 10 Tags erlaubt' };
+    // Lokales State-Update durchführen
+    setFileItems(prev => {
+      const newItems = prev.map(item => {
+        if (item.id === id) {
+          if (item.tags.length >= 10) {
+            return { ...item, error: 'Maximal 10 Tags erlaubt' };
+          }
+          
+          if (item.tags.includes(cleanTag)) {
+            return { ...item, error: 'Tag existiert bereits' };
+          }
+          
+          const newTags = [...item.tags, cleanTag];
+          console.log(`Neue Tags für Item ${item.name}:`, newTags);
+          return { 
+            ...item, 
+            tags: newTags,
+            error: undefined
+          };
         }
-        
-        if (item.tags.includes(cleanTag)) {
-          return { ...item, error: 'Tag existiert bereits' };
-        }
-        
-        return { 
-          ...item, 
-          tags: [...item.tags, cleanTag],
-          error: undefined
-        };
+        return item;
+      });
+      
+      // Wichtig: Callback verzögern mit setTimeout, um nicht während des Renderings zu aktualisieren
+      if (onItemsUpdate) {
+        setTimeout(() => {
+          onItemsUpdate(newItems);
+        }, 0);
       }
-      return item;
-    }));
-  }, [isValidTag]);
+      
+      return newItems;
+    });
+  }, [isValidTag, onItemsUpdate]);
 
   const removeTag = useCallback((id: string, tagIndex: number) => {
-    setFileItems(prev => prev.map(item =>
-      item.id === id ? 
-        { ...item, tags: item.tags.filter((_, i) => i !== tagIndex) } 
-        : item
-    ));
-  }, []);
+    setFileItems(prev => {
+      const newItems = prev.map(item =>
+        item.id === id ? 
+          { ...item, tags: item.tags.filter((_, i) => i !== tagIndex) } 
+          : item
+      );
+      
+      if (onItemsUpdate) {
+        setTimeout(() => onItemsUpdate(newItems), 0);
+      }
+      
+      return newItems;
+    });
+  }, [onItemsUpdate]);
 
   const updateContentRating = useCallback((id: string, rating: FileItem['contentRating']) => {
     // Finde das aktuelle Item
@@ -178,7 +201,8 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
   }, [fileItems, onUpdateRating]);
 
   const handleTagInput = useCallback((id: string, e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
+    // Füge Tag hinzu, wenn Enter, Komma oder Leertaste gedrückt wird
+    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
       e.preventDefault();
       const input = e.currentTarget;
       if (input.value.trim()) {
@@ -190,10 +214,18 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
   }, [addTag]);
 
   const clearAllTags = useCallback((id: string) => {
-    setFileItems(prev => prev.map(item =>
-      item.id === id ? { ...item, tags: [], error: undefined } : item
-    ));
-  }, []);
+    setFileItems(prev => {
+      const newItems = prev.map(item =>
+        item.id === id ? { ...item, tags: [], error: undefined } : item
+      );
+      
+      if (onItemsUpdate) {
+        setTimeout(() => onItemsUpdate(newItems), 0);
+      }
+      
+      return newItems;
+    });
+  }, [onItemsUpdate]);
 
   return (
     <div className="space-y-4">

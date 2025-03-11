@@ -86,6 +86,19 @@ postSchema.pre('save', async function(next) {
     const lastPost = await mongoose.model('Post').findOne({}, { id: 1 }).sort({ id: -1 });
     this.id = lastPost ? lastPost.id + 1 : 1;
   }
+  
+  // Normalisiere Tags
+  if (this.isModified('tags')) {
+    this.tags = this.tags.map((tag: string) => 
+      tag.toLowerCase().trim().replace(/\s+/g, '_')
+    );
+    
+    // Entferne Duplikate
+    this.tags = [...new Set(this.tags)];
+    
+    console.log('Normalized post tags:', this.tags);
+  }
+  
   next();
 });
 

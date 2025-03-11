@@ -6,9 +6,11 @@ import Tag from '@/models/Tag';
 import { Types } from 'mongoose';
 import crypto from 'crypto';
 import User from '@/models/User';
+import fs from 'fs/promises';
 
-// Definiere die Upload-Ordner
+// Erweitere UPLOAD_DIRS um baseDir
 const UPLOAD_DIRS = {
+  base: join(process.cwd(), 'public', 'uploads'),
   temp: join(process.cwd(), 'public', 'uploads', 'temp'),
   original: join(process.cwd(), 'public', 'uploads', 'original'),
   thumbnails: join(process.cwd(), 'public', 'uploads', 'thumbnails'),
@@ -21,15 +23,40 @@ function generateImageId(): string {
   return `${prefix}_${randomHex}`;
 }
 
-// Initialisiere die Upload-Ordner
+// Erweitere die initializeUploadDirectories Funktion um mehr Fehlerbehandlung
 export async function initializeUploadDirectories() {
   try {
-    await Promise.all(
-      Object.values(UPLOAD_DIRS).map(dir => mkdir(dir, { recursive: true }))
-    );
-    console.log('Upload directories created successfully');
+    console.log('Initializing upload directories...');
+    console.log('Base directory:', UPLOAD_DIRS.base);
+    
+    // Erstelle alle nötigen Upload-Verzeichnisse
+    for (const dir of Object.values(UPLOAD_DIRS)) {
+      try {
+        console.log(`Creating directory: ${dir}`);
+        await mkdir(dir, { recursive: true });
+      } catch (error) {
+        console.error(`Failed to create directory ${dir}:`, error);
+        // Werfe den Fehler nicht, damit andere Verzeichnisse trotzdem erstellt werden können
+      }
+    }
+    
+    // Überprüfe die Berechtigungen
+    for (const dir of Object.values(UPLOAD_DIRS)) {
+      try {
+        // Versuche, eine Testdatei zu schreiben
+        const testFile = join(dir, '.test-permissions');
+        await writeFile(testFile, 'test');
+        await fs.unlink(testFile).catch(console.error);
+        console.log(`Directory ${dir} is writable`);
+      } catch (error) {
+        console.error(`Directory ${dir} is NOT writable:`, error);
+      }
+    }
+    
+    console.log('Upload directories initialized successfully');
   } catch (error) {
-    console.error('Failed to create upload directories:', error);
+    console.error('Error initializing upload directories:', error);
+    throw error;
   }
 }
 
@@ -56,32 +83,73 @@ export async function processUpload(
   tags: string[] = []
 ): Promise<ProcessedUpload> {
   try {
+    // Stelle sicher, dass die Verzeichnisse existieren
+    await initializeUploadDirectories();
+
+    // Zusätzlicher Debug-Code für den Thumbnail-Ordner
+    console.log('Checking thumbnail directory...');
+    try {
+      const thumbDirStat = await fs.stat(UPLOAD_DIRS.thumbnails);
+      console.log('Thumbnail directory exists:', UPLOAD_DIRS.thumbnails);
+      console.log('Directory permissions:', thumbDirStat.mode.toString(8));
+    } catch (error) {
+      console.error('Thumbnail directory check failed:', error);
+      // Versuche erneut, das Verzeichnis zu erstellen
+      try {
+        await mkdir(UPLOAD_DIRS.thumbnails, { recursive: true, mode: 0o755 });
+        console.log('Thumbnail directory created successfully');
+      } catch (mkdirError) {
+        console.error('Failed to create thumbnail directory:', mkdirError);
+      }
+    }
+
     // Verarbeite das Bild mit Sharp
     const image = sharp(file);
     const metadata = await image.metadata();
 
-    // Process tags
+    // Verbesserte Tag-Verarbeitung
     const processedTags: string[] = [];
     if (tags && tags.length > 0) {
+      console.log('🏷️ Processing tags for upload:', tags);
+      
       for (const tagName of tags) {
-        // Find or create the tag
-        const tag = await Tag.findOrCreate(tagName);
-        
-        // Increment post count for the tag
-        await Tag.findByIdAndUpdate(tag._id, {
-          $inc: { postsCount: 1, newPostsToday: 1, newPostsThisWeek: 1 }
-        });
-        
-        processedTags.push(tag.name);
+        try {
+          if (!tagName || typeof tagName !== 'string' || tagName.trim() === '') {
+            console.log('⚠️ Skipping empty tag');
+            continue;
+          }
+          
+          console.log('🔄 Processing tag:', tagName);
+          
+          // Find or create the tag
+          const tag = await Tag.findOrCreate(tagName);
+          console.log('✅ Tag result:', tag);
+          
+          if (!tag) {
+            console.error('❌ Failed to create tag:', tagName);
+            continue;
+          }
+          
+          // Hier ist der kritische Fix: Tag-Name zur Liste hinzufügen
+          processedTags.push(tag.name);
+          
+          // Increment post count for the tag
+          await Tag.findByIdAndUpdate(tag._id, {
+            $inc: { postsCount: 1, newPostsToday: 1, newPostsThisWeek: 1 }
+          });
+        } catch (error) {
+          console.error('❌ Error processing tag:', tagName, error);
+        }
       }
     }
+    console.log('📋 Final processed tags:', processedTags);
 
-    // Erstelle einen neuen Post in der Datenbank
+    // Erstelle einen neuen Post mit den verarbeiteten Tags
     const post = new Post({
       title: originalFilename,
-      author: userId || null, // Wenn kein userId, dann null für anonymen Upload
-      contentRating: contentRating, // Setze das contentRating
-      tags: processedTags, // Setze die Tags
+      author: userId || null,
+      contentRating: contentRating,
+      tags: processedTags, // Diese Liste sollte jetzt korrekt gefüllt sein
       meta: {
         width: metadata.width || 0,
         height: metadata.height || 0,
@@ -91,8 +159,12 @@ export async function processUpload(
       }
     });
     
-    // Speichere den Post, um die automatisch generierte ID zu erhalten
+    // Debug-Ausgabe des Post-Objekts vor dem Speichern
+    console.log('📝 Creating post with tags:', post.tags);
+    
+    // Speichere den Post
     await post.save();
+    console.log('💾 Post saved with ID:', post._id, 'and tags:', post.tags);
 
     // Wenn ein User vorhanden ist, füge den Post zu seinen Uploads hinzu
     if (userId) {
@@ -106,25 +178,44 @@ export async function processUpload(
     const filename = `${imageId}.jpg`; // Wir speichern alles als JPG
     const thumbnailFilename = `thumb_${filename}`; // Thumbnail mit Präfix
 
-    // Stelle sicher, dass die Upload-Verzeichnisse existieren
-    await initializeUploadDirectories();
-
-    // Speichere das Originalbild
+    // Speichere das Originalbild mit expliziten Berechtigungen
     const originalPath = join(UPLOAD_DIRS.original, filename);
-    await writeFile(originalPath, file);
+    await writeFile(originalPath, file, { mode: 0o644 });
     console.log(`Original image saved to: ${originalPath}`);
 
-    // Erstelle und speichere das Thumbnail
-    const thumbnail = await image
-      .resize(400, 400, {
-        fit: 'cover',
-        position: 'centre'
-      })
-      .toBuffer();
-
+    // Erstelle und speichere das Thumbnail mit expliziten Berechtigungen
     const thumbnailPath = join(UPLOAD_DIRS.thumbnails, thumbnailFilename);
-    await writeFile(thumbnailPath, thumbnail);
-    console.log(`Thumbnail saved to: ${thumbnailPath}`);
+    try {
+      console.log(`Generating thumbnail for ${thumbnailPath}...`);
+      await image
+        .resize(400, 400, {
+          fit: 'cover',
+          position: 'centre'
+        })
+        .toFile(thumbnailPath);
+      console.log(`Thumbnail successfully saved to ${thumbnailPath}`);
+
+      // Überprüfe, ob die Datei wirklich existiert
+      const exists = await fs.access(thumbnailPath).then(() => true).catch(() => false);
+      if (!exists) {
+        console.error(`Thumbnail file does not exist after creation at: ${thumbnailPath}`);
+      }
+    } catch (thumbError) {
+      console.error('Error generating thumbnail:', thumbError);
+      // Versuche einen alternativen Ansatz
+      try {
+        const thumbBuffer = await image
+          .resize(400, 400, {
+            fit: 'cover',
+            position: 'centre'
+          })
+          .toBuffer();
+        await fs.writeFile(thumbnailPath, thumbBuffer);
+        console.log(`Thumbnail saved using alternative method to ${thumbnailPath}`);
+      } catch (altError) {
+        console.error('Alternative thumbnail creation also failed:', altError);
+      }
+    }
 
     // Aktualisiere den Post mit den Bildpfaden
     post.imageUrl = `/uploads/original/${filename}`;
@@ -146,8 +237,8 @@ export async function processUpload(
       tags: processedTags
     };
   } catch (error) {
-    console.error('Error processing upload:', error);
-    throw new Error('Failed to process upload');
+    console.error('Error processing upload:', error, error.stack);
+    throw new Error(`Failed to process upload: ${error.message}`);
   }
 }
 
@@ -233,4 +324,4 @@ export async function downloadImageFromUrl(url: string): Promise<{
     console.error('Error downloading image:', error);
     throw new Error('Failed to download image from URL');
   }
-} 
+}

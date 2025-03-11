@@ -91,19 +91,39 @@ export async function generateMetadata({ params }: { params: { username: string 
     ? `${formattedUsername}'s profile: ${user.bio}` 
     : `Check out ${formattedUsername}'s profile on f0ck.org`;
   
+  // Default Avatar, falls der Benutzer keinen hat
+  const defaultAvatarUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://f0ck.org'}/api/user/default-avatar?username=${encodeURIComponent(user.username)}`;
+  
+  // Verwende das tatsächliche Avatarbild oder die Fallback-URL
+  const avatarUrl = user.avatar || defaultAvatarUrl;
+  
   return {
     title,
     description,
     openGraph: {
       title,
       description,
-      images: user.avatar ? [user.avatar] : undefined,
+      type: 'profile',
+      url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://f0ck.org'}/user/${user.username}`,
+      images: [
+        {
+          url: avatarUrl,
+          width: 500,
+          height: 500,
+          alt: `${formattedUsername}'s profile picture`
+        }
+      ],
+      siteName: 'f0ck.org',
+      firstName: user.username,
+      lastName: '',
+      username: user.username
     },
     twitter: {
       card: 'summary',
       title,
       description,
-      images: user.avatar ? [user.avatar] : undefined,
+      images: [avatarUrl],
+      creator: '@f0ck_org'
     }
   };
 }

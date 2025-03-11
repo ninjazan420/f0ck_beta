@@ -8,12 +8,12 @@ export default function PremiumClient() {
 
   const plans = {
     monthly: {
-      price: '4.99',
+      price: '1.99',
       period: 'month',
       savings: ''
     },
     yearly: {
-      price: '49.99',
+      price: '19.99',
       period: 'year',
       savings: 'Save ~17%'
     }
@@ -36,7 +36,7 @@ export default function PremiumClient() {
             Upgrade to Premium 💎
           </h1>
           <p className="text-xl text-gray-700 dark:text-gray-300">
-            Unlock the full potential of f0ck.org
+            Unlock the full potential of f0ck.org (not live yet, do not pay)
           </p>
         </div>
 

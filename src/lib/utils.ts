@@ -23,27 +23,21 @@ export function getRandomLogo(): string {
 }
 
 /**
- * Fügt einen Timestamp als Cache-Buster zu einem Bildpfad hinzu.
- * Verhindert, dass Bilder im Browser-Cache zwischengespeichert werden.
- * Berücksichtigt sowohl lokale als auch Live-Server-Umgebungen.
+ * Adds a cache-busting parameter to an image URL
+ * @param url The image URL to add cache busting to
+ * @param additionalBuster Optional additional buster to append
+ * @returns URL with cache busting parameter
  */
-export function getImageUrlWithCacheBuster(url: string): string {
-  if (!url) return url;
+export function getImageUrlWithCacheBuster(url: string, additionalBuster?: string): string {
+  if (!url) return '';
   
-  // Wenn die URL bereits absolut ist, füge nur den Timestamp hinzu
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}t=${Date.now()}`;
-  }
+  // Check if URL already has query parameters
+  const hasParams = url.includes('?');
   
-  // Für Bilder aus dem Upload-Verzeichnis
-  if (url.startsWith('/uploads/')) {
-    // Füge einen Timestamp als Cache-Buster hinzu
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}t=${Date.now()}`;
-  }
-  
-  // Für andere URLs auch einfach einen Timestamp hinzufügen
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}t=${Date.now()}`;
+  // Add cache buster with current timestamp and optional additional buster
+  const cacheBuster = additionalBuster ? 
+    `v=${Date.now()}_${additionalBuster}` : 
+    `v=${Date.now()}`;
+    
+  return hasParams ? `${url}&${cacheBuster}` : `${url}?${cacheBuster}`;
 }

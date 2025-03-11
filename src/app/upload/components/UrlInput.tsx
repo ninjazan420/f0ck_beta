@@ -13,9 +13,11 @@ export interface PreviewImageUrlData {
 }
 
 export function UrlInput({ 
-  onUrlAdd 
+  onUrlAdd,
+  onImagePaste
 }: { 
-  onUrlAdd: (urlData: PreviewImageUrlData) => void 
+  onUrlAdd: (urlData: PreviewImageUrlData) => void,
+  onImagePaste?: (files: File[]) => void 
 }) {
   const [url, setUrl] = useState('');
   const [isImageUrl, setIsImageUrl] = useState(false);
@@ -111,24 +113,54 @@ export function UrlInput({
 
   // Handle paste events
   useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      // Check if the paste is just a URL
-      if (e.clipboardData) {
-        const text = e.clipboardData.getData('text');
-        if (text && text.trim()) {
-          try {
-            new URL(text); // Check if it's a valid URL
-            setUrl(text);
-          } catch (e) {
-            // Not a valid URL, ignore
+    const urlInputElement = document.querySelector('input[type="url"]');
+    
+    const handleInputPaste = (e: ClipboardEvent) => {
+      // Nur verarbeiten, wenn dieses Input-Element fokussiert ist
+      if (document.activeElement !== urlInputElement) return;
+      
+      // Zuerst prüfen, ob Bilder in der Zwischenablage sind
+      if (e.clipboardData && e.clipboardData.files.length > 0) {
+        const file = e.clipboardData.files[0];
+        if (file.type.startsWith('image/')) {
+          e.preventDefault(); // Standard-Einfügen verhindern
+          e.stopPropagation(); // WICHTIG: Verhindert Event-Bubbling zum globalen Handler
+          
+          // Statt einer Blob-URL im Eingabefeld,
+          // Ereignis auslösen und an übergeordnete Komponente weiterleiten
+          if (onImagePaste) {
+            onImagePaste([file]);
           }
+          
+          // Optional: Kurze Information anzeigen
+          setError("Image pasted and added to upload list");
+          setTimeout(() => setError(null), 3000);
+          
+          return;
+        }
+      }
+      
+      // Dann versuchen, Text als URL zu verarbeiten
+      if (e.clipboardData && e.clipboardData.getData('text')) {
+        const text = e.clipboardData.getData('text');
+        try {
+          new URL(text); // URL validieren
+          setUrl(text);
+          e.preventDefault(); // Verhindere Standard-Einfügen
+          e.stopPropagation(); // WICHTIG: Verhindert Event-Bubbling zum globalen Handler
+        } catch (err) {
+          // Kein gültiger URL, weiter mit Standard-Paste
         }
       }
     };
-
-    document.addEventListener('paste', handlePaste);
-    return () => document.removeEventListener('paste', handlePaste);
-  }, []);
+    
+    if (urlInputElement) {
+      urlInputElement.addEventListener('paste', handleInputPaste);
+      return () => urlInputElement.removeEventListener('paste', handleInputPaste);
+    }
+    
+    return undefined;
+  }, [onImagePaste]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

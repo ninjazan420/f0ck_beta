@@ -24,6 +24,22 @@ initializeUploadDirectories().catch(console.error);
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Starting upload process...');
+    
+    // Initialisiere die Upload-Verzeichnisse am Anfang
+    try {
+      await initializeUploadDirectories().catch(error => {
+        console.error('Failed to initialize upload directories:', error);
+        throw error;
+      });
+    } catch (error) {
+      console.error('Critical error initializing directories:', error);
+      return NextResponse.json(
+        { error: 'Server configuration error: Failed to initialize upload directories' },
+        { status: 500 }
+      );
+    }
+
     // Connect to database
     await dbConnect();
     
@@ -41,13 +57,21 @@ export async function POST(request: NextRequest) {
     // Get user session (if authenticated)
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
+    console.log('User ID from session:', userId);
     
     // Parse form data
     const formData = await request.formData();
     const files = formData.getAll('file') as File[];
     const imageUrl = formData.get('imageUrl') as string;
-    const tempFilePath = formData.get('tempFilePath') as string; // New: path to temporary file
+    const tempFilePath = formData.get('tempFilePath') as string;
     const rating = formData.get('rating') as 'safe' | 'sketchy' | 'unsafe' || 'safe';
+    
+    console.log('Upload request received:', {
+      filesCount: files.length,
+      imageUrl: imageUrl ? 'present' : 'not present',
+      tempFilePath: tempFilePath ? 'present' : 'not present',
+      rating
+    });
     
     // Get tags if provided
     let tags: string[] = [];
@@ -55,8 +79,11 @@ export async function POST(request: NextRequest) {
     if (tagsData) {
       try {
         tags = JSON.parse(tagsData as string);
+        console.log('🏷️ Parsed tags from request:', tags);
+        console.log('🧪 Tags type:', typeof tags, Array.isArray(tags));
       } catch (e) {
-        console.error('Error parsing tags:', e);
+        console.error('❌ Error parsing tags:', e);
+        console.log('📄 Raw tags data:', tagsData);
       }
     }
     
@@ -72,29 +99,42 @@ export async function POST(request: NextRequest) {
 
     // Process uploaded files
     for (const file of files) {
-      // Convert file to buffer for processing
-      const buffer = Buffer.from(await file.arrayBuffer());
-      
-      // Process the upload
-      const processedUpload = await processUpload(
-        buffer,
-        file.name,
-        file.type,
-        userId,
-        rating,
-        tags
-      );
+      try {
+        // Convert file to buffer for processing
+        const buffer = Buffer.from(await file.arrayBuffer());
+        
+        console.log(`Processing file upload: ${file.name}`);
+        
+        // Process the upload
+        const processedUpload = await processUpload(
+          buffer,
+          file.name,
+          file.type,
+          userId,
+          rating,
+          tags
+        );
 
-      results.push({
-        id: processedUpload.id,
-        filename: processedUpload.filename,
-        url: processedUpload.originalPath,
-        thumbnailUrl: processedUpload.thumbnailPath,
-        rating: rating,
-        uploadDate: new Date().toISOString(),
-        tags: tags,
-        uploader: userId ? 'User' : 'Anonymous'
-      });
+        console.log(`Successfully processed file: ${file.name}`);
+        console.log('Paths:', {
+          original: processedUpload.originalPath,
+          thumbnail: processedUpload.thumbnailPath
+        });
+
+        results.push({
+          id: processedUpload.id,
+          filename: processedUpload.filename,
+          url: processedUpload.originalPath,
+          thumbnailUrl: processedUpload.thumbnailPath,
+          rating: rating,
+          uploadDate: new Date().toISOString(),
+          tags: tags,
+          uploader: userId ? 'User' : 'Anonymous'
+        });
+      } catch (err) {
+        console.error(`Error processing file ${file.name}:`, err);
+        throw err;
+      }
     }
 
     // Process image from URL if provided
@@ -217,12 +257,25 @@ export async function POST(request: NextRequest) {
       success: true,
       files: results,
       file: results[0] // For backward compatibility
+    }, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     });
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json(
-      { error: 'Failed to process upload' },
-      { status: 500 }
+      { error: 'Failed to process upload: ' + (error.message || 'Unknown error') },
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
     );
   }
-} 
+}

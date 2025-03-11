@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { AvatarPicker } from './AvatarPicker';
 import { ReactElement } from 'react';
-import { AlertCircle, Pencil, Eye, Save, XCircle } from 'lucide-react';
+import { AlertCircle, Pencil, Eye, Save, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getImageUrlWithCacheBuster } from '@/lib/utils';
 
@@ -55,7 +55,7 @@ interface ProfileData {
 }
 
 export function AccountCard() {
-  const { data: session, update: updateSession } = useSession();  // data hinzugefügt
+  const { data: session, update: updateSession } = useSession();  
 
   const [profile, setProfile] = useState<ProfileData>({
     nickname: '',  // Leer initialisieren
@@ -83,15 +83,18 @@ export function AccountCard() {
     createdAt: new Date().toISOString(),
     lastSeen: new Date().toISOString(),
   });
+  
+  const [activityLoading, setActivityLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-  // Verbesserte useEffect für Datenabruf
+  // Separate effect for user data and avatar (higher priority)
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        setProfileLoading(true);
         const response = await fetch('/api/user');
         if (response.status === 401) {
           console.log('Not authenticated, redirecting...');
-          // Optional: Hier Redirect zur Login-Seite
           return;
         }
         
@@ -116,34 +119,10 @@ export function AccountCard() {
           tags: userData.stats?.tags || 0,
           avatarUrl: userData.avatar || null
         }));
-        
-        // Direkt nach dem Laden der Benutzerdaten auch die Aktivitäten laden
-        fetchActivity();
       } catch (error) {
         console.error('Error fetching user data:', error);
-      }
-    };
-    
-    // Funktion zum Laden der Aktivitäten
-    const fetchActivity = async () => {
-      try {
-        const response = await fetch('/api/user/activity');
-        if (!response.ok) {
-          throw new Error('Failed to fetch activity');
-        }
-        
-        const data = await response.json();
-        console.log('AccountCard: Erhaltene Aktivitäten:', data.activities);
-        if (data.activities && data.activities.length > 0) {
-          console.log('AccountCard: Beispiel Post-ID:', data.activities[0].post.id);
-        }
-        
-        setProfile(prev => ({
-          ...prev,
-          recentActivity: data.activities || []
-        }));
-      } catch (error) {
-        console.error('Error fetching activity:', error);
+      } finally {
+        setProfileLoading(false);
       }
     };
 
@@ -151,6 +130,38 @@ export function AccountCard() {
       fetchUserData();
     }
   }, [session]);
+  
+  // Separate effect for activity feed (lower priority)
+  useEffect(() => {
+    const fetchActivity = async () => {
+      if (!session?.user || profileLoading) return;
+      
+      try {
+        setActivityLoading(true);
+        const response = await fetch('/api/user/activity');
+        if (!response.ok) {
+          throw new Error('Failed to fetch activity');
+        }
+        
+        const data = await response.json();
+        console.log('AccountCard: Received activities:', data.activities);
+        
+        setProfile(prev => ({
+          ...prev,
+          recentActivity: data.activities || []
+        }));
+      } catch (error) {
+        console.error('Error fetching activity:', error);
+      } finally {
+        setActivityLoading(false);
+      }
+    };
+    
+    // Only fetch activity after profile data is loaded
+    if (!profileLoading && session?.user) {
+      fetchActivity();
+    }
+  }, [session, profileLoading]);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -334,30 +345,58 @@ export function AccountCard() {
   };
 
   // Avatar-Handling-Funktion
-  const handleAvatarChange = (newAvatarUrl: string | null) => {
-    // Setze den neuen Avatar-URL im Profil
+  const handleAvatarChange = useCallback(async (newAvatarUrl: string | null) => {
+    console.log('Avatar changed to:', newAvatarUrl);
+    
+    // Set the new avatar URL in the profile
     setProfile(prev => ({
       ...prev,
       avatarUrl: newAvatarUrl
     }));
     
-    // Aktualisiere auch die Session, damit die Navbar das neue Avatar anzeigt
+    // Update the session to show the new avatar in the navbar
     if (session) {
-      updateSession({
-        ...session,
-        user: {
-          ...session.user,
-          avatar: newAvatarUrl
-        }
-      });
+      try {
+        await updateSession({
+          ...session,
+          user: {
+            ...session.user,
+            avatar: newAvatarUrl
+          }
+        });
+        
+        // Nach erfolgreicher Aktualisierung der Session ein Ereignis auslösen
+        window.dispatchEvent(new CustomEvent('avatar-updated'));
+        
+        // Force reload der Seite nach kurzer Verzögerung
+        setTimeout(() => {
+          if (typeof window !== 'undefined') {
+            window.location.reload();
+          }
+        }, 500);
+      } catch (error) {
+        console.error('Failed to update session with new avatar:', error);
+      }
     }
-  };
+  }, [session, updateSession]);
+
+  // Funktion zum Ermitteln des Avatar-URLs (mit Default-Fallback)
+  const getAvatarUrl = useCallback(() => {
+    // Wenn ein benutzerdefinierter Avatar existiert, verwende diesen
+    if (profile.avatarUrl) {
+      return profile.avatarUrl;
+    }
+    
+    // Ansonsten generiere einen Standard-Avatar basierend auf dem Benutzernamen
+    const username = profile.nickname || 'user';
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+  }, [profile.avatarUrl, profile.nickname]);
 
   return (
     <div className="p-6 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
       {/* Profile Header */}
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Avatar Section mit AvatarPicker */}
+        {/* Avatar Section with AvatarPicker */}
         <div className="w-32 md:w-32 flex-shrink-0 space-y-3">
           <AvatarPicker
             username={profile.nickname}
@@ -365,7 +404,7 @@ export function AccountCard() {
             onAvatarChanged={handleAvatarChange}
           />
           
-          {/* Edit Profile Button unter Avatar */}
+          {/* Edit Profile Button under Avatar */}
           <div className="space-y-1">
             {!isEditing ? (
               <button
@@ -468,7 +507,7 @@ export function AccountCard() {
       <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400">
-            Privacy
+            Privacy (does not change anything yet)
           </h3>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
@@ -512,78 +551,102 @@ export function AccountCard() {
         </div>
       </div>
       
-      {/* Recent Activity mit verschiedenen Aktivitätstypen */}
+      {/* Recent Activity with loading state */}
       <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400 mb-3">
+        <h3 className="text-lg font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400 mb-3 flex items-center justify-between">
           Recent Activity
+          {activityLoading && (
+            <div className="text-sm text-gray-500 flex items-center gap-1">
+              <Loader2 className="w-3 h-3 animate-spin" /> Loading...
+            </div>
+          )}
         </h3>
         <div className="space-y-3">
-          {profile.recentActivity.map((activity) => (
-            <div
-              key={activity.id}
-              className="flex gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800/50"
-            >
-              {/* Activity Content */}
-              <div className="flex-grow space-y-2">
-                <div className="flex items-start justify-between gap-4">
-                  <p className="text-gray-700 dark:text-gray-300 text-sm">
-                    <span className="mr-1">{activity.emoji}</span>
-                    {activity.text}
-                  </p>
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
-                    {new Date(activity.date).toLocaleDateString()}
-                  </span>
+          {activityLoading ? (
+            // Placeholder loading state
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800/50 animate-pulse">
+                <div className="flex-grow">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
                 </div>
-                {activity.content && activity.type === 'comment' && (
-                  <div className="text-sm text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-900/30 p-2 rounded border border-gray-200 dark:border-gray-700">
-                    {activity.content.length > 100 && !activity.content.includes('[GIF:')
-                      ? `${activity.content.substring(0, 100)}...` 
-                      : renderCommentContent(activity.content)}
-                  </div>
-                )}
-                <div className="text-xs text-gray-500">
-                  on{" "}
-                  <Link
-                    href={`/post/${activity.post.numericId || activity.post.id}`}
-                    className="text-purple-600 dark:text-purple-400 hover:underline"
-                  >
-                    {activity.post.title}
-                  </Link>
-                </div>
+                <div className="flex-shrink-0 w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
               </div>
-              {/* Thumbnail - immer anzeigen, unabhängig vom Kommentarinhalt */}
-              <Link
-                href={`/post/${activity.post.numericId || activity.post.id}`}
-                className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden group"
+            ))
+          ) : profile.recentActivity.length > 0 ? (
+            // Actual activity items
+            profile.recentActivity.map((activity) => (
+              <div
+                key={activity.id}
+                className="flex gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800/50"
               >
-                {activity.post.imageUrl && (
-                  <div
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${getImageUrlWithCacheBuster(activity.post.imageUrl)})` }}
-                  ></div>
-                )}
-                {activity.post.type === "video" && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <span className="text-white text-xl">▶</span>
-                  </div>
-                )}
-                {activity.post.type === "gif" && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                    <span className="text-white text-xs px-1.5 py-0.5 bg-black/50 rounded">
-                      GIF
+                {/* Activity Content */}
+                <div className="flex-grow space-y-2">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-gray-700 dark:text-gray-300 text-sm">
+                      <span className="mr-1">{activity.emoji}</span>
+                      {activity.text}
+                    </p>
+                    <span className="text-xs text-gray-500 whitespace-nowrap">
+                      {new Date(activity.date).toLocaleDateString()}
                     </span>
                   </div>
-                )}
-                {activity.post.nsfw && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-red-500/50 group-hover:bg-red-500/30 transition-colors">
-                    <span className="text-white text-xs font-bold px-1 py-0.5 bg-red-600/90 rounded">
-                      NSFW
-                    </span>
+                  {activity.content && activity.type === 'comment' && (
+                    <div className="text-sm text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-900/30 p-2 rounded border border-gray-200 dark:border-gray-700">
+                      {activity.content.length > 100 && !activity.content.includes('[GIF:')
+                        ? `${activity.content.substring(0, 100)}...` 
+                        : renderCommentContent(activity.content)}
+                    </div>
+                  )}
+                  <div className="text-xs text-gray-500">
+                    on{" "}
+                    <Link
+                      href={`/post/${activity.post.numericId || activity.post.id}`}
+                      className="text-purple-600 dark:text-purple-400 hover:underline"
+                    >
+                      {activity.post.title}
+                    </Link>
                   </div>
-                )}
-              </Link>
+                </div>
+                {/* Thumbnail - immer anzeigen, unabhängig vom Kommentarinhalt */}
+                <Link
+                  href={`/post/${activity.post.numericId || activity.post.id}`}
+                  className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden group"
+                >
+                  {activity.post.imageUrl && (
+                    <div
+                      className="absolute inset-0 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${getImageUrlWithCacheBuster(activity.post.imageUrl)})` }}
+                    ></div>
+                  )}
+                  {activity.post.type === "video" && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <span className="text-white text-xl">▶</span>
+                    </div>
+                  )}
+                  {activity.post.type === "gif" && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <span className="text-white text-xs px-1.5 py-0.5 bg-black/50 rounded">
+                        GIF
+                      </span>
+                    </div>
+                  )}
+                  {activity.post.nsfw && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-red-500/50 group-hover:bg-red-500/30 transition-colors">
+                      <span className="text-white text-xs font-bold px-1 py-0.5 bg-red-600/90 rounded">
+                        NSFW
+                      </span>
+                    </div>
+                  )}
+                </Link>
+              </div>
+            ))
+          ) : (
+            // No activities state
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <p>No recent activity to display</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

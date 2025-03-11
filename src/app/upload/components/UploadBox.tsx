@@ -22,38 +22,37 @@ export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void 
 
   // Handle clipboard paste events
   useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      // Verhindere doppelte Verarbeitung von Daten
-      e.preventDefault(); // Füge dies hinzu, um das Standardverhalten zu verhindern
+    const handleDropzonePaste = (e: ClipboardEvent) => {
+      // Prüfen, ob der Fokus innerhalb oder auf der Dropzone ist
+      const isDropzoneActive = 
+        dropzoneRef.current && 
+        (dropzoneRef.current === document.activeElement || 
+         dropzoneRef.current.contains(document.activeElement));
       
+      // Wenn ein Input-Element fokussiert ist und NICHT in der Dropzone
+      const inputActive = 
+        (document.activeElement instanceof HTMLInputElement || 
+         document.activeElement instanceof HTMLTextAreaElement) && 
+        !isDropzoneActive;
+      
+      if (inputActive) return; // Input-Felder außerhalb der Dropzone haben Vorrang
+      
+      // Nur Datei-Paste verarbeiten
       if (e.clipboardData && e.clipboardData.files.length > 0) {
-        // Convert FileList to Array
+        e.preventDefault(); // Verhindern Sie das Standard-Einfügen
         const files = Array.from(e.clipboardData.files);
         onFileDrop(files);
-      } else if (e.clipboardData && e.clipboardData.items) {
-        // Check for image items in clipboard
-        const imageFiles: File[] = [];
-        Array.from(e.clipboardData.items).forEach(item => {
-          // Check if item is an image
-          if (item.type.indexOf('image') !== -1) {
-            const file = item.getAsFile();
-            if (file) imageFiles.push(file);
-          }
-        });
-        
-        if (imageFiles.length > 0) {
-          onFileDrop(imageFiles);
-        }
       }
     };
-
-    // Add event listener to the document
-    document.addEventListener('paste', handlePaste);
     
-    // Clean up
-    return () => {
-      document.removeEventListener('paste', handlePaste);
-    };
+    // Füge den Event-Listener zur Dropzone hinzu, nicht zum Dokument
+    const dropzoneElement = dropzoneRef.current;
+    if (dropzoneElement) {
+      dropzoneElement.addEventListener('paste', handleDropzonePaste);
+      return () => dropzoneElement.removeEventListener('paste', handleDropzonePaste);
+    }
+    
+    return undefined;
   }, [onFileDrop]);
 
   return (

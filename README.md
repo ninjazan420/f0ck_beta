@@ -1,4 +1,4 @@
-# f0ck.org Beta v1.7.0
+# f0ck.org Beta v2.0.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still broken.
 
@@ -12,27 +12,34 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v1.7.0](#f0ckorg-beta-v170)
+- [f0ck.org Beta v2.0.0](#f0ckorg-beta-v200)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
     - [Development Setup](#development-setup)
-    - [Production Setup with Docker](#production-setup-with-docker)
+    - [Production Setup](#production-setup)
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v1.7.0 (Current)](#beta-v170-current)
+    - [Beta v2.0.0 (Current)](#beta-v200-current)
+      - [🚀 State of the Art Beta Website](#-state-of-the-art-beta-website)
+      - [🖼️ Comprehensive Media System](#️-comprehensive-media-system)
+      - [🏷️ Complete Tag System](#️-complete-tag-system)
+      - [💬 Enhanced Comment Features](#-enhanced-comment-features)
+      - [🔍 Advanced Search Features](#-advanced-search-features)
+    - [Older Versions (click to expand)](#older-versions-click-to-expand)
       - [👤 Improved User Interface](#-improved-user-interface)
       - [🚀 New Features](#-new-features)
       - [🛠️ Bug Fixes](#️-bug-fixes)
-    - [Beta v1.6.0](#beta-v160)
       - [🏷️ Tag System Fully Implemented](#️-tag-system-fully-implemented)
       - [🔍 Key Functional Improvements](#-key-functional-improvements)
       - [🎨 UI Refinements](#-ui-refinements)
-    - [Older Versions (click to expand)](#older-versions-click-to-expand)
       - [🔍 Search Improvements](#-search-improvements)
       - [📱 Mobile Optimization](#-mobile-optimization)
       - [🚀 Performance Enhancements](#-performance-enhancements)
+      - [🔄 Updates](#-updates)
+      - [💬 Complete Comment System](#-complete-comment-system)
+      - [🛠️ Fixes](#️-fixes)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
 
@@ -101,7 +108,7 @@ The development server will be available at:
 - **API**: `http://localhost:3000/api`
 - **WebSocket**: `ws://localhost:3000` (automatically configured)
 
-### Production Setup with Docker
+### Production Setup
 
 ```bash
 # Clone the repository
@@ -110,24 +117,18 @@ git clone https://github.com/ninjazan420/f0ck_beta.git
 # Navigate to project directory
 cd f0ck_beta
 
-# Rename env.template to either .env.production or .env.local (for dev)
-.env.template
+# Install dependencies
+npm install
 
-# Build and start Docker containers
-docker compose up -d
+# Build and start the production server
+npm run prod
 ```
 
 The production server will be available at:
 
-- **URL**: `http://localhost:3001`
-- **API**: `http://localhost:3001/api`
-- **WebSocket**: `ws://localhost:3001` (automatically configured)
-
-You can also use the npm script:
-
-```bash
-npm run docker:prod
-```
+- **URL**: `http://localhost:3000`
+- **API**: `http://localhost:3000/api`
+- **WebSocket**: `ws://localhost:3000` (automatically configured)
 
 ### Environment Setup
 
@@ -137,8 +138,7 @@ Create a `.env.local` file in the root directory:
 MONGODB_URI=your_mongodb_uri
 GIPHY_API_KEY=your_giphy_api_key
 NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=http://localhost:3001
-PORT=3001
+NEXTAUTH_URL=http://localhost:3000
 NODE_ENV=development
 ```
 
@@ -149,13 +149,57 @@ NODE_ENV=development
 - **Typography**: Geist Font
 - **Architecture**: React Server Components
 - **Real-time**: WebSocket Integration
-- **Deployment**: Docker & Vercel Edge Runtime
+- **Deployment**: Vercel Edge Runtime
 - **Database**: MongoDB Atlas
 - **Media**: GIPHY API Integration
 
 ## 🔥 Latest Updates
 
-### Beta v1.7.0 (Current)
+### Beta v2.0.0 (Current)
+
+#### 🚀 State of the Art Beta Website
+
+This version marks an important milestone for the f0ck.org project, consolidating all improvements and features from previous beta versions. Version 2.0.0 represents the current state of the art of the beta website with a stable foundation for future development.
+
+#### 🖼️ Comprehensive Media System
+
+- **Fully functional upload system**:
+  - Support for anonymous uploads without account requirement
+  - Optimized image and video processing with automatic thumbnail generation
+  - Advanced file type validation and error handling
+  - Copy & Paste functionality and direct uploading via image grabbing
+  - Reliable processing of thumbnails and original images
+
+#### 🏷️ Complete Tag System
+
+- **Organize and discover content with tags**:
+  - Up to 10 tags per upload for better findability
+  - Simplified tag structure without category distinctions
+  - Powerful tag search with combinable search criteria
+  - Intelligent tag validation for consistent taxonomy
+
+#### 💬 Enhanced Comment Features
+
+- **Comprehensive comment system**:
+  - Live comments with WebSocket integration
+  - GIF and emoji support through GIPHY integration
+  - Extended functions: edit, delete, quote
+  - Reply threading for nested discussions
+  - Support for anonymous commenting
+
+#### 🔍 Advanced Search Features
+
+- **Advanced filter and search options**:
+  - Extensive filtering options (uploader, commenter, likes, date)
+  - Flexible sorting options (newest, oldest, most likes, most comments)
+  - Reverse Image Search for similar image search
+  - Support for registration period filter
+  - Intelligent pagination with page navigator
+
+### Older Versions (click to expand)
+
+<details>
+<summary>Beta v1.7.0</summary>
 
 #### 👤 Improved User Interface
 
@@ -182,8 +226,10 @@ NODE_ENV=development
   - Fixed "Sketchy"/"Unsafe" posts not loading on first visit
 - **Optimized feeds**:
   - Fixed activity feed on /users/id and /account that sometimes didn't load
+</details>
 
-### Beta v1.6.0
+<details>
+<summary>Beta v1.6.0</summary>
 
 #### 🏷️ Tag System Fully Implemented
 
@@ -203,6 +249,10 @@ NODE_ENV=development
 
 - Consistent avatar styling in post details view
 - Enhanced visual hierarchy for better usability
+</details>
+
+<details>
+<summary>Beta v1.5.0</summary>
 
 #### 🔍 Search Improvements
 
@@ -223,8 +273,7 @@ NODE_ENV=development
 - User settings stored in localStorage for persistent filter preferences
 - Optimized API endpoints with support for offset and limit
 - Improved performance through more efficient database queries
-
-### Older Versions (click to expand)
+</details>
 
 <details>
 <summary>Beta v1.4.0</summary>
@@ -284,11 +333,6 @@ NODE_ENV=development
 <details>
 <summary>Beta v1.2.0</summary>
 
-- 🐳 Docker Integration
-  - Docker support for easy deployment and environment consistency
-  - Simplified production build with `docker compose`
-  - Persistent uploads folder
-  - Optimized MongoDB Atlas configuration
 - 🛠️ Technical Improvements
   - Better environment variable management
   - Optimized file upload system
@@ -378,9 +422,6 @@ NODE_ENV=development
 - [Ko-fi](https://ko-fi.com/f0ck_org)
 
 ## 📜 License
-
-MIT License - © 2024 f0ck.org Team
-
 
 MIT License - © 2024 f0ck.org Team
 

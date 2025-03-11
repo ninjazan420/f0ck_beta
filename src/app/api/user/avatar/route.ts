@@ -1,138 +1,168 @@
-import { withAuth, createErrorResponse } from '@/lib/api-utils';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import path from 'path';
+import { writeFile, mkdir, unlink, access } from 'fs/promises';
+import { v4 as uuidv4 } from 'uuid';
 import User from '@/models/User';
 import dbConnect from '@/lib/db/mongodb';
-import { join } from 'path';
-import { mkdir, writeFile, unlink } from 'fs/promises';
-import { existsSync } from 'fs';
-import sharp from 'sharp';
-import crypto from 'crypto';
 
-// Definiere den Avatar-Speicherort
-const AVATAR_DIR = join(process.cwd(), 'public', 'uploads', 'avatars');
+// Process form data with file
+async function processFormData(req: NextRequest) {
+  const formData = await req.formData();
+  const avatarFile = formData.get('avatar') as File;
+  
+  if (!avatarFile) {
+    return { error: 'No avatar file provided' };
+  }
+  
+  const buffer = Buffer.from(await avatarFile.arrayBuffer());
+  return { buffer, fileType: avatarFile.type };
+}
 
-// Stellt sicher, dass das Avatar-Verzeichnis existiert
-async function ensureAvatarDir() {
+// Utility function to verify file exists
+async function fileExists(filePath: string) {
   try {
-    await mkdir(AVATAR_DIR, { recursive: true });
-  } catch (error) {
-    console.error('Error creating avatar directory:', error);
-    throw new Error('Failed to create avatar directory');
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
   }
 }
 
-// Generiere einen eindeutigen Dateinamen für den Avatar
-function generateAvatarFilename(userId: string): string {
-  const randomBytes = crypto.randomBytes(8).toString('hex');
-  return `avatar_${userId}_${randomBytes}.jpg`;
-}
-
-// POST-Handler für den Avatar-Upload
-export async function POST(req: Request) {
-  return withAuth(async (session: { user: { id: string } }) => {
-    try {
-      await dbConnect();
-      await ensureAvatarDir();
-      
-      // Finde den aktuellen Benutzer
-      const user = await User.findById(session.user.id);
-      if (!user) {
-        return createErrorResponse('Benutzer nicht gefunden', 404);
-      }
-      
-      // Verarbeite die FormData
-      const formData = await req.formData();
-      const avatarFile = formData.get('avatar');
-      
-      if (!avatarFile || !(avatarFile instanceof File)) {
-        return createErrorResponse('Keine gültige Bilddatei erhalten', 400);
-      }
-      
-      // Überprüfe den Dateityp
-      if (!avatarFile.type.startsWith('image/')) {
-        return createErrorResponse('Nur Bilddateien sind erlaubt', 400);
-      }
-      
-      // Größenbeschränkung (2MB)
-      if (avatarFile.size > 2 * 1024 * 1024) {
-        return createErrorResponse('Maximale Dateigröße: 2MB', 400);
-      }
-      
-      // Konvertiere die Datei in einen Buffer
-      const buffer = Buffer.from(await avatarFile.arrayBuffer());
-      
-      // Generiere einen eindeutigen Dateinamen
-      const filename = generateAvatarFilename(user._id.toString());
-      const avatarPath = join(AVATAR_DIR, filename);
-      
-      // Verarbeite und speichere das Bild mit Sharp
-      await sharp(buffer)
-        .resize(128, 128, { fit: 'cover' }) // Beschneide auf 128x128px
-        .jpeg({ quality: 85 }) // Konvertiere zu JPEG mit guter Qualität
-        .toFile(avatarPath);
-      
-      // Wenn der Benutzer bereits einen Avatar hat, lösche ihn
-      if (user.avatar) {
-        const oldAvatarPath = join(process.cwd(), 'public', user.avatar);
-        if (existsSync(oldAvatarPath)) {
-          try {
+export async function POST(req: NextRequest) {
+  try {
+    // Get session
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Not authenticated', success: false },
+        { status: 401 }
+      );
+    }
+    
+    const userId = session.user.id;
+    const { buffer, fileType, error } = await processFormData(req);
+    
+    if (error) {
+      return NextResponse.json(
+        { error, success: false },
+        { status: 400 }
+      );
+    }
+    
+    // Check file type
+    if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(fileType)) {
+      return NextResponse.json(
+        { error: 'Invalid file type. Please upload JPG, PNG, GIF or WEBP', success: false },
+        { status: 400 }
+      );
+    }
+    
+    // Create avatar directory if it doesn't exist
+    const avatarsDir = path.join(process.cwd(), 'public', 'uploads', 'avatars');
+    await mkdir(avatarsDir, { recursive: true });
+    
+    // Generate unique filename with timestamp to prevent caching issues
+    const timestamp = Date.now();
+    const uniqueId = uuidv4().replace(/-/g, '');
+    const filename = `avatar_${userId}_${uniqueId}_${timestamp}.png`;
+    const filePath = path.join(avatarsDir, filename);
+    
+    // Save file - make sure it's written completely before returning
+    await writeFile(filePath, buffer);
+    
+    // Verify the file was written correctly
+    const fileWasWritten = await fileExists(filePath);
+    if (!fileWasWritten) {
+      throw new Error('Failed to write avatar file to disk');
+    }
+    
+    // Update avatar path in database
+    await dbConnect();
+    const avatarUrl = `/uploads/avatars/${filename}`;
+    
+    // Delete old avatar if exists
+    const user = await User.findById(userId);
+    if (user?.avatar && !user.avatar.includes('defaultavatar')) {
+      const oldAvatarPath = path.join(process.cwd(), 'public', user.avatar);
+      // Don't delete the old file immediately to prevent 404s during transition
+      setTimeout(async () => {
+        try {
+          if (await fileExists(oldAvatarPath)) {
             await unlink(oldAvatarPath);
-          } catch (error) {
-            console.error('Error deleting old avatar:', error);
+            console.log('Deleted old avatar:', oldAvatarPath);
           }
+        } catch (error) {
+          console.error('Could not delete old avatar:', error);
         }
-      }
-      
-      // Aktualisiere den Benutzer mit dem neuen Avatar-Pfad
-      const avatarUrl = `/uploads/avatars/${filename}`;
-      user.avatar = avatarUrl;
-      await user.save();
-      
-      return NextResponse.json({ 
-        success: true, 
-        avatarUrl 
-      });
-      
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-      return createErrorResponse('Fehler beim Hochladen des Avatars', 500);
+      }, 5000); // 5 second delay before deleting old file
     }
-  });
+    
+    // Update database with new avatar URL
+    await User.findByIdAndUpdate(userId, { avatar: avatarUrl });
+    
+    return NextResponse.json({ 
+      success: true, 
+      avatarUrl
+    });
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    return NextResponse.json(
+      { error: 'Error uploading avatar', success: false },
+      { status: 500 }
+    );
+  }
 }
 
-// DELETE-Handler zum Entfernen des Avatars
-export async function DELETE() {
-  return withAuth(async (session: { user: { id: string } }) => {
-    try {
-      await dbConnect();
-      
-      // Finde den aktuellen Benutzer
-      const user = await User.findById(session.user.id);
-      if (!user) {
-        return createErrorResponse('Benutzer nicht gefunden', 404);
-      }
-      
-      // Wenn der Benutzer einen Avatar hat, lösche ihn
-      if (user.avatar) {
-        const avatarPath = join(process.cwd(), 'public', user.avatar);
-        if (existsSync(avatarPath)) {
-          try {
-            await unlink(avatarPath);
-          } catch (error) {
-            console.error('Error deleting avatar:', error);
-          }
-        }
-        
-        // Setze das Avatar-Feld zurück
-        user.avatar = null;
-        await user.save();
-      }
-      
-      return NextResponse.json({ success: true });
-      
-    } catch (error) {
-      console.error('Error removing avatar:', error);
-      return createErrorResponse('Fehler beim Entfernen des Avatars', 500);
+export async function DELETE(req: NextRequest) {
+  try {
+    // Get session
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Not authenticated', success: false },
+        { status: 401 }
+      );
     }
-  });
+    
+    const userId = session.user.id;
+    
+    // Get user and current avatar
+    await dbConnect();
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found', success: false },
+        { status: 404 }
+      );
+    }
+    
+    // If user has a custom avatar, delete it
+    if (user.avatar && !user.avatar.includes('defaultavatar')) {
+      const avatarPath = path.join(process.cwd(), 'public', user.avatar);
+      try {
+        await unlink(avatarPath);
+      } catch (error) {
+        console.error('Could not delete avatar file:', error);
+        // Continue even if delete fails
+      }
+    }
+    
+    // Update user to remove avatar reference
+    await User.findByIdAndUpdate(userId, { avatar: null });
+    
+    return NextResponse.json({
+      success: true
+    });
+  } catch (error) {
+    console.error('Avatar delete error:', error);
+    return NextResponse.json(
+      { error: 'Error deleting avatar', success: false },
+      { status: 500 }
+    );
+  }
 } 

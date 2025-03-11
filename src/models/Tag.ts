@@ -24,7 +24,7 @@ const tagSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: function(v: string) {
-        return /^[a-z0-9äöüß]+$/.test(v);
+        return /^[a-z0-9äöüß_]+$/.test(v);
       },
       message: props => `${props.value} is not a valid tag name. Use only lowercase letters, numbers, and German umlauts.`
     }
@@ -76,19 +76,50 @@ tagSchema.statics.getPopularTags = async function(limit = 20) {
 
 // Static method to find or create tag
 tagSchema.statics.findOrCreate = async function(tagName: string) {
-  const normalized = tagName.toLowerCase().trim().replace(/\s+/g, '_');
-  
-  let tag = await this.findOne({ name: normalized });
-  
-  if (!tag) {
-    tag = new this({
-      id: normalized,
-      name: normalized
-    });
-    await tag.save();
+  if (!tagName || typeof tagName !== 'string' || tagName.trim() === '') {
+    console.error('Invalid tag name provided:', tagName);
+    return null;
   }
   
-  return tag;
+  const normalized = tagName.toLowerCase().trim().replace(/\s+/g, '_');
+  console.log('Normalized tag name:', normalized);
+  
+  try {
+    // First try to find the tag
+    let tag = await this.findOne({ name: normalized });
+    
+    if (!tag) {
+      console.log('Tag not found, creating new tag:', normalized);
+      
+      // Create new tag
+      tag = new this({
+        id: normalized,
+        name: normalized
+      });
+      
+      try {
+        await tag.save();
+        console.log('Tag created successfully:', tag._id);
+      } catch (saveError) {
+        console.error('Error saving tag:', saveError);
+        
+        // Check if tag was created by another request in parallel
+        tag = await this.findOne({ name: normalized });
+        if (!tag) {
+          throw saveError;
+        } else {
+          console.log('Tag was created in parallel, using existing tag');
+        }
+      }
+    } else {
+      console.log('Using existing tag:', tag._id);
+    }
+    
+    return tag;
+  } catch (error) {
+    console.error('findOrCreate error:', error);
+    throw error;
+  }
 };
 
 const Tag = mongoose.models.Tag || mongoose.model<ITag>('Tag', tagSchema);

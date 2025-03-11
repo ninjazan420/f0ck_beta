@@ -631,73 +631,83 @@ export function PostDetails({ postId }: { postId: string }) {
 
         {/* Right Column - Metadata and Tags */}
         <div className="space-y-6">
-          {/* Uploader Info - Nach oben verschoben */}
+          {/* Uploader Info - mit korrekten Links */}
           <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
-            <div className="flex items-center gap-3">
-              <Link href={`/user/${post.uploader.id}`}>
-                <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <div className="flex gap-3">
+              {/* Avatar column - verwende username statt id */}
+              <Link href={`/user/${post.uploader.name}`} className="flex-shrink-0">
+                <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                   {post.uploader.avatar ? (
                     <Image 
                       src={getImageUrlWithCacheBuster(post.uploader.avatar)} 
                       alt={post.uploader.name} 
-                      width={40} 
-                      height={40} 
+                      width={64} 
+                      height={64} 
                       className="object-cover w-full h-full"
                     />
                   ) : (
-                    <div className="text-lg text-gray-400">
+                    <div className="text-2xl text-gray-400">
                       {post.uploader.name[0]?.toUpperCase() ?? '?'}
                     </div>
                   )}
                 </div>
               </Link>
-              <div>
-                <Link href={`/user/${post.uploader.id}`} className="font-medium hover:underline">
-                  {post.uploader.name}
-                </Link>
-                <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+              
+              {/* User info column */}
+              <div className="flex-grow">
+                <div className="flex items-center gap-2">
+                  <Link href={`/user/${post.uploader.name}`} className="text-lg font-medium hover:underline">
+                    {post.uploader.name}
+                  </Link>
                   {getRoleBadge(post.uploader.admin, post.uploader.moderator, post.uploader.premium)}
-                  <span>
-                    {new Date(post.uploadDate).toLocaleDateString('de-DE', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </span>
+                </div>
+                
+                {/* Bio line if exists */}
+                {post.uploader.bio && (
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                    {post.uploader.bio}
+                  </p>
+                )}
+                
+                {/* Member since line */}
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Member since {new Date(post.uploader.joinDate).toLocaleDateString('de-DE', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
                 </div>
               </div>
             </div>
 
-            {/* User Stats - Alle Stats kompakt darstellen */}
-            <div className="mt-4">
-              <Link
-                href={`/user/${post.uploader.name}`}
-                className="block rounded-lg bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors p-3"
-              >
-                <div className="flex justify-between items-end gap-3 py-1 text-sm">
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500 mb-1">posts</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.totalPosts || 0}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500 mb-1">favorites</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.favorites || 0}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500 mb-1">likes</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.totalLikes || 0}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500 mb-1">comments</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.comments || 0}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500 mb-1">tags</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.tags || 0}</div>
-                  </div>
+            {/* User Stats - Compact design wrapped in a link with correct URL */}
+            <Link 
+              href={`/user/${post.uploader.name}`} 
+              className="block mt-4 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors"
+            >
+              <div className="grid grid-cols-5 gap-2 text-center">
+                <div className="px-2 py-1">
+                  <div className="text-xs text-gray-500 mb-0.5">uploads</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.totalPosts || 0}</div>
                 </div>
-              </Link>
-            </div>
+                <div className="px-2 py-1">
+                  <div className="text-xs text-gray-500 mb-0.5">favorites</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.favorites || 0}</div>
+                </div>
+                <div className="px-2 py-1">
+                  <div className="text-xs text-gray-500 mb-0.5">likes</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.totalLikes || 0}</div>
+                </div>
+                <div className="px-2 py-1">
+                  <div className="text-xs text-gray-500 mb-0.5">comments</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.comments || 0}</div>
+                </div>
+                <div className="px-2 py-1">
+                  <div className="text-xs text-gray-500 mb-0.5">tags</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.tags || 0}</div>
+                </div>
+              </div>
+            </Link>
           </div>
 
           {/* Description */}

@@ -19,6 +19,19 @@
 
 # production
 /build
+# Upload directories
+public/uploads/*
+!public/uploads/.gitkeep
+!public/uploads/*/
+public/uploads/temp/*
+!public/uploads/temp/.gitkeep
+public/uploads/original/*
+!public/uploads/original/.gitkeep
+public/uploads/thumbnails/*
+!public/uploads/thumbnails/.gitkeep
+
+# Zusätzlich ggf. Platzhalter für Uploads hinzufügen
+!public/uploads/temp/placeholder.jpg
 
 # misc
 .DS_Store
@@ -34,8 +47,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env.local
-.env.production
+.env*
 
 # vercel
 .vercel
@@ -43,3 +55,29 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE und Editor-Dateien
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# System-Dateien
+Thumbs.db
+desktop.ini
+
+# Temporäre Dateien und Cache
+.cache/
+.temp/
+tmp/
+dist/
+
+# Sicherheitsrelevante Dateien
+*.key
+*.crt
+*.pfx

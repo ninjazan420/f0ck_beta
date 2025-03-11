@@ -99,7 +99,7 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
 
       <div className="container mx-auto px-4 py-4 max-w-4xl flex-grow">
         <h1 className="text-3xl font-[family-name:var(--font-geist-mono)] mb-8 text-center text-black dark:text-gray-400">
-          Settings
+          Settings (not all settings functional yet)
         </h1>
 
         <div className="space-y-6">

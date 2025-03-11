@@ -1,63 +1,39 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface PostNavigationProps {
   currentId: string;
+  nextPostId?: string | null;
+  previousPostId?: string | null;
 }
 
-export function PostNavigation({ currentId }: PostNavigationProps) {
+export function PostNavigation({ currentId, nextPostId, previousPostId }: PostNavigationProps) {
   const router = useRouter();
-  const [maxPostId, setMaxPostId] = useState<number | null>(null);
-  const currentNumber = parseInt(currentId);
-  const prevId = currentNumber - 1;
-  const nextId = currentNumber + 1;
-
-  // Fetch the maximum post ID when the component mounts
-  useEffect(() => {
-    async function fetchTotalPosts() {
-      try {
-        // Fetch posts with limit=1 to just get the total count
-        const response = await fetch('/api/posts?limit=1');
-        const data = await response.json();
-        setMaxPostId(data.totalPosts);
-      } catch (error) {
-        console.error('Error fetching total posts:', error);
-      }
-    }
-    
-    fetchTotalPosts();
-  }, []);
 
   // Add keyboard navigation
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       // Previous post: Left arrow or A
-      if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') && prevId > 0) {
-        router.push(`/post/${prevId}`);
+      if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') && previousPostId) {
+        router.push(`/post/${previousPostId}`);
       }
       // Next post: Right arrow or D
-      else if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && maxPostId !== null && nextId <= maxPostId) {
-        router.push(`/post/${nextId}`);
+      else if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && nextPostId) {
+        router.push(`/post/${nextPostId}`);
       }
     }
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentNumber, prevId, nextId, maxPostId, router]);
-
-  // Don't show the "Previous" button if we're at the first post
-  const showPrevious = prevId > 0;
-  
-  // Don't show the "Next" button if we're at the last post
-  const showNext = maxPostId !== null && nextId <= maxPostId;
+  }, [currentId, previousPostId, nextPostId, router]);
 
   return (
     <div className="flex items-center justify-between">
-      {showPrevious ? (
+      {previousPostId ? (
         <Link 
-          href={`/post/${prevId}`}
+          href={`/post/${previousPostId}`}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
         >
           ← Previous
@@ -73,9 +49,9 @@ export function PostNavigation({ currentId }: PostNavigationProps) {
         Back to Posts
       </Link>
 
-      {showNext ? (
+      {nextPostId ? (
         <Link 
-          href={`/post/${nextId}`}
+          href={`/post/${nextPostId}`}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
         >
           Next →

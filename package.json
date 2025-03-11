@@ -1,6 +1,6 @@
 {
   "name": "f0ck_beta",
-  "version": "1.7.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3000",
@@ -14,6 +14,7 @@
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
     "@heroicons/react": "^2.2.0",
+    "@prisma/client": "^6.5.0",
     "@types/socket.io-client": "^1.4.36",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
@@ -26,6 +27,7 @@
     "nanoid": "^5.1.2",
     "next": "^15.1.7",
     "next-auth": "^4.24.11",
+    "prisma": "^6.5.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.5",

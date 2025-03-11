@@ -15,7 +15,7 @@ export async function withAuth<T>(
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
-        { error: 'Nicht autorisiert' },
+        { error: 'Not authenticated' },
         { status: 401 }
       );
     }
@@ -27,7 +27,7 @@ export async function withAuth<T>(
   } catch (error) {
     console.error('API error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten' },
+      { error: error instanceof Error ? error.message : 'An error occurred' },
       { status: 500 }
     );
   }

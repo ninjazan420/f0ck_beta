@@ -15,7 +15,7 @@ const PINNED_POST = {
   thumbnail: 'https://picsum.photos/800/400',
   uploader: {
     name: 'Admin',
-    avatar: null,
+    avatar: '/public/uploads/defaultavatar.png',
     role: 'admin'
   },
   createdAt: '2023-12-24T12:00:00Z',
@@ -60,7 +60,7 @@ export default function Home() {
               Anonymous Imageboard platform for sharing Memes, Cats, and more
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Beta Version 1.7.0 - We build something new...
+              Beta Version 2.0.0 - We build something new...
             </p>
           </div>
         </div>

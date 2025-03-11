@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { GifSelector } from '@/components/GifSelector';
+import { getImageUrlWithCacheBuster } from '@/lib/utils';
 
 const DEFAULT_AVATAR = '/images/defaultavatar.png';
 
@@ -457,7 +458,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
         {author.username === 'Anonymous' ? (
           <div className="flex-shrink-0">
             <Image
-              src={author.avatar || DEFAULT_AVATAR}
+              src={author.avatar ? getImageUrlWithCacheBuster(author.avatar) : DEFAULT_AVATAR}
               alt={author.username}
               width={50}
               height={50}
@@ -466,7 +467,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
         ) : (
           <Link href={getUserUrl(author.username)} className="flex-shrink-0">
             <Image
-              src={author.avatar || DEFAULT_AVATAR}
+              src={author.avatar ? getImageUrlWithCacheBuster(author.avatar) : DEFAULT_AVATAR}
               alt={author.username}
               width={50}
               height={50}

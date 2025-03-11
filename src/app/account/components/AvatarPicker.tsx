@@ -2,179 +2,250 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { toast } from 'sonner';
+import { Pencil, Trash2, Loader2 } from 'lucide-react';
 import { getImageUrlWithCacheBuster } from '@/lib/utils';
 
 interface AvatarPickerProps {
   username: string;
   currentAvatar: string | null;
-  onAvatarChanged: (avatarUrl: string | null) => void;
+  onAvatarChanged: (newAvatarUrl: string | null) => void;
 }
 
 export function AvatarPicker({ username, currentAvatar, onAvatarChanged }: AvatarPickerProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(currentAvatar);
   const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [displayAvatar, setDisplayAvatar] = useState<string | null>(currentAvatar);
+  const [forceRender, setForceRender] = useState(0);
   
-  // Update preview when currentAvatar changes
+  // Aktualisiere die Anzeige, wenn sich currentAvatar ändert
   useEffect(() => {
-    if (currentAvatar) {
-      setPreviewUrl(getImageUrlWithCacheBuster(currentAvatar));
-    } else {
-      setPreviewUrl(null);
-    }
+    console.log("AvatarPicker: currentAvatar changed to", currentAvatar);
+    setDisplayAvatar(currentAvatar);
+    setForceRender(prev => prev + 1);
   }, [currentAvatar]);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Only image files are allowed');
-      return;
-    }
-    
-    // Check file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Maximum file size: 2MB');
-      return;
-    }
-    
-    setSelectedFile(file);
-    
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = () => {
-      setPreviewUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
   
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-    
+  // Function to generate default avatar URL
+  const getDefaultAvatarUrl = () => {
+    return `/images/defaultavatar.png?username=${encodeURIComponent(username || 'user')}`;
+  };
+
+  // Simplified function to upload avatar
+  const uploadAvatar = async (file: File) => {
     setIsUploading(true);
+    setError(null);
     
     try {
       const formData = new FormData();
-      formData.append('avatar', selectedFile);
+      formData.append('avatar', file);
       
       const response = await fetch('/api/user/avatar', {
         method: 'POST',
-        body: formData
+        body: formData,
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
       });
       
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Error uploading avatar');
+      const text = await response.text();
+      
+      // Check if response is empty
+      if (!text) {
+        throw new Error('Empty response received from server');
       }
       
-      const data = await response.json();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error('Error parsing response:', e, 'Response text:', text);
+        throw new Error('Invalid server response format');
+      }
       
-      // Update avatar in parent component
-      onAvatarChanged(data.avatarUrl);
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to upload avatar');
+      }
       
-      toast.success('Avatar updated successfully');
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-      toast.error('Error uploading avatar');
+      console.log("Avatar upload successful, new URL:", data.avatarUrl);
+      
+      // Sofort lokale Anzeige aktualisieren mit neuem Timestamp
+      const newAvatarUrl = `${data.avatarUrl}?v=${Date.now()}`;
+      setDisplayAvatar(newAvatarUrl);
+      setForceRender(prev => prev + 1);
+      
+      // Call the provided callback function with the new avatar URL
+      onAvatarChanged(newAvatarUrl);
+      
+      // Löse ein globales Event aus, um alle Avatar-Anzeigen zu aktualisieren
+      window.dispatchEvent(new CustomEvent('avatar-updated', {
+        detail: { newAvatarUrl }
+      }));
+      
+      // Erzwinge Seiten-Refresh nach kurzer Verzögerung
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (err) {
+      console.error('Avatar upload error:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error during upload');
     } finally {
       setIsUploading(false);
     }
   };
-  
-  const handleRemoveAvatar = async () => {
+
+  // Simplified function to delete avatar
+  const deleteAvatar = async () => {
+    if (!displayAvatar || displayAvatar.includes('defaultavatar')) return;
+    
     setIsUploading(true);
+    setError(null);
     
     try {
       const response = await fetch('/api/user/avatar', {
-        method: 'DELETE'
+        method: 'DELETE',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
       });
       
-      if (!response.ok) {
-        throw new Error('Error removing avatar');
+      const text = await response.text();
+      
+      // Check if response is empty
+      if (!text) {
+        throw new Error('Empty response received from server');
       }
       
-      setPreviewUrl(null);
-      setSelectedFile(null);
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error('Error parsing response:', e, 'Response text:', text);
+        throw new Error('Invalid server response format');
+      }
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to delete avatar');
+      }
+      
+      console.log("Avatar deletion successful");
+      
+      // Sofort lokale Anzeige aktualisieren
+      setDisplayAvatar(null);
+      setForceRender(prev => prev + 1);
+      
+      // Call the provided callback function with null to reset to default
       onAvatarChanged(null);
       
-      toast.success('Avatar removed successfully');
-    } catch (error) {
-      console.error('Error removing avatar:', error);
-      toast.error('Error removing avatar');
+      // Löse ein globales Event aus, um alle Avatar-Anzeigen zu aktualisieren
+      window.dispatchEvent(new CustomEvent('avatar-updated'));
+      
+      // Erzwinge Seiten-Refresh nach kurzer Verzögerung
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (err) {
+      console.error('Avatar deletion error:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error during deletion');
     } finally {
       setIsUploading(false);
     }
   };
-  
-  const triggerFileInput = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+
+  // Function to handle file upload
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Check file size (max 5 MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must not exceed 5 MB');
+      return;
     }
+    
+    // Check file format
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Please upload an image in JPG, PNG, GIF or WEBP format');
+      return;
+    }
+    
+    uploadAvatar(file);
   };
+
+  // Bestimme dynamisch, ob der Avatar angezeigt werden soll
+  const hasAvatar = Boolean(displayAvatar) && !displayAvatar?.includes('defaultavatar');
+  const avatarSrc = hasAvatar 
+    ? getImageUrlWithCacheBuster(displayAvatar as string, forceRender.toString()) 
+    : getDefaultAvatarUrl();
   
+  console.log("AvatarPicker rendering with:", { 
+    hasAvatar, 
+    displayAvatar, 
+    avatarSrc,
+    forceRender 
+  });
+
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="relative group">
+      <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+        {isUploading ? (
+          <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+            <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+          </div>
+        ) : (
+          <Image
+            key={forceRender} // Force new image render 
+            src={avatarSrc}
+            alt={`${username || 'User'}'s avatar`}
+            width={128}
+            height={128}
+            className="w-full h-full object-cover"
+            priority
+            unoptimized={true}
+          />
+        )}
+      </div>
+      
+      {/* Avatar-Steuerung */}
+      <div className="absolute -bottom-2 right-0 flex space-x-1">
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition-colors"
+          disabled={isUploading}
+          title="Avatar hochladen"
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
+        
+        {hasAvatar && (
+          <button
+            onClick={deleteAvatar}
+            className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+            disabled={isUploading}
+            title="Avatar entfernen"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+      
+      {/* Verstecktes File-Input-Element */}
       <input
         type="file"
         ref={fileInputRef}
         className="hidden"
-        accept="image/png,image/jpeg,image/gif,image/webp"
+        accept="image/jpeg,image/png,image/gif,image/webp"
         onChange={handleFileChange}
       />
       
-      <div 
-        className="w-32 h-32 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700 cursor-pointer relative"
-        onClick={triggerFileInput}
-      >
-        {previewUrl ? (
-          <Image 
-            src={previewUrl} 
-            alt="Avatar" 
-            width={128} 
-            height={128} 
-            className="object-cover w-full h-full"
-          />
-        ) : (
-          <div className="text-4xl text-gray-400">
-            {username?.[0]?.toUpperCase() ?? '?'}
-          </div>
-        )}
-        <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center">
-          <span className="text-white opacity-0 hover:opacity-100 transition-opacity">
-            Change
-          </span>
+      {/* Fehlermeldung */}
+      {error && (
+        <div className="mt-2 text-sm text-red-500">
+          {error}
         </div>
-      </div>
-      
-      <div className="flex gap-2">
-        {selectedFile && (
-          <button
-            onClick={handleUpload}
-            disabled={isUploading}
-            className="px-3 py-1.5 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-lg disabled:opacity-50"
-          >
-            {isUploading ? 'Uploading...' : 'Upload'}
-          </button>
-        )}
-        
-        {currentAvatar && (
-          <button
-            onClick={handleRemoveAvatar}
-            disabled={isUploading}
-            className="px-3 py-1.5 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg disabled:opacity-50"
-          >
-            Remove Avatar
-          </button>
-        )}
-      </div>
-      
-      <p className="text-xs text-gray-500 dark:text-gray-400 text-center max-w-xs">
-        Recommended size: 128x128 pixels (will be cropped automatically)
-      </p>
+      )}
     </div>
   );
 } 
