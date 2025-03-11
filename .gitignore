@@ -19,6 +19,7 @@
 
 # production
 /build
+package-lock.json
 # Upload directories
 public/uploads/*
 !public/uploads/.gitkeep

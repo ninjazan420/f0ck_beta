@@ -15,7 +15,7 @@ const PINNED_POST = {
   thumbnail: 'https://picsum.photos/800/400',
   uploader: {
     name: 'Admin',
-    avatar: '/public/uploads/defaultavatar.png',
+    avatar: '/images/defaultavatar.png',
     role: 'admin'
   },
   createdAt: '2023-12-24T12:00:00Z',
