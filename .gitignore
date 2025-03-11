@@ -19,6 +19,7 @@
 
 # production
 /build
+/wiki
 package-lock.json
 # Upload directories
 public/uploads/*
