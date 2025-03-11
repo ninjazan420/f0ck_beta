@@ -236,6 +236,23 @@ export async function POST(req: Request) {
       }
     }
 
+    // Überprüfen, ob Kommentare deaktiviert sind
+    const Post = mongoose.model('Post');
+    const post = await Post.findById(postObjectId);
+    if (!post) {
+      return NextResponse.json(
+        { error: 'Post not found' },
+        { status: 404 }
+      );
+    }
+    
+    if (post.hasCommentsDisabled) {
+      return NextResponse.json(
+        { error: 'Comments are disabled for this post' },
+        { status: 403 }
+      );
+    }
+
     // Prüfen, ob der Benutzer eingeloggt ist
     // isAnonymous wird nur berücksichtigt, wenn der Benutzer nicht eingeloggt ist
     let author = null;

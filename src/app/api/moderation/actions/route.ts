@@ -114,6 +114,26 @@ export async function POST(req: Request) {
         target.status = 'rejected';
         await target.save();
         break;
+      case 'disableComments':
+        if (targetType !== 'post') {
+          return NextResponse.json(
+            { error: 'Can only disable comments on posts' },
+            { status: 400 }
+          );
+        }
+        target.hasCommentsDisabled = true;
+        await target.save();
+        break;
+      case 'enableComments':
+        if (targetType !== 'post') {
+          return NextResponse.json(
+            { error: 'Can only enable comments on posts' },
+            { status: 400 }
+          );
+        }
+        target.hasCommentsDisabled = false;
+        await target.save();
+        break;
       default:
         return NextResponse.json(
           { error: 'Invalid action' },

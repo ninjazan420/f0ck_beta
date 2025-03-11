@@ -60,6 +60,7 @@ export function PostComments({ postId }: PostCommentsProps) {
   const [editCommentText, setEditCommentText] = useState('');
   const [showEditPreview, setShowEditPreview] = useState(false);
   const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
+  const [commentsDisabled, setCommentsDisabled] = useState(false);
 
   // Aktualisiere den isAnonymous-Status, wenn sich der Session-Status ändert
   useEffect(() => {
@@ -89,6 +90,23 @@ export function PostComments({ postId }: PostCommentsProps) {
       }
     }
   }, [comments]); // Re-run when comments change
+
+  // Füge einen neuen useEffect hinzu, um den Post-Status abzurufen
+  useEffect(() => {
+    async function fetchPostStatus() {
+      try {
+        const response = await fetch(`/api/posts/${postId}/status`);
+        if (response.ok) {
+          const data = await response.json();
+          setCommentsDisabled(!!data.commentsDisabled);
+        }
+      } catch (error) {
+        console.error('Error fetching post status:', error);
+      }
+    }
+    
+    fetchPostStatus();
+  }, [postId]);
 
   // Hilfsfunktionen aus der Comment-Komponente
   const getUserUrl = (username: string) => {
@@ -570,297 +588,52 @@ export function PostComments({ postId }: PostCommentsProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-[family-name:var(--font-geist-mono)] text-gray-900 dark:text-gray-100">
-        Comments ({comments.length})
-      </h2>
-
-      {/* Kommentar-Form */}
-      <div className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-8">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-medium">Add a Comment</h3>
-          <div className="flex items-center gap-2">
-            <label className="inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                value=""
-                checked={isAnonymous}
-                onChange={(e) => setIsAnonymous(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-              <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                Post Anonymously
-              </span>
-            </label>
-            {showPreview && 
-              <button
-                onClick={() => setShowPreview(false)}
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg"
-              >
-                Edit
-              </button>
-            }
-            {!showPreview && 
-              <button
-                onClick={() => setShowPreview(true)}
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg"
-                disabled={!newComment}
-              >
-                Preview
-              </button>
-            }
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Comments</h2>
+      
+      {commentsDisabled ? (
+        <div className="p-4 bg-red-50/50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800/30">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 text-red-500 dark:text-red-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M12 8v4" />
+                <path d="M12 16h.01" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-medium text-red-700 dark:text-red-300">Comments have been disabled by a moderator</h3>
+              <p className="text-sm text-red-600/80 dark:text-red-400/80 mt-1">
+                This comment section has been locked. Existing comments are still visible, but you cannot add new ones.
+              </p>
+            </div>
           </div>
         </div>
-        
-        {showPreview ? (
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 min-h-[100px] mb-3">
-            {renderCommentContent(newComment)}
-          </div>
-        ) : (
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Write a comment..."
-            className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
-            rows={5}
-          />
-        )}
-        
-        <div className="mt-3 flex justify-between items-center">
-          <div className="text-xs text-gray-500">
-            {newComment.length}/500 characters
-          </div>
-          
-          <div className="flex gap-2">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowGifSelector(!showGifSelector);
-                  setShowEmojiPicker(false);
-                }}
-                className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                title="Add GIF"
-              >
-                🎨 GIF
-              </button>
-              {showGifSelector && (
-                <GifSelector
-                  onSelect={handleGifSelect}
-                  onClose={() => setShowGifSelector(false)}
-                />
-              )}
+      ) : (
+        <>
+          {/* Kommentarformular oder Login-Aufforderung */}
+          {session ? (
+            <CommentForm postId={postId} onCommentAdded={handleCommentAdded} />
+          ) : (
+            <div className="text-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <p className="mb-2 text-gray-600 dark:text-gray-400">
+                Please log in to leave a comment.
+              </p>
+              <Link href="/auth/signin" className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300">
+                Sign in
+              </Link>
             </div>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowEmojiPicker(!showEmojiPicker);
-                  setShowGifSelector(false);
-                }}
-                className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                title="Add emoji"
-              >
-                😊 Emoji
-              </button>
-              {showEmojiPicker && (
-                <EmojiPicker
-                  onSelect={handleEmojiSelect}
-                  onClose={() => setShowEmojiPicker(false)}
-                />
-              )}
-            </div>
-            <button
-              onClick={() => setNewComment('')}
-              className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmitComment}
-              disabled={!newComment.trim() || isSubmitting}
-              className="px-4 py-2 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Loading...
-                </span>
-              ) : (
-                isAnonymous ? 'Post Anonymously' : 'Post Comment'
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {comments.map((comment, index) => (
-          <div 
-            key={comment.id} 
-            id={`comment-${comment.id}`} 
-            className={`bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl p-4 transition-all duration-500 ${
-              highlightedCommentId === comment.id 
-                ? 'ring-4 ring-purple-500/50 dark:ring-purple-500/30 bg-purple-50/50 dark:bg-purple-900/20' 
-                : ''
-            }`}
-          >
-            {/* Reply to section */}
-            {comment.replyTo && (
-              <div className="mb-3 pl-3 py-2 border-l-2 border-purple-300 dark:border-purple-700 bg-purple-50/30 dark:bg-purple-900/10 rounded">
-                <Link href={`/post/${comment.post?.numericId || postId}#comment-${comment.replyTo.id}`} className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                  <span className="font-medium">{comment.replyTo.user.name}</span>: {comment.replyTo.preview}
-                  {comment.replyTo.preview.length > 100 ? '...' : ''}
-                </Link>
-              </div>
-            )}
-
-            {/* Main comment content */}
-            <div className="flex items-start gap-3">
-              {comment.user.name === 'Anonymous' ? (
-                <div className="flex-shrink-0">
-                  <div className={`relative w-10 h-10 rounded-lg overflow-hidden ${getAvatarStyle(comment.user.style)}`}>
-                    <Image
-                      src={comment.user.avatar || DEFAULT_AVATAR}
-                      alt={comment.user.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <Link href={getUserUrl(comment.user.name)} className="flex-shrink-0">
-                  <div className={`relative w-10 h-10 rounded-lg overflow-hidden ${getAvatarStyle(comment.user.style)}`}>
-                    <Image
-                      src={comment.user.avatar || DEFAULT_AVATAR}
-                      alt={comment.user.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                </Link>
-              )}
-
-              <div className="flex-grow min-w-0">
-                <div className="flex justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    {comment.user.name === 'Anonymous' ? (
-                      <span className={`font-medium ${getNickStyle(comment.user.style)}`}>
-                        {comment.user.name}
-                      </span>
-                    ) : (
-                      <Link href={getUserUrl(comment.user.name)} className={`font-medium ${getNickStyle(comment.user.style)}`}>
-                        {comment.user.name}
-                      </Link>
-                    )}
-                    {getRoleBadge(comment.user.role)}
-                    <Link 
-                      href={`#comment-${comment.id}`} 
-                      className="text-sm text-gray-500 hover:text-purple-500 transition-colors"
-                      title="Permalink to this comment"
-                    >
-                      {new Date(comment.createdAt).toLocaleString()}
-                    </Link>
-                  </div>
-                </div>
-
-                {editCommentId === comment.id ? (
-                  <div className="space-y-2">
-                    {showEditPreview ? (
-                      <div className="min-h-[100px] p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50">
-                        <div className="text-sm text-gray-800 dark:text-gray-200">
-                          {renderCommentContent(editCommentText) || <span className="text-gray-400 dark:text-gray-500">Nothing to preview</span>}
-                        </div>
-                      </div>
-                    ) : (
-                      <textarea
-                        value={editCommentText}
-                        onChange={(e) => setEditCommentText(e.target.value)}
-                        className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm min-h-[100px]"
-                        title="Edit comment"
-                        placeholder="Edit your comment..."
-                      />
-                    )}
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">
-                        {editCommentText.length}/500 characters
-                      </span>
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setShowEditPreview(!showEditPreview)}
-                          className={`px-3 py-1.5 text-sm rounded-lg ${
-                            showEditPreview 
-                              ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' 
-                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                          }`}
-                        >
-                          {showEditPreview ? 'Edit' : 'Preview'}
-                        </button>
-                        <button
-                          onClick={() => setEditCommentId(null)}
-                          className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleSaveEdit}
-                          disabled={isSubmitting || !editCommentText.trim()}
-                          className={`px-4 py-1.5 rounded-lg text-sm font-medium ${
-                            isSubmitting || !editCommentText.trim()
-                              ? 'bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed'
-                              : 'bg-purple-500 text-white hover:bg-purple-600'
-                          }`}
-                        >
-                          {isSubmitting ? 'Saving...' : 'Save'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="prose dark:prose-invert max-w-none text-sm">
-                    {renderCommentContent(comment.text)}
-                  </div>
-                )}
-
-                {/* Action buttons */}
-                {editCommentId !== comment.id && (
-                  <div className="mt-2 flex items-center gap-4">
-                    <button
-                      onClick={() => setReplyToId(comment.id)}
-                      className="text-sm text-gray-500 hover:text-purple-500 transition-colors flex items-center gap-1"
-                    >
-                      <span className="text-base">💬</span> Reply
-                    </button>
-
-                    {/* Bearbeiten und Löschen nur für eigene Kommentare */}
-                    {comment.user.isCurrentUser && (
-                      <>
-                        <button
-                          onClick={() => startEditComment(comment)}
-                          className="text-sm text-gray-500 hover:text-blue-500 transition-colors flex items-center gap-1"
-                        >
-                          <span className="text-base">✏️</span> Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteComment(comment.id)}
-                          className="text-sm text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1"
-                        >
-                          <span className="text-base">🗑️</span> Delete
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+          )}
+        </>
+      )}
+      
+      {/* Kommentarliste - diese wird auch angezeigt, wenn Kommentare deaktiviert sind */}
+      <CommentList 
+        postId={postId} 
+        limit={10} 
+        showModActions={true}
+        infiniteScroll={true}
+      />
     </div>
   );
 }

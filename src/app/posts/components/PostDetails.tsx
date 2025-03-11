@@ -11,6 +11,7 @@ import { getImageUrlWithCacheBuster } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { GifSelector } from '@/components/GifSelector';
+import { PostModerator } from './PostModerator';
 
 interface PostData {
   id: string;
@@ -131,6 +132,7 @@ export function PostDetails({ postId }: { postId: string }) {
   const [selectedGif, setSelectedGif] = useState<{ url: string, source: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [refreshComments, setRefreshComments] = useState(0); // State für Kommentar-Aktualisierung
+  const [commentsDisabled, setCommentsDisabled] = useState(false);
 
   // Aktualisiere den isAnonymous-Status, wenn sich der Session-Status ändert
   useEffect(() => {
@@ -395,6 +397,23 @@ export function PostDetails({ postId }: { postId: string }) {
     fetchPost();
   }, [postId]);
 
+  useEffect(() => {
+    async function fetchPostStatus() {
+      try {
+        const response = await fetch(`/api/posts/${postId}/status`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log("PostDetails received post status:", data);
+          setCommentsDisabled(!!data.commentsDisabled || !!data.hasCommentsDisabled);
+        }
+      } catch (error) {
+        console.error('Error fetching post status:', error);
+      }
+    }
+    
+    fetchPostStatus();
+  }, [postId]);
+
   if (loading) {
     return (
       <div className="animate-pulse space-y-4">
@@ -490,141 +509,161 @@ export function PostDetails({ postId }: { postId: string }) {
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Comments</h2>
             
-            {/* Kommentarbox */}
-            <div className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium">Add a Comment</h3>
-                <div className="flex items-center gap-2">
-                  <label className="inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={isAnonymous}
-                      onChange={(e) => setIsAnonymous(e.target.checked)}
-                    />
-                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-                    <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                      Post Anonymously
-                    </span>
-                  </label>
-                  {showPreview ? (
-                    <button
-                      onClick={() => setShowPreview(false)}
-                      className="px-3 py-1.5 text-sm rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
-                    >
-                      Edit
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setShowPreview(true)}
-                      className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-                      disabled={!newComment}
-                    >
-                      Preview
-                    </button>
-                  )}
+            {/* Kommentarbox oder Hinweis, je nach Status */}
+            {commentsDisabled ? (
+              <div className="p-4 bg-red-50/50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800/30 my-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 text-red-500 dark:text-red-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      <path d="M12 8v4" />
+                      <path d="M12 16h.01" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-red-700 dark:text-red-300">Comments have been disabled by a moderator</h3>
+                    <p className="text-sm text-red-600/80 dark:text-red-400/80 mt-1">
+                      Existing comments remain visible, but new comments cannot be added.
+                    </p>
+                  </div>
                 </div>
               </div>
-              
-              {showPreview ? (
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 min-h-[100px] mb-3">
-                  {renderCommentContent(newComment)}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Write a comment..."
-                    className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
-                    rows={5}
-                  />
-                  
-                  {/* GIF-Vorschau */}
-                  {selectedGif && (
-                    <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 max-w-sm">
-                      <Image
-                        src={selectedGif.url}
-                        alt="GIF"
-                        width={300}
-                        height={200}
-                        className="w-full h-auto"
-                        unoptimized={true}
+            ) : (
+              <div className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium">Add a Comment</h3>
+                  <div className="flex items-center gap-2">
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={isAnonymous}
+                        onChange={(e) => setIsAnonymous(e.target.checked)}
                       />
-                      <div className="bg-black/10 dark:bg-white/10 px-2 py-1 text-[10px] text-gray-600 dark:text-gray-400">
-                        via {selectedGif.source}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              <div className="flex justify-between items-center mt-3">
-                <div className="text-xs text-gray-500">
-                  {newComment.length}/500 characters
+                      <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                      <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                        Post Anonymously
+                      </span>
+                    </label>
+                    {showPreview ? (
+                      <button
+                        onClick={() => setShowPreview(false)}
+                        className="px-3 py-1.5 text-sm rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+                      >
+                        Edit
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setShowPreview(true)}
+                        className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                        disabled={!newComment}
+                      >
+                        Preview
+                      </button>
+                    )}
+                  </div>
                 </div>
                 
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowGifSelector(!showGifSelector);
-                      setShowEmojiPicker(false);
-                    }}
-                    className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    🎨 GIF
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowEmojiPicker(!showEmojiPicker);
-                      setShowGifSelector(false);
-                    }}
-                    className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    😊 Emoji
-                  </button>
-                  <button
-                    onClick={() => setNewComment('')}
-                    className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSubmitComment}
-                    disabled={(!newComment.trim() && !selectedGif) || isSubmitting}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                      (!newComment.trim() && !selectedGif) || isSubmitting
-                        ? 'bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed'
-                        : 'bg-purple-500 text-white hover:bg-purple-600'
-                    }`}
-                  >
-                    Post Comment
-                  </button>
+                {showPreview ? (
+                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 min-h-[100px] mb-3">
+                    {renderCommentContent(newComment)}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
+                      rows={5}
+                    />
+                    
+                    {/* GIF-Vorschau */}
+                    {selectedGif && (
+                      <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 max-w-sm">
+                        <Image
+                          src={selectedGif.url}
+                          alt="GIF"
+                          width={300}
+                          height={200}
+                          className="w-full h-auto"
+                          unoptimized={true}
+                        />
+                        <div className="bg-black/10 dark:bg-white/10 px-2 py-1 text-[10px] text-gray-600 dark:text-gray-400">
+                          via {selectedGif.source}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <div className="flex justify-between items-center mt-3">
+                  <div className="text-xs text-gray-500">
+                    {newComment.length}/500 characters
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowGifSelector(!showGifSelector);
+                        setShowEmojiPicker(false);
+                      }}
+                      className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      🎨 GIF
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEmojiPicker(!showEmojiPicker);
+                        setShowGifSelector(false);
+                      }}
+                      className="px-3 py-1.5 text-sm rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      😊 Emoji
+                    </button>
+                    <button
+                      onClick={() => setNewComment('')}
+                      className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSubmitComment}
+                      disabled={(!newComment.trim() && !selectedGif) || isSubmitting}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                        (!newComment.trim() && !selectedGif) || isSubmitting
+                          ? 'bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed'
+                          : 'bg-purple-500 text-white hover:bg-purple-600'
+                      }`}
+                    >
+                      Post Comment
+                    </button>
+                  </div>
                 </div>
+                
+                {showEmojiPicker && (
+                  <EmojiPicker
+                    onSelect={handleEmojiSelect}
+                    onClose={() => setShowEmojiPicker(false)}
+                  />
+                )}
+                
+                {showGifSelector && (
+                  <GifSelector
+                    onSelect={handleGifSelect}
+                    onClose={() => setShowGifSelector(false)}
+                  />
+                )}
               </div>
-              
-              {showEmojiPicker && (
-                <EmojiPicker
-                  onSelect={handleEmojiSelect}
-                  onClose={() => setShowEmojiPicker(false)}
-                />
-              )}
-              
-              {showGifSelector && (
-                <GifSelector
-                  onSelect={handleGifSelect}
-                  onClose={() => setShowGifSelector(false)}
-                />
-              )}
-            </div>
+            )}
             
             <CommentList 
               postId={postId} 
               status="approved" 
               limit={20}
-              key={`comments-${refreshComments}`} // Wichtig: Key zum Neurendern der Kommentarliste
+              key={`comments-${refreshComments}`}
             />
           </div>
         </div>
@@ -722,47 +761,8 @@ export function PostDetails({ postId }: { postId: string }) {
           {/* Tags */}
           <PostTags tags={post.tags} />
 
-          {/* Moderator Actions - nur für Moderatoren und Admins sichtbar */}
-          {session?.user?.role && ['moderator', 'admin'].includes(session.user.role) && (
-            <div className="p-4 rounded-xl bg-red-50/80 dark:bg-red-900/30 backdrop-blur-sm border border-red-200 dark:border-red-800 mb-4">
-              <h3 className="text-lg font-medium text-red-800 dark:text-red-300 mb-2">Moderator Actions</h3>
-              <div className="flex flex-wrap gap-2">
-                <button 
-                  onClick={async () => {
-                    if (confirm('Diesen Post wirklich löschen?')) {
-                      try {
-                        const response = await fetch('/api/moderation/actions', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            action: 'delete',
-                            targetType: 'post',
-                            targetId: post.id,
-                            reason: 'Moderation - Post deletion'
-                          })
-                        });
-                        
-                        if (response.ok) {
-                          // Erfolg - zur Homepage umleiten
-                          window.location.href = '/';
-                        } else {
-                          alert('Fehler beim Löschen des Posts');
-                        }
-                      } catch (error) {
-                        console.error('Error deleting post:', error);
-                        alert('Fehler beim Löschen des Posts');
-                      }
-                    }
-                  }}
-                  className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                >
-                  Post löschen
-                </button>
-                
-                {/* Weitere Moderationsbuttons können hier hinzugefügt werden */}
-              </div>
-            </div>
-          )}
+          {/* Moderator Actions - ausgelagert in eine separate Komponente */}
+          <PostModerator postId={post.id} />
 
           {/* Reverse Image Search - jetzt über den Metadaten */}
           <ReverseSearch imageUrl={post.imageUrl} />

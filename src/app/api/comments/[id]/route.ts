@@ -12,7 +12,10 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = params.id;
+    // Stellen Sie sicher, dass params bereits vollständig initialisiert ist
+    const resolvedParams = await Promise.resolve(params);
+    const id = resolvedParams.id;
+    
     if (!id) {
       return NextResponse.json(
         { error: 'Comment ID is required' },
@@ -72,9 +75,9 @@ export async function DELETE(
       (comment.author._id 
         ? comment.author._id.toString() === session.user.id 
         : comment.author.toString() === session.user.id);
-    const isModerator = ['admin', 'moderator'].includes(user.role);
+    const isModerator = user && ['moderator', 'admin'].includes(user.role);
     
-    console.log('Authorization result:', { isAuthor, isModerator });
+    console.log('Authorization result:', { isAuthor: isAuthor ? true : null, isModerator });
 
     if (!isAuthor && !isModerator) {
       return NextResponse.json(
@@ -172,9 +175,9 @@ export async function PATCH(
       (comment.author._id 
         ? comment.author._id.toString() === session.user.id 
         : comment.author.toString() === session.user.id);
-    const isModerator = ['admin', 'moderator'].includes(user.role);
+    const isModerator = user && ['moderator', 'admin'].includes(user.role);
     
-    console.log('Authorization result:', { isAuthor, isModerator });
+    console.log('Authorization result:', { isAuthor: isAuthor ? true : null, isModerator });
 
     if (!isAuthor && !isModerator) {
       return NextResponse.json(

@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 export interface IModLog extends mongoose.Document {
   moderator: mongoose.Types.ObjectId;
-  action: 'delete' | 'warn' | 'ban' | 'unban' | 'approve' | 'reject';
+  action: 'delete' | 'warn' | 'ban' | 'unban' | 'approve' | 'reject' | 'disableComments' | 'enableComments';
   targetType: 'comment' | 'post' | 'user';
   targetId: mongoose.Types.ObjectId;
   reason: string;
@@ -24,7 +24,7 @@ const modLogSchema = new mongoose.Schema({
   },
   action: {
     type: String,
-    enum: ['delete', 'warn', 'ban', 'unban', 'approve', 'reject'],
+    enum: ['delete', 'warn', 'ban', 'unban', 'approve', 'reject', 'disableComments', 'enableComments'],
     required: true,
     index: true
   },

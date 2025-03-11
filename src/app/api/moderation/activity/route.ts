@@ -3,199 +3,172 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db/mongodb';
 import ModLog from '@/models/ModLog';
-import Post from '@/models/Post';
 
 export async function GET(req: Request) {
   try {
+    console.log("Moderation activity API called");
+    
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.role || !['moderator', 'admin'].includes(session.user.role)) {
+      console.log("Unauthorized access attempt to moderation activity");
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const limit = parseInt(searchParams.get('limit') || '15');
     const type = searchParams.get('type');
     const action = searchParams.get('action');
     const moderator = searchParams.get('moderator');
 
-    await dbConnect();
+    // Ignore cache buster parameter
+    // searchParams.get('_cache') is intentionally not used
 
-    // Query aufbauen
+    console.log("Parameters for activity query:", { page, limit, type, action, moderator });
+
+    await dbConnect();
+    console.log("Connected to database");
+
+    // Build query
     const query: any = {};
     if (type) query.targetType = type;
     if (action) query.action = action;
     if (moderator) query.moderator = moderator;
 
-    // Aktivitäten abrufen mit Pagination
-    const [activities, total] = await Promise.all([
-      ModLog.find(query)
+    console.log("Executing query:", JSON.stringify(query));
+    
+    try {
+      // Fetch activities
+      const activities = await ModLog.find(query)
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
-        .populate('moderator', 'username')
-        .populate({
-          path: 'targetId',
-          options: { strictPopulate: false } // Vermeidet Fehler bei Dokumenten, die nicht mehr existieren
-        }),
-      ModLog.countDocuments(query)
-    ]);
+        .populate('moderator', 'username');
+      
+      const total = await ModLog.countDocuments(query);
 
-    // Neue Posts der letzten 24 Stunden abrufen
-    const oneDayAgo = new Date();
-    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-    
-    const recentPosts = await Post.find({
-      createdAt: { $gte: oneDayAgo }
-    })
-    .sort({ createdAt: -1 })
-    .limit(5)
-    .populate('author', 'username');
+      console.log(`${activities.length} activities found out of ${total} total`);
+      console.log(`Activities:`, activities.map(a => ({ id: a._id, action: a.action, targetType: a.targetType })));
 
-    // Uploads in ein Format konvertieren, das mit dem ModLog kompatibel ist
-    const uploadActivities = recentPosts.map(post => ({
-      _id: `upload-${post._id}`,
-      action: 'upload',
-      targetType: 'post',
-      reason: 'Neuer Upload',
-      moderator: post.author ? { username: post.author.username } : { username: 'Unbekannter Benutzer' },
-      createdAt: post.createdAt,
-      targetId: post
-    }));
-
-    // Aktivitäten und Uploads kombinieren und nach Datum sortieren
-    const combinedActivities = [...activities, ...uploadActivities]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, limit);
-
-    // Aktivitäten formatieren
-    const formattedActivities = combinedActivities.map(activity => {
-      // Basis-Aktivitätsinformationen
-      const formattedActivity: any = {
-        id: activity._id,
-        action: activity.action,
-        targetType: activity.targetType,
-        reason: activity.reason,
-        moderator: activity.moderator?.username || 'Unbekannter Moderator',
-        createdAt: activity.createdAt,
-        metadata: activity.metadata
-      };
-
-      // Ziel-spezifische Informationen hinzufügen, falls verfügbar
-      if (activity.targetId) {
-        formattedActivity.target = {
-          id: activity.targetId._id,
-          type: activity.targetType
+      // Format activities
+      const formattedActivities = await Promise.all(activities.map(async (activity) => {
+        // Basic activity information
+        const formattedActivity: any = {
+          id: activity._id,
+          action: activity.action,
+          targetType: activity.targetType,
+          reason: activity.reason,
+          moderator: activity.moderator?.username || 'Unknown Moderator',
+          createdAt: activity.createdAt,
         };
 
-        // Typspezifische Eigenschaften hinzufügen
-        switch (activity.targetType) {
-          case 'user':
-            if (activity.targetId.username) {
-              formattedActivity.target.username = activity.targetId.username;
-            }
-            break;
-          case 'comment':
-            if (activity.targetId.content) {
-              formattedActivity.target.content = activity.targetId.content;
-            }
-            // Post-ID für den Kommentar hinzufügen (für Verlinkung)
-            if (activity.targetId.post) {
-              // Wenn post ein Objekt ist mit _id und id
-              if (typeof activity.targetId.post === 'object' && activity.targetId.post) {
-                formattedActivity.target.postId = activity.targetId.post.id || activity.targetId.post._id;
-                // Wenn die numerische ID verfügbar ist, diese auch speichern
-                if (activity.targetId.post.id) {
-                  formattedActivity.target.numericPostId = activity.targetId.post.id;
-                }
-              } else {
-                // Wenn post direkt eine ID ist
-                formattedActivity.target.postId = activity.targetId.post;
+        // Try to find the target object
+        try {
+          if (activity.targetId) {
+            let target = null;
+            
+            // Choose the right model based on targetType
+            if (activity.targetType === 'post') {
+              const Post = require('@/models/Post').default;
+              target = await Post.findById(activity.targetId);
+              
+              if (!target && activity.metadata?.previousState) {
+                // If post was deleted, use metadata
+                formattedActivity.target = {
+                  id: activity.targetId,
+                  type: 'post',
+                  title: activity.metadata.previousState.title || 'Deleted Post'
+                };
+              } else if (target) {
+                formattedActivity.target = {
+                  id: target._id,
+                  numericId: target.id,
+                  type: 'post',
+                  title: target.title,
+                  imageUrl: target.thumbnailUrl || target.imageUrl
+                };
+              }
+            } 
+            else if (activity.targetType === 'comment') {
+              const Comment = require('@/models/Comment').default;
+              target = await Comment.findById(activity.targetId);
+              
+              if (!target && activity.metadata?.previousState) {
+                // If comment was deleted, use metadata
+                formattedActivity.target = {
+                  id: activity.targetId,
+                  type: 'comment',
+                  content: activity.metadata.previousState.content || 'Deleted Comment'
+                };
+              } else if (target) {
+                formattedActivity.target = {
+                  id: target._id,
+                  type: 'comment',
+                  content: target.content
+                };
               }
             }
-            break;
-          case 'post':
-            if (activity.targetId.title) {
-              formattedActivity.target.title = activity.targetId.title;
+            else if (activity.targetType === 'user') {
+              const User = require('@/models/User').default;
+              target = await User.findById(activity.targetId);
+              
+              if (!target && activity.metadata?.previousState) {
+                // If user was deleted, use metadata
+                formattedActivity.target = {
+                  id: activity.targetId,
+                  type: 'user',
+                  username: activity.metadata.previousState.username || 'Deleted User'
+                };
+              } else if (target) {
+                formattedActivity.target = {
+                  id: target._id,
+                  type: 'user',
+                  username: target.username
+                };
+              }
             }
-            // Bei Uploads auch die Thumbnail-URL hinzufügen
-            if (activity.targetId.thumbnailUrl) {
-              formattedActivity.target.imageUrl = activity.targetId.thumbnailUrl;
-            } else if (activity.targetId.imageUrl) {
-              formattedActivity.target.imageUrl = activity.targetId.imageUrl;
+            
+            // If target not found and no target set yet
+            if (!target && !formattedActivity.target) {
+              formattedActivity.target = {
+                id: activity.targetId,
+                type: activity.targetType
+              };
             }
-            // Numerische ID für Posts hinzufügen
-            if (activity.targetId.id) {
-              formattedActivity.target.numericId = activity.targetId.id;
-            } else if (activity.targetId.numericId) {
-              formattedActivity.target.numericId = activity.targetId.numericId;
-            }
-            break;
-        }
-      } else {
-        // Falls das Ziel nicht mehr existiert, aber Metadaten vorhanden sind
-        formattedActivity.target = {
-          id: activity.metadata?.previousState?._id || 'gelöscht',
-          type: activity.targetType
-        };
-        
-        // Versuchen, Informationen aus den Metadaten zu extrahieren
-        if (activity.metadata && activity.metadata.previousState) {
-          const previousState = activity.metadata.previousState;
-          
-          switch (activity.targetType) {
-            case 'user':
-              if (previousState.username) {
-                formattedActivity.target.username = previousState.username;
-              }
-              break;
-            case 'comment':
-              if (previousState.content) {
-                formattedActivity.target.content = previousState.content;
-              }
-              // Post-ID aus dem vorherigen Zustand extrahieren (für Verlinkung)
-              if (previousState.post) {
-                // Wenn post ein Objekt ist
-                if (typeof previousState.post === 'object' && previousState.post) {
-                  formattedActivity.target.postId = previousState.post.id || previousState.post._id;
-                } else {
-                  // Wenn post direkt eine ID ist
-                  formattedActivity.target.postId = previousState.post;
-                }
-              }
-              break;
-            case 'post':
-              if (previousState.title) {
-                formattedActivity.target.title = previousState.title;
-              }
-              // Numerische ID für Posts hinzufügen
-              if (previousState.id) {
-                formattedActivity.target.numericId = previousState.id;
-              } else if (previousState.numericId) {
-                formattedActivity.target.numericId = previousState.numericId;
-              }
-              break;
           }
+        } catch (targetError) {
+          console.error("Error loading target object:", targetError);
+          // Fallback to simple target information
+          formattedActivity.target = {
+            id: activity.targetId,
+            type: activity.targetType
+          };
         }
-      }
 
-      return formattedActivity;
-    });
+        return formattedActivity;
+      }));
 
-    return NextResponse.json({
-      activities: formattedActivities,
-      pagination: {
-        total: total + uploadActivities.length, // Für korrekte Gesamtzahl
-        pages: Math.ceil((total + uploadActivities.length) / limit),
-        current: page,
-        limit
-      }
-    });
+      // Successful response
+      return NextResponse.json({
+        activities: formattedActivities,
+        pagination: {
+          total: total,
+          pages: Math.ceil(total / limit),
+          current: page,
+          limit
+        }
+      });
+      
+    } catch (dbError) {
+      console.error("Database error in activity query:", dbError);
+      throw new Error(`Database error: ${dbError instanceof Error ? dbError.message : 'Unknown database error'}`);
+    }
+    
   } catch (error) {
     console.error('Error fetching moderation activity:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: 500 }
     );
   }
