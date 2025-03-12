@@ -4,6 +4,7 @@ import dbConnect from './db/mongodb';
 import User from '../models/User';
 import bcrypt from 'bcryptjs';
 import { rateLimit } from '@/lib/rateLimit';
+import { getServerSession } from 'next-auth/next';
 
 // Extend the built-in session types
 declare module 'next-auth' {
@@ -194,4 +195,20 @@ export const authOptions: AuthOptions = {
       }
     }
   }
+};
+
+export const withModeratorAuth = async (handler: Function) => {
+  return async (req: Request) => {
+    const session = await getServerSession(authOptions);
+    
+    if (!session) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    if (!['admin', 'moderator'].includes(session.user?.role)) {
+      return new Response('Forbidden', { status: 403 });
+    }
+
+    return handler(req);
+  };
 };

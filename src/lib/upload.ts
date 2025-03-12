@@ -223,17 +223,6 @@ export async function processUpload(
     await post.save();
     console.log(`Saved image paths to database: ${post.imageUrl}, ${post.thumbnailUrl}`);
 
-    // Nach erfolgreicher Bildverarbeitung in processUpload-Funktion
-    if (tempFilePath && fs.existsSync(tempFilePath)) {
-      try {
-        await fs.unlink(tempFilePath);
-        console.log(`Temporary file ${tempFilePath} deleted`);
-      } catch (err) {
-        console.warn(`Failed to delete temporary file ${tempFilePath}:`, err);
-        // Nicht kritisch, daher den Prozess nicht abbrechen
-      }
-    }
-
     return {
       id: post.id,
       filename,

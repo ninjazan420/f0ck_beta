@@ -7,15 +7,24 @@ import User from '@/models/User';
 import Comment from '@/models/Comment';
 import Post from '@/models/Post';
 import mongoose from 'mongoose';
-import { withModeratorAuth } from '@/lib/auth';
+import { withModeratorAuth } from '@/lib/api-utils';
 
 export async function POST(req: Request) {
-  return withModeratorAuth(async (session) => {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (!['admin', 'moderator'].includes(session.user.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await req.json();
     const { action, targetType, targetId, reason, duration } = body;
 
     if (!action || !targetType || !targetId || !reason) {
-      return createErrorResponse('Missing required fields', 400);
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     await dbConnect();
@@ -46,17 +55,11 @@ export async function POST(req: Request) {
         }
         break;
       default:
-        return NextResponse.json(
-          { error: 'Invalid target type' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid target type' }, { status: 400 });
     }
 
     if (!target) {
-      return NextResponse.json(
-        { error: 'Target not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Target not found' }, { status: 404 });
     }
 
     // Aktion ausführen
@@ -108,29 +111,20 @@ export async function POST(req: Request) {
         break;
       case 'disableComments':
         if (targetType !== 'post') {
-          return NextResponse.json(
-            { error: 'Can only disable comments on posts' },
-            { status: 400 }
-          );
+          return NextResponse.json({ error: 'Can only disable comments on posts' }, { status: 400 });
         }
         target.hasCommentsDisabled = true;
         await target.save();
         break;
       case 'enableComments':
         if (targetType !== 'post') {
-          return NextResponse.json(
-            { error: 'Can only enable comments on posts' },
-            { status: 400 }
-          );
+          return NextResponse.json({ error: 'Can only enable comments on posts' }, { status: 400 });
         }
         target.hasCommentsDisabled = false;
         await target.save();
         break;
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
     // Aktion loggen
@@ -138,7 +132,7 @@ export async function POST(req: Request) {
       moderator: session.user.id,
       action,
       targetType,
-      targetId: target._id, // Speichere die MongoDB ObjectId im Log
+      targetId: target._id,
       reason,
       metadata: {
         previousState,
@@ -154,5 +148,12 @@ export async function POST(req: Request) {
       success: true,
       message: `${action} action completed successfully`
     });
-  });
+
+  } catch (error) {
+    console.error('Moderation action error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'An error occurred' },
+      { status: 500 }
+    );
+  }
 } 

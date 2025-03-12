@@ -91,6 +91,8 @@ export function PostModerator({ postId }: PostModeratorProps) {
         })
       });
       
+      const data = await response.json();
+      
       if (response.ok) {
         setCommentsBlocked(!commentsBlocked);
         console.log(`Comments successfully ${commentsBlocked ? 'enabled' : 'disabled'}!`);
@@ -99,16 +101,13 @@ export function PostModerator({ postId }: PostModeratorProps) {
           toast.success(message);
         }
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Error ${commentsBlocked ? 'enabling' : 'disabling'} comments`);
+        throw new Error(data.error || `Error ${commentsBlocked ? 'enabling' : 'disabling'} comments`);
       }
     } catch (error) {
       console.error(`Error ${commentsBlocked ? 'enabling' : 'disabling'} comments:`, error);
       
       if (typeof toast !== 'undefined') {
-        toast.error(`Error ${commentsBlocked ? 'enabling' : 'disabling'} comments`);
-      } else {
-        alert(`Error ${commentsBlocked ? 'enabling' : 'disabling'} comments`);
+        toast.error(error instanceof Error ? error.message : 'An error occurred');
       }
     } finally {
       setIsProcessing(false);
