@@ -11,8 +11,8 @@ export async function GET(
   try {
     await dbConnect();
 
-    // Stelle sicher, dass params.id als Nummer geparst wird
-    const id = Number(await params.id);
+    // Richtige Syntax: Warte auf die Auflösung von params, dann greife auf die id zu
+    const id = Number((await params).id);
 
     if (isNaN(id)) {
       return NextResponse.json(

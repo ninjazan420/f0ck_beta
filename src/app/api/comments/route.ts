@@ -141,7 +141,6 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    console.log('Session:', session);
     
     // Hole request body
     const body = await req.json();
@@ -163,55 +162,26 @@ export async function POST(req: Request) {
       );
     }
 
-    // Rate limiting
-    const ip = req.headers.get('x-forwarded-for') || 'anonymous';
-    const rateLimitResult = await rateLimit(`comment_${ip}`, 5, 60); // 5 Kommentare pro Minute
-    if (rateLimitResult) {
-      return NextResponse.json(
-        { error: 'Too many comments. Please try again later.' },
-        { status: 429 }
-      );
-    }
-
     await dbConnect();
     
     let postObjectId;
     
-    // Wenn replyTo vorhanden ist, aber kein postId, finde den übergeordneten Kommentar
-    // und verwende dessen Post-ID
-    if (replyTo && !postId) {
-      try {
-        const parentComment = await Comment.findById(replyTo).populate('post');
-        if (!parentComment) {
-          return NextResponse.json(
-            { error: 'Parent comment not found' },
-            { status: 404 }
-          );
-        }
-        
-        console.log(`Found parent comment, using its post ID: ${parentComment.post}`);
-        postObjectId = parentComment.post;
-      } catch (error) {
-        console.error('Error finding parent comment:', error);
-        return NextResponse.json(
-          { error: 'Error finding parent comment' },
-          { status: 500 }
-        );
-      }
-    } 
     // Wenn postId vorhanden ist, verarbeite es wie bisher
-    else if (postId) {
-      // Zuerst den Post anhand der numerischen ID finden
-      if (!mongoose.isValidObjectId(postId)) {
-        return NextResponse.json(
-          { error: 'Valid post ID is required' },
-          { status: 400 }
-        );
-      }
-      
+    if (postId) {
       // Post-Existenzprüfung
       const Post = mongoose.model('Post');
-      const post = await Post.findById(postId);
+      let post;
+      
+      if (mongoose.isValidObjectId(postId)) {
+        post = await Post.findById(postId);
+      } else {
+        // Versuche als numerische ID zu finden
+        const numericId = Number(postId);
+        if (!isNaN(numericId)) {
+          post = await Post.findOne({ id: numericId });
+        }
+      }
+      
       if (!post) {
         return NextResponse.json(
           { error: 'Post not found' },
@@ -219,7 +189,6 @@ export async function POST(req: Request) {
         );
       }
 
-      // Deaktivierte Kommentare prüfen
       if (post.hasCommentsDisabled) {
         return NextResponse.json(
           { error: 'Comments are disabled for this post' },
@@ -274,11 +243,11 @@ export async function POST(req: Request) {
       ALLOWED_ATTR: ['href', 'title', 'target']
     });
 
-    // Kommentar erstellen - verwende post._id statt postId, wenn post gefunden wurde
+    // Kommentar erstellen
     const commentData = {
       content: sanitizedContent,
-      author: actualIsAnonymous ? null : author, // Null für anonyme Kommentare
-      post: postObjectId, // Verwende die MongoDB ID des Posts, wenn gefunden
+      author: isAnonymous === true ? null : (session?.user?.id || null), 
+      post: postObjectId,
       replyTo,
       // Alle Kommentare werden standardmäßig als "approved" markiert
       status: 'approved'

@@ -328,34 +328,37 @@ export function CommentList({
   }, [initialPage, postId]);
 
   useEffect(() => {
-    // WebSocket-Verbindung aufbauen
-    const socketId = `comments-${postId || 'all'}-${status}`;
-    commentSocket.subscribe(socketId, handleCommentUpdate);
+    // Nur verbinden, wenn postId definiert ist
+    if (!postId) return;
+    
+    // Vereinfache die Socket-ID
+    const socketId = `comments-${postId}`;
+    
+    // Trenne die vorherige Verbindung (falls vorhanden)
+    commentSocket.unsubscribe(socketId);
+    
+    // Erstelle eine neue Verbindung
+    commentSocket.subscribe(socketId, (update) => {
+      if (!update || typeof update !== 'object') return;
+      
+      // Sichere Verarbeitung von WebSocket-Updates
+      if (update.type === 'new' && update.data) {
+        setComments(prev => [update.data, ...prev]);
+      } 
+      else if (update.type === 'update' && update.data && update.commentId) {
+        setComments(prev => prev.map(comment => 
+          comment.id === update.commentId ? { ...comment, ...update.data } : comment
+        ));
+      }
+      else if (update.type === 'delete' && update.commentId) {
+        setComments(prev => prev.filter(comment => comment.id !== update.commentId));
+      }
+    });
 
     return () => {
       commentSocket.unsubscribe(socketId);
     };
-  }, [postId, status]);
-
-  const handleCommentUpdate = (update: { type: string; commentId: string; data?: any }) => {
-    switch (update.type) {
-      case 'new':
-        if (update.data) {
-          setComments(prev => [update.data, ...prev]);
-        }
-        break;
-      case 'update':
-        if (update.data) {
-          setComments(prev => prev.map(comment => 
-            comment.id === update.commentId ? { ...comment, ...update.data } : comment
-          ));
-        }
-        break;
-      case 'delete':
-        setComments(prev => prev.filter(comment => comment.id !== update.commentId));
-        break;
-    }
-  };
+  }, [postId]);
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
