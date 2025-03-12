@@ -13,10 +13,13 @@ export async function GET(
     
     // Da wir jetzt den Pfad direkt ohne URL-Kodierung verwenden, müssen wir 
     // sicherstellen, dass der Pfad korrekt ist und keine unerlaubten Zugriffe ermöglicht
-    let imagePath = resolvedParams.path;
+    const imagePath = resolvedParams.path;
     
-    // Sicherheitscheck: Verhindere Directory Traversal Angriffe
-    if (imagePath.includes('..') || imagePath.startsWith('/') || imagePath.startsWith('\\')) {
+    // Sicherheitschecks für Dateipfade stärken
+    if (imagePath.includes('..') || 
+        imagePath.startsWith('/') || 
+        imagePath.startsWith('\\') ||
+        /[<>:"|?*]/.test(imagePath)) {
       return new NextResponse('Invalid path', { status: 400 });
     }
     

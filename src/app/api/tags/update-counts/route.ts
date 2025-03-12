@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     // Check authentication - only admin/mods can run this
     const session = await getServerSession(authOptions);
     
-    if (!session || (!session.user.isAdmin && !session.user.isModerator)) {
+    if (!session || !session.user?.role || !['admin', 'moderator'].includes(session.user.role)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

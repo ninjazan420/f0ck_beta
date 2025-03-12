@@ -3,6 +3,14 @@ import { downloadImageFromUrl } from '@/lib/upload';
 import { join } from 'path';
 import { writeFile } from 'fs/promises';
 
+// Liste erlaubter Domains für Bilddownloads
+const ALLOWED_DOMAINS = [
+  'imgur.com', 'i.imgur.com',
+  'unsplash.com', 'images.unsplash.com',
+  'pexels.com', 'images.pexels.com',
+  // Weitere vertrauenswürdige Domains
+];
+
 export async function GET(request: NextRequest) {
   // Get URL parameter
   const url = request.nextUrl.searchParams.get('url');
@@ -15,6 +23,20 @@ export async function GET(request: NextRequest) {
   }
   
   try {
+    const urlObj = new URL(url);
+    
+    // Prüfen, ob die Domain erlaubt ist
+    const isAllowedDomain = ALLOWED_DOMAINS.some(domain => 
+      urlObj.hostname === domain || urlObj.hostname.endsWith(`.${domain}`)
+    );
+    
+    if (!isAllowedDomain) {
+      return NextResponse.json(
+        { error: 'Downloads nur von vertrauenswürdigen Domains erlaubt' },
+        { status: 403 }
+      );
+    }
+    
     // Download the image from the URL
     const imageData = await downloadImageFromUrl(url);
     

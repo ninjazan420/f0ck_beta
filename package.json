@@ -21,6 +21,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "emoji-mart": "^5.6.0",
+    "isomorphic-dompurify": "^2.22.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.477.0",
     "mongoose": "^8.10.0",

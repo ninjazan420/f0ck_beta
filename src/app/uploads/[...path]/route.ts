@@ -10,11 +10,20 @@ export async function GET(
     // params auflösen
     const resolvedParams = await params;
     // Join path segments
-    const path = resolvedParams.path.join('/');
-    console.log('Requested upload path:', path);
-    
-    // Construct full file path
-    const filePath = join(process.cwd(), 'public', 'uploads', path);
+    const sanitizedPath = resolvedParams.path
+      .filter(segment => {
+        // Segmente ablehnen, die mit Punkt beginnen oder verdächtige Zeichen enthalten
+        return !segment.startsWith('.') && !/[<>:"|?*\\]/.test(segment);
+      })
+      .join('/');
+
+    // Prüfen, ob der normalisierte Pfad versucht, auf Verzeichnisse außerhalb zuzugreifen
+    if (sanitizedPath.includes('..') || sanitizedPath.startsWith('/')) {
+      return new NextResponse('Invalid path', { status: 400 });
+    }
+
+    // Danach den sanitierten Pfad verwenden
+    const filePath = join(process.cwd(), 'public', 'uploads', sanitizedPath);
     console.log('Full file path:', filePath);
     
     // Check if file exists
@@ -29,9 +38,9 @@ export async function GET(
     
     // Determine content type
     let contentType = 'application/octet-stream';
-    if (path.endsWith('.jpg') || path.endsWith('.jpeg')) contentType = 'image/jpeg';
-    else if (path.endsWith('.png')) contentType = 'image/png';
-    else if (path.endsWith('.gif')) contentType = 'image/gif';
+    if (sanitizedPath.endsWith('.jpg') || sanitizedPath.endsWith('.jpeg')) contentType = 'image/jpeg';
+    else if (sanitizedPath.endsWith('.png')) contentType = 'image/png';
+    else if (sanitizedPath.endsWith('.gif')) contentType = 'image/gif';
     
     // Read the file
     const data = await readFile(filePath);

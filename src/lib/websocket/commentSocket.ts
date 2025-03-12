@@ -7,47 +7,67 @@ interface CommentUpdate {
 }
 
 class CommentSocketService {
-  private socket: Socket | null = null;
   private listeners: Map<string, (update: CommentUpdate) => void> = new Map();
-
-  connect() {
-    if (!this.socket) {
-      this.socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001', {
-        path: '/api/comments/ws',
-        transports: ['websocket']
-      });
-
-      this.socket.on('commentUpdate', (update: CommentUpdate) => {
-        this.listeners.forEach(listener => listener(update));
-      });
+  private polling = false;
+  private activePostIds = new Set<string>();
+  private pollingInterval: NodeJS.Timeout | null = null;
+  
+  startPolling(postId: string) {
+    this.activePostIds.add(postId);
+    
+    if (!this.polling) {
+      this.polling = true;
+      this.pollingInterval = setInterval(() => this.pollUpdates(), 10000); // 10 Sekunden
+      console.log('Comment polling started');
     }
   }
-
-  disconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
+  
+  stopPolling() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+      this.polling = false;
+      this.activePostIds.clear();
+      console.log('Comment polling stopped');
     }
   }
-
-  subscribe(id: string, callback: (update: CommentUpdate) => void) {
+  
+  async pollUpdates() {
+    if (this.activePostIds.size === 0) return;
+    
+    try {
+      for (const postId of this.activePostIds) {
+        const timestamp = Date.now();
+        const res = await fetch(`/api/comments?postId=${postId}&timestamp=${timestamp}`);
+        
+        if (res.ok) {
+          const data = await res.json();
+          this.listeners.forEach(listener => listener({
+            type: 'update',
+            commentId: 'all',
+            data
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to poll comment updates:', error);
+    }
+  }
+  
+  subscribe(id: string, postId: string, callback: (update: CommentUpdate) => void) {
     this.listeners.set(id, callback);
-    if (!this.socket) {
-      this.connect();
-    }
+    this.startPolling(postId);
   }
-
+  
   unsubscribe(id: string) {
     this.listeners.delete(id);
     if (this.listeners.size === 0) {
-      this.disconnect();
+      this.stopPolling();
     }
   }
-
+  
   emit(event: string, data: any) {
-    if (this.socket) {
-      this.socket.emit(event, data);
-    }
+    // Für Kompatibilität mit bestehendem Code, tut nichts
   }
 }
 

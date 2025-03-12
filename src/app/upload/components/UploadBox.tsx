@@ -8,7 +8,35 @@ export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void 
   const dropzoneRef = useRef<HTMLDivElement>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    onFileDrop(acceptedFiles);
+    const validFiles = acceptedFiles.filter(file => {
+      // Client-seitige Validierung
+      const isValidType = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'video/webm', 'video/mp4', 'video/quicktime',
+        'application/x-shockwave-flash'
+      ].includes(file.type);
+      
+      const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB limit
+      
+      if (!isValidType) {
+        console.warn(`Rejected file due to invalid type: ${file.type}`);
+        return false;
+      }
+      
+      if (!isValidSize) {
+        console.warn(`Rejected file due to size: ${(file.size / (1024*1024)).toFixed(2)}MB`);
+        return false;
+      }
+      
+      return true;
+    });
+    
+    if (validFiles.length < acceptedFiles.length) {
+      // Zeige Warnung, wenn Dateien abgelehnt wurden
+      console.log(`${acceptedFiles.length - validFiles.length} files were rejected`);
+    }
+    
+    onFileDrop(validFiles);
   }, [onFileDrop]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
@@ -76,7 +104,7 @@ export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void 
         </div>
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Allowed extensions: {ALLOWED_EXTENSIONS.join(', ')}<br/>
-          You can also use directlinks like YouTube, Twitter, Instagram, Twitch clips and more!<br/>
+          (not live yet) You can also use directlinks like YouTube, Twitter, Instagram, Twitch clips and more!<br/>
           <span className="font-medium">Pro tip: You can paste (Ctrl+V) images directly from your clipboard!</span>
         </p>
       </div>

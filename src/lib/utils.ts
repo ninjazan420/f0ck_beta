@@ -41,3 +41,58 @@ export function getImageUrlWithCacheBuster(url: string, additionalBuster?: strin
     
   return hasParams ? `${url}&${cacheBuster}` : `${url}?${cacheBuster}`;
 }
+
+type LogContext = Record<string, any>;
+
+export enum LogLevel { DEBUG, INFO, WARN, ERROR }
+
+export function safeLog(level: LogLevel, message: string, context?: LogContext) {
+  try {
+    // Sanitize potentially sensitive data in context
+    const safeCopy = context ? JSON.parse(JSON.stringify(context)) : undefined;
+    
+    if (safeCopy) {
+      const sensitiveKeys = ['password', 'token', 'secret', 'key', 'csrf'];
+      
+      function sanitizeObject(obj: Record<string, any>) {
+        for (const key in obj) {
+          if (typeof obj[key] === 'object' && obj[key] !== null) {
+            sanitizeObject(obj[key]);
+          } else if (sensitiveKeys.some(k => key.toLowerCase().includes(k))) {
+            obj[key] = '***REDACTED***';
+          }
+        }
+      }
+      
+      sanitizeObject(safeCopy);
+    }
+    
+    const entry = {
+      level: LogLevel[level],
+      timestamp: new Date().toISOString(),
+      message,
+      ...(safeCopy && { context: safeCopy })
+    };
+    
+    switch (level) {
+      case LogLevel.DEBUG:
+        console.debug(JSON.stringify(entry));
+        break;
+      case LogLevel.INFO:
+        console.log(JSON.stringify(entry));
+        break;
+      case LogLevel.WARN:
+        console.warn(JSON.stringify(entry));
+        break;
+      case LogLevel.ERROR:
+        console.error(JSON.stringify(entry));
+        break;
+    }
+  } catch (err) {
+    // Falls ein Fehler beim Loggen auftritt, Fallback mit einfacherem Format
+    console.error(`Logging error: ${err}. Original message: ${message}`);
+  }
+}
+
+// Beispiel für die Verwendung:
+// safeLog(LogLevel.ERROR, 'Failed to process upload', { userId: '123', file: fileData });

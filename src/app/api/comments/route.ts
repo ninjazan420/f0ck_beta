@@ -6,6 +6,7 @@ import Comment from '@/models/Comment';
 import User from '@/models/User';
 import { rateLimit } from '@/lib/rateLimit';
 import mongoose from 'mongoose';
+import DOMPurify from 'isomorphic-dompurify';
 
 // GET /api/comments
 export async function GET(req: Request) {
@@ -202,55 +203,31 @@ export async function POST(req: Request) {
     else if (postId) {
       // Zuerst den Post anhand der numerischen ID finden
       if (!mongoose.isValidObjectId(postId)) {
-        // Versuchen, die numerische ID zu konvertieren
-        const numericId = Number(postId);
-        if (isNaN(numericId)) {
-          return NextResponse.json(
-            { error: 'Invalid post ID format' },
-            { status: 400 }
-          );
-        }
-        
-        // Post mit der numerischen ID suchen
-        try {
-          const Post = mongoose.model('Post');
-          const post = await Post.findOne({ id: numericId });
-          if (!post) {
-            console.log(`Post with numeric ID ${numericId} not found`);
-            return NextResponse.json(
-              { error: 'Post not found' },
-              { status: 404 }
-            );
-          }
-          console.log(`Found post with numeric ID ${numericId}, MongoDB ID: ${post._id}`);
-          postObjectId = post._id;
-        } catch (error) {
-          console.error('Error finding post by numeric ID:', error);
-          return NextResponse.json(
-            { error: 'Error finding post' },
-            { status: 500 }
-          );
-        }
-      } else {
-        postObjectId = postId;
+        return NextResponse.json(
+          { error: 'Valid post ID is required' },
+          { status: 400 }
+        );
       }
-    }
+      
+      // Post-Existenzprüfung
+      const Post = mongoose.model('Post');
+      const post = await Post.findById(postId);
+      if (!post) {
+        return NextResponse.json(
+          { error: 'Post not found' },
+          { status: 404 }
+        );
+      }
 
-    // Überprüfen, ob Kommentare deaktiviert sind
-    const Post = mongoose.model('Post');
-    const post = await Post.findById(postObjectId);
-    if (!post) {
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      );
-    }
-    
-    if (post.hasCommentsDisabled) {
-      return NextResponse.json(
-        { error: 'Comments are disabled for this post' },
-        { status: 403 }
-      );
+      // Deaktivierte Kommentare prüfen
+      if (post.hasCommentsDisabled) {
+        return NextResponse.json(
+          { error: 'Comments are disabled for this post' },
+          { status: 403 }
+        );
+      }
+
+      postObjectId = post._id;
     }
 
     // Prüfen, ob der Benutzer eingeloggt ist
@@ -291,9 +268,15 @@ export async function POST(req: Request) {
 
     console.log('Creating comment with author:', author, 'isAnonymous:', actualIsAnonymous);
 
+    // Kommentarinhalt sanitisieren
+    const sanitizedContent = DOMPurify.sanitize(content, {
+      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br'],
+      ALLOWED_ATTR: ['href', 'title', 'target']
+    });
+
     // Kommentar erstellen - verwende post._id statt postId, wenn post gefunden wurde
     const commentData = {
-      content,
+      content: sanitizedContent,
       author: actualIsAnonymous ? null : author, // Null für anonyme Kommentare
       post: postObjectId, // Verwende die MongoDB ID des Posts, wenn gefunden
       replyTo,

@@ -51,13 +51,14 @@ export const authOptions: AuthOptions = {
           
           // Temporarily disable origin validation
           // Log the origin for debugging purposes
-          console.log(`Auth request from origin: ${origin}`);
+          console.log(`Auth request from IP: ${req?.headers?.['x-forwarded-for']?.substring(0, 7) || 'anonymous'}***`);
           
           // Skip origin validation for now
           
           // Apply rate limiting
           const ip = req?.headers?.['x-forwarded-for'] || 'anonymous';
-          const rateLimitResult = rateLimit(`login_${ip}`, 5, 60);
+          const rateLimitKey = `login_${ip}_${credentials?.username || 'unknown'}`;
+          const rateLimitResult = rateLimit(rateLimitKey, 5, 60);
           if (rateLimitResult) {
             throw new Error('Too many attempts. Please try again later');
           }
@@ -77,8 +78,8 @@ export const authOptions: AuthOptions = {
           const user = await User.findOne({ username: credentials.username });
           
           if (!user) {
-            // Use same timing as successful login to prevent timing attacks
-            await bcrypt.compare('dummy', '$2a$10$DUMMY_HASH_FOR_TIMING');
+            // Konstante Zeit für Hash-Vergleich, unabhängig davon, ob Benutzer existiert
+            await bcrypt.compare('dummy_password', '$2a$10$dummyHashForTimingAttackPrevention');
             throw new Error('Invalid credentials');
           }
 
@@ -158,10 +159,10 @@ export const authOptions: AuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 hours
+    maxAge: 8 * 60 * 60, // 8 Stunden statt 24 Stunden
   },
   jwt: {
-    maxAge: 24 * 60 * 60, // 24 hours
+    maxAge: 8 * 60 * 60, // 8 Stunden statt 24 Stunden
   },
   cookies: {
     sessionToken: {

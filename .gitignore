@@ -20,6 +20,7 @@
 # production
 /build
 /wiki
+done.txt
 package-lock.json
 # Upload directories
 public/uploads/*

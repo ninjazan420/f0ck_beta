@@ -36,7 +36,7 @@ export async function DELETE(
     await dbConnect();
 
     // Überprüfen, ob es eine gültige MongoDB ID ist
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!id || typeof id !== 'string' || !mongoose.Types.ObjectId.isValid(id)) {
       console.error(`DELETE: Invalid comment ID format: ${id}`);
       return NextResponse.json(
         { error: 'Invalid comment ID format' },
@@ -136,7 +136,7 @@ export async function PATCH(
     await dbConnect();
 
     // Überprüfen, ob es eine gültige MongoDB ID ist
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!id || typeof id !== 'string' || !mongoose.Types.ObjectId.isValid(id)) {
       console.error(`PATCH: Invalid comment ID format: ${id}`);
       return NextResponse.json(
         { error: 'Invalid comment ID format' },

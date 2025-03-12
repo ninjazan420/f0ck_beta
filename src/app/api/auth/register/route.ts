@@ -40,9 +40,10 @@ export async function POST(req: Request) {
     if (password.length < 8 || 
         !/[A-Z]/.test(password) || 
         !/[a-z]/.test(password) || 
-        !/[0-9]/.test(password)) {
+        !/[0-9]/.test(password) || 
+        !/[^A-Za-z0-9]/.test(password)) {
       return NextResponse.json(
-        { error: 'Password does not meet requirements' },
+        { error: 'Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters' },
         { status: 400 }
       );
     }

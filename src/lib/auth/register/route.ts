@@ -36,23 +36,18 @@ export async function POST(req: Request) {
     }
 
     // Check if user exists
-    const existingUser = await User.findOne({ username });
+    const existingUser = await User.findOne({ 
+      $or: [
+        { username },
+        ...(email ? [{ email }] : [])
+      ]
+    });
+
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Username already taken' },
+        { error: 'Registration not possible with provided details' },
         { status: 400 }
       );
-    }
-
-    // Optional email check
-    if (email) {
-      const emailExists = await User.findOne({ email });
-      if (emailExists) {
-        return NextResponse.json(
-          { error: 'Email already registered' },
-          { status: 400 }
-        );
-      }
     }
 
     // Hash password and create user

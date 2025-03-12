@@ -116,8 +116,12 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
   }, [onRemoveFile, onRemoveUrl]);
 
   const isValidTag = useCallback((tag: string): boolean => {
-    const regex = /^[\p{L}\p{N}]+$/u; // Erlaubt Buchstaben und Zahlen (inkl. Umlaute)
-    return regex.test(tag);
+    // Kürzen zu langer Tags
+    const truncatedTag = tag.slice(0, 20);
+    
+    // Strenge Validierung nur erlaubter Zeichen
+    const regex = /^[a-z0-9äöüß_-]+$/i; 
+    return regex.test(truncatedTag);
   }, []);
 
   const addTag = useCallback((id: string, tag: string) => {

@@ -10,6 +10,8 @@ import { join } from 'path';
 // import { rateLimit } from '@/lib/rateLimit';
 import dbConnect from '@/lib/db/mongodb';
 import { revalidatePath } from 'next/cache';
+import { fileTypeFromBuffer } from 'file-type';
+import { checkUploadLimit } from '@/lib/upload-limit';
 
 // Initialize upload directories
 initializeUploadDirectory().catch(console.error);
@@ -56,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     // Get user session (if authenticated)
     const session = await getServerSession(authOptions);
-    const userId = session?.user?.id;
+    const userId = session?.user?.id || null;
     console.log('User ID from session:', userId);
     
     // Parse form data
@@ -93,6 +95,40 @@ export async function POST(request: NextRequest) {
         { error: 'No file or image URL provided' },
         { status: 400 }
       );
+    }
+
+    // Stärkere Validierung der Uploads
+    if (files && files.length > 0) {
+      // Validiere die Dateitypen und -größen
+      const validFileTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      const maxFileSize = 20 * 1024 * 1024; // 20MB
+      
+      // Prüfe das Upload-Limit für jede Datei
+      for (const file of files) {
+        const limitResult = checkUploadLimit(userId, file.size);
+        if (limitResult) {
+          return limitResult; // Dies gibt den NextResponse mit dem Fehler zurück
+        }
+        
+        // Buffer erstellen
+        const buffer = Buffer.from(await file.arrayBuffer());
+        
+        // Tatsächlichen Dateityp aus dem Inhalt ermitteln
+        const detectedType = await fileTypeFromBuffer(buffer);
+        if (!detectedType || !validFileTypes.includes(detectedType.mime)) {
+          return NextResponse.json(
+            { error: `Unsupported or manipulated file type: ${file.type}` },
+            { status: 400 }
+          );
+        }
+        
+        if (file.size > maxFileSize) {
+          return NextResponse.json(
+            { error: 'File size exceeds the maximum limit of 20MB' },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     const results = [];

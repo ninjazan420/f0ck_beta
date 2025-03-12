@@ -4,6 +4,7 @@ import Post from '@/models/Post';
 import { NextResponse } from 'next/server';
 import User from '@/models/User';
 import Comment from '@/models/Comment';
+import { rateLimit } from '@/lib/rateLimit';
 
 export async function POST(req: Request) {
   return withAuth(async (session) => {
@@ -30,6 +31,15 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
+    const ip = req.headers.get('x-forwarded-for') || 'anonymous';
+    const rateLimitResult = await rateLimit(`fetch_posts_${ip}`, 50, 60); // 50 Anfragen pro Minute
+    if (rateLimitResult) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429 }
+      );
+    }
+    
     await dbConnect();
     
     // Parse query parameters
@@ -53,9 +63,10 @@ export async function GET(req: Request) {
     
     // Text search (if provided)
     if (search) {
+      const safeSearchPattern = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { tags: { $regex: search, $options: 'i' } }
+        { title: { $regex: safeSearchPattern, $options: 'i' } },
+        { tags: { $regex: safeSearchPattern, $options: 'i' } }
       ];
     }
     

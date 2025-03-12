@@ -15,22 +15,48 @@ const PROTECTED_PATHS = [
   '/dashboard'       // User dashboard
 ];
 
+// Neue Arrays für rollenbasierte Pfade
+const ADMIN_PATHS = [
+  '/admin'
+];
+
+const MODERATOR_PATHS = [
+  '/moderation'
+];
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+
+  // CORS für API-Routen konfigurieren
+  if (path.startsWith('/api/')) {
+    const response = NextResponse.next();
+    response.headers.set('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    return response;
+  }
 
   // Check if this is a protected path
   const isProtectedPath = PROTECTED_PATHS.some(protectedPath => 
     path.startsWith(protectedPath)
   );
+  
+  // Prüfen, ob es ein Admin- oder Moderator-Pfad ist
+  const isAdminPath = ADMIN_PATHS.some(adminPath => 
+    path.startsWith(adminPath)
+  );
+  
+  const isModeratorPath = MODERATOR_PATHS.some(modPath => 
+    path.startsWith(modPath)
+  );
 
-  // If not protected, allow access
-  if (!isProtectedPath) {
+  // Wenn kein geschützter Pfad, freien Zugriff erlauben
+  if (!isProtectedPath && !isAdminPath && !isModeratorPath) {
     return NextResponse.next();
   }
 
-  console.log(`Checking auth for protected path: ${path}`);
+  console.log(`Checking auth for path: ${path}`);
   
-  // For protected paths: Check token with debugging
   try {
     const token = await getToken({ 
       req: request,
@@ -38,18 +64,64 @@ export async function middleware(request: NextRequest) {
       secureCookie: process.env.NODE_ENV === 'production'
     });
 
-    console.log(`Auth token check result: ${token ? 'Token found' : 'No token'}`);
-
-    // If no token, redirect to login
+    // Wenn kein Token vorhanden ist, zur Login-Seite umleiten
     if (!token) {
       console.log(`No auth token, redirecting to login`);
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('callbackUrl', path);
       return NextResponse.redirect(loginUrl);
     }
+    
+    // Rollenprüfung für Admin-Bereiche
+    if (isAdminPath && token.role !== 'admin') {
+      console.log(`User is not an admin, access denied to: ${path}`);
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+    
+    // Rollenprüfung für Moderator-Bereiche
+    if (isModeratorPath && !['admin', 'moderator'].includes(token.role)) {
+      console.log(`User is not a moderator or admin, access denied to: ${path}`);
+      return NextResponse.redirect(new URL('/', request.url));
+    }
 
     console.log(`User authenticated, proceeding to: ${path}`);
-    return NextResponse.next();
+
+    // Im Middleware CSRF-Validierung überprüfen
+    if (path.startsWith('/api/') && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
+      // CSRF-Token aus Header oder Cookie prüfen
+      const csrfToken = request.headers.get('x-csrf-token');
+      const csrfCookie = request.cookies.get('next-auth.csrf-token');
+      const expectedToken = csrfCookie?.value;
+      
+      // Nur wenn cookies und header existieren
+      if (csrfCookie && !csrfToken) {
+        console.warn('CSRF token missing in request headers');
+        return NextResponse.json(
+          { error: 'CSRF token required' },
+          { status: 403 }
+        );
+      }
+      
+      if (csrfCookie && csrfToken && !expectedToken?.includes(csrfToken)) {
+        console.warn('Invalid CSRF token');
+        return NextResponse.json(
+          { error: 'Invalid CSRF token' },
+          { status: 403 }
+        );
+      }
+    }
+
+    // CSP-Header hinzufügen
+    const response = NextResponse.next();
+    response.headers.set('Content-Security-Policy', 
+      "default-src 'self'; " +
+      "script-src 'self' 'unsafe-inline'; " +
+      "style-src 'self' 'unsafe-inline'; " +
+      "img-src 'self' data: blob:; " +
+      "connect-src 'self';"
+    );
+
+    return response;
   } catch (error) {
     console.error(`Error checking auth token: ${error instanceof Error ? error.message : 'Unknown error'}`);
     const loginUrl = new URL('/login', request.url);
@@ -67,6 +139,7 @@ export const config = {
     '/settings/:path*',
     '/account/:path*',
     '/profile/edit/:path*',
-    '/dashboard/:path*'
+    '/dashboard/:path*',
+    '/api/:path*' // Hinzugefügt für CORS-Behandlung
   ]
 } 
