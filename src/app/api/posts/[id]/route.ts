@@ -11,13 +11,12 @@ export async function GET(
   try {
     await dbConnect();
 
-    // Asynchron auf params zugreifen
-    const resolvedParams = await Promise.resolve(params);
-    const id = Number(resolvedParams.id);
+    // Stelle sicher, dass params.id als Nummer geparst wird
+    const id = Number(await params.id);
 
     if (isNaN(id)) {
       return NextResponse.json(
-        { error: 'Invalid post ID' },
+        { error: "Invalid ID format" },
         { status: 400 }
       );
     }
