@@ -1,4 +1,4 @@
-# f0ck.org Beta v2.1.0
+# f0ck.org Beta v2.2.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still broken.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v2.1.0](#f0ckorg-beta-v210)
+- [f0ck.org Beta v2.2.0](#f0ckorg-beta-v220)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,7 +21,9 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v2.0.0 (Current)](#beta-v200-current)
+    - [Beta v2.2.0 (Current)](#beta-v220-current)
+      - [🔧 Technical Improvements](#-technical-improvements)
+    - [Beta v2.0.0](#beta-v200)
       - [🚀 State of the Art Beta Website](#-state-of-the-art-beta-website)
       - [🖼️ Comprehensive Media System](#️-comprehensive-media-system)
       - [🏷️ Complete Tag System](#️-complete-tag-system)
@@ -155,7 +157,17 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v2.0.0 (Current)
+### Beta v2.2.0 (Current)
+
+#### 🔧 Technical Improvements
+
+- **API Optimizations**:
+  - Fixed params.id usage with await: `const id = Number(await params.id)`
+  - Resolved "params should be awaited before using its properties" error
+  - Removed anonymous links from documentation
+  - Extensive security fixes and API optimizations
+
+### Beta v2.0.0
 
 #### 🚀 State of the Art Beta Website
 
@@ -424,4 +436,6 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 ## 📜 License
 
 MIT License - © 2024 f0ck.org Team
+
+> Beta Version 2.2.0 - We build something new...
 

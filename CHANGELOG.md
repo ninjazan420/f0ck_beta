@@ -2,6 +2,16 @@
 
 Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
 
+## [2.2.0]
+
+### 🔧 Technische Verbesserungen
+
+- **API-Optimierungen**:
+  - Korrektur der params.id Verwendung mit await: `const id = Number(await params.id)`
+  - Behebung des Fehlers "params should be awaited before using its properties"
+  - Entfernung von anonymen Links aus der Dokumentation
+  - Sehr umfangreiche Sicherheitsverbesserungen und API-Optimierungen
+
 ## [2.1.0] -
 
 ### 🛡️ Verbessertes Moderationssystem
