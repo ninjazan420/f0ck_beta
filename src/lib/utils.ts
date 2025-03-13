@@ -28,18 +28,14 @@ export function getRandomLogo(): string {
  * @param additionalBuster Optional additional buster to append
  * @returns URL with cache busting parameter
  */
-export function getImageUrlWithCacheBuster(url: string, additionalBuster?: string): string {
-  if (!url) return '';
+export function getImageUrlWithCacheBuster(url: string | null | undefined): string {
+  if (!url) return '/avatar-placeholder.png';
   
-  // Check if URL already has query parameters
-  const hasParams = url.includes('?');
+  // Prüfe, ob die URL bereits einen Query-Parameter hat
+  const hasQuery = url.includes('?');
   
-  // Add cache buster with current timestamp and optional additional buster
-  const cacheBuster = additionalBuster ? 
-    `v=${Date.now()}_${additionalBuster}` : 
-    `v=${Date.now()}`;
-    
-  return hasParams ? `${url}&${cacheBuster}` : `${url}?${cacheBuster}`;
+  // Füge einen Timestamp als Cache-Buster hinzu
+  return `${url}${hasQuery ? '&' : '?'}v=${Date.now()}`;
 }
 
 type LogContext = Record<string, any>;

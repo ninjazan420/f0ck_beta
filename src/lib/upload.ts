@@ -7,6 +7,8 @@ import { Types } from 'mongoose';
 import crypto from 'crypto';
 import User from '@/models/User';
 import fs from 'fs/promises';
+import { ContentRating, DEFAULT_CONTENT_RATING } from '@/types';
+import { ApplicationError } from '@/lib/error-handling';
 
 // Erweitere UPLOAD_DIRS um baseDir
 const UPLOAD_DIRS = {
@@ -18,50 +20,48 @@ const UPLOAD_DIRS = {
 
 // Generiere eine eindeutige Bild-ID
 function generateImageId(): string {
-  const prefix = Math.floor(1000 + Math.random() * 9000); // 4-stellige Zahl
-  const randomHex = crypto.randomBytes(8).toString('hex'); // 16 Zeichen Hex
-  return `${prefix}_${randomHex}`;
+  try {
+    const prefix = Math.floor(1000 + Math.random() * 9000);
+    const randomHex = crypto.randomBytes(8).toString('hex');
+    return `${prefix}_${randomHex}`;
+  } catch (error) {
+    console.error('Error generating image ID:', error);
+    // Fallback mit timestamp und Math.random
+    return `${Date.now()}_${Math.random().toString(36).substring(2)}`;
+  }
 }
 
-// Erweitere die initializeUploadDirectories Funktion um mehr Fehlerbehandlung
+// Neue vereinheitlichte Funktion:
 export async function initializeUploadDirectories() {
   try {
     console.log('Initializing upload directories...');
-    console.log('Base directory:', UPLOAD_DIRS.base);
     
     // Erstelle alle nötigen Upload-Verzeichnisse
     for (const dir of Object.values(UPLOAD_DIRS)) {
       try {
         console.log(`Creating directory: ${dir}`);
         await mkdir(dir, { recursive: true });
-      } catch (error) {
-        console.error(`Failed to create directory ${dir}:`, error);
-        // Werfe den Fehler nicht, damit andere Verzeichnisse trotzdem erstellt werden können
-      }
-    }
-    
-    // Überprüfe die Berechtigungen
-    for (const dir of Object.values(UPLOAD_DIRS)) {
-      try {
-        // Versuche, eine Testdatei zu schreiben
+        
+        // Überprüfe Schreibrechte mit einer Testdatei
         const testFile = join(dir, '.test-permissions');
         await writeFile(testFile, 'test');
-        await fs.unlink(testFile).catch(console.error);
-        console.log(`Directory ${dir} is writable`);
+        await fs.unlink(testFile);
+        console.log(`✅ Directory ${dir} is writable`);
       } catch (error) {
-        console.error(`Directory ${dir} is NOT writable:`, error);
+        console.error(`❌ Failed to initialize directory ${dir}:`, error);
+        throw new Error(`Failed to initialize directory ${dir}: ${error.message}`);
       }
     }
     
-    console.log('Upload directories initialized successfully');
+    console.log('✅ Upload directories initialized successfully');
   } catch (error) {
-    console.error('Error initializing upload directories:', error);
+    console.error('❌ Error initializing upload directories:', error);
     throw error;
   }
 }
 
 interface ProcessedUpload {
-  id: number;
+  id: Types.ObjectId;
   filename: string;
   originalPath: string;
   thumbnailPath: string;
@@ -72,6 +72,39 @@ interface ProcessedUpload {
     height: number;
   };
   tags: string[];
+  contentRating: ContentRating;
+  uploadDate: Date;
+  userId?: string;
+}
+
+// Neue Validierungsfunktion
+function validateUploadParams(
+  file: Buffer,
+  originalFilename: string,
+  contentType: string,
+  contentRating: ContentRating,
+  tags: string[]
+) {
+  if (!file || file.length === 0) {
+    throw new ApplicationError('Empty file buffer', 'ValidationError', 400);
+  }
+
+  if (!originalFilename || originalFilename.trim() === '') {
+    throw new ApplicationError('Invalid filename', 'ValidationError', 400);
+  }
+
+  const validContentTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (!validContentTypes.includes(contentType)) {
+    throw new ApplicationError('Invalid content type', 'ValidationError', 400);
+  }
+
+  if (!Object.values(ContentRating).includes(contentRating)) {
+    throw new ApplicationError('Invalid content rating', 'ValidationError', 400);
+  }
+
+  if (tags.length > 30) {
+    throw new ApplicationError('Too many tags (max 30)', 'ValidationError', 400);
+  }
 }
 
 export async function processUpload(
@@ -79,31 +112,14 @@ export async function processUpload(
   originalFilename: string, 
   contentType: string,
   userId?: string,
-  contentRating: 'safe' | 'sketchy' | 'unsafe' = 'safe',
+  contentRating: ContentRating = DEFAULT_CONTENT_RATING,
   tags: string[] = []
 ): Promise<ProcessedUpload> {
   try {
-    // Stelle sicher, dass die Verzeichnisse existieren
-    await initializeUploadDirectories();
-
-    // Zusätzlicher Debug-Code für den Thumbnail-Ordner
-    console.log('Checking thumbnail directory...');
-    try {
-      const thumbDirStat = await fs.stat(UPLOAD_DIRS.thumbnails);
-      console.log('Thumbnail directory exists:', UPLOAD_DIRS.thumbnails);
-      console.log('Directory permissions:', thumbDirStat.mode.toString(8));
-    } catch (error) {
-      console.error('Thumbnail directory check failed:', error);
-      // Versuche erneut, das Verzeichnis zu erstellen
-      try {
-        await mkdir(UPLOAD_DIRS.thumbnails, { recursive: true, mode: 0o755 });
-        console.log('Thumbnail directory created successfully');
-      } catch (mkdirError) {
-        console.error('Failed to create thumbnail directory:', mkdirError);
-      }
-    }
-
-    // Verarbeite das Bild mit Sharp
+    // Validiere Parameter
+    validateUploadParams(file, originalFilename, contentType, contentRating, tags);
+    
+    // Verarbeite das Bild direkt mit Sharp
     const image = sharp(file);
     const metadata = await image.metadata();
 
@@ -224,7 +240,7 @@ export async function processUpload(
     console.log(`Saved image paths to database: ${post.imageUrl}, ${post.thumbnailUrl}`);
 
     return {
-      id: post.id,
+      id: post._id,
       filename,
       originalPath: post.imageUrl,
       thumbnailPath: post.thumbnailUrl,
@@ -234,11 +250,38 @@ export async function processUpload(
         width: metadata.width || 0,
         height: metadata.height || 0
       },
-      tags: processedTags
+      tags: processedTags,
+      contentRating,
+      uploadDate: new Date(),
+      userId
     };
   } catch (error) {
-    console.error('Error processing upload:', error, error.stack);
-    throw new Error(`Failed to process upload: ${error.message}`);
+    throw new ApplicationError(
+      `Failed to process upload: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      'UploadError',
+      500,
+      error
+    );
+  }
+}
+
+// Neue Hilfsfunktion für Cleanup
+async function cleanupTempFiles(olderThan = 24 * 60 * 60 * 1000) { // 24h
+  try {
+    const tempDir = UPLOAD_DIRS.temp;
+    const files = await fs.readdir(tempDir);
+    const now = Date.now();
+
+    for (const file of files) {
+      const filePath = join(tempDir, file);
+      const stats = await fs.stat(filePath);
+      
+      if (now - stats.mtimeMs > olderThan) {
+        await fs.unlink(filePath).catch(console.error);
+      }
+    }
+  } catch (error) {
+    console.error('Error cleaning up temp files:', error);
   }
 }
 
@@ -309,6 +352,9 @@ export async function downloadImageFromUrl(url: string): Promise<{
     // Speichere die temporäre Datei
     await writeFile(tempFilePath, thumbnail);
     
+    // Cleanup alte temporäre Dateien
+    await cleanupTempFiles().catch(console.error);
+    
     return {
       file: buffer,
       filename: safeFilename,
@@ -321,7 +367,11 @@ export async function downloadImageFromUrl(url: string): Promise<{
       }
     };
   } catch (error) {
-    console.error('Error downloading image:', error);
-    throw new Error('Failed to download image from URL');
+    throw new ApplicationError(
+      'Failed to download image from URL',
+      'NetworkError',
+      500,
+      error
+    );
   }
 }

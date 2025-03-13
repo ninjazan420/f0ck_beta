@@ -32,6 +32,8 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [currentTag, setCurrentTag] = useState('');
 
+  const fileItemsLength = useMemo(() => fileItems.length, [fileItems]);
+
   useEffect(() => {
     // Process files and create new file items
     const processFiles = files.map((file, index) => {
@@ -105,7 +107,7 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
         onItemsUpdate(newFileItems);
       }
     }
-  }, [files, urls, fileItems.length]); // Entferne fileItems aus der Dependency-Liste, füge nur fileItems.length hinzu
+  }, [files, urls, fileItemsLength]);
 
   const handleRemove = useCallback((item: FileItem) => {
     if (item.type === 'file') {

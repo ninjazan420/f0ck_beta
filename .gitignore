@@ -24,17 +24,17 @@ done.txt
 package-lock.json
 
 # Upload directories
-public/uploads/*
+/public/uploads/*
 !public/uploads/.gitkeep
-!public/uploads/*/
-public/uploads/temp/*
+!public/uploads/temp/
+!public/uploads/original/
+!public/uploads/thumbnails/
+/public/uploads/temp/*
 !public/uploads/temp/.gitkeep
-public/uploads/original/*
+/public/uploads/original/*
 !public/uploads/original/.gitkeep
-public/uploads/thumbnails/*
+/public/uploads/thumbnails/*
 !public/uploads/thumbnails/.gitkeep
-
-# Zusätzlich ggf. Platzhalter für Uploads hinzufügen
 !public/uploads/temp/placeholder.jpg
 
 # misc

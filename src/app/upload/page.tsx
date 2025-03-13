@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { RandomLogo } from "@/components/RandomLogo";
 import { Footer } from "@/components/Footer";
@@ -39,29 +39,29 @@ export default function UploadPage() {
 
   // Verbesserte getItemTags-Funktion
   const getItemTags = useCallback((name: string, type: 'file' | 'url'): string[] => {
-    console.log('Suche nach Tag für:', name, type);
-    console.log('Verfügbare Items:', fileItems.map(i => ({name: i.name, type: i.type, tags: i.tags})));
+    // Erstelle eine Map für schnellere Lookups
+    const itemMap = useMemo(() => {
+      const map = new Map<string, FileItem>();
+      fileItems.forEach(item => {
+        const key = `${item.type}:${item.name}`;
+        map.set(key, item);
+      });
+      return map;
+    }, [fileItems]);
     
-    // Für Dateien: Versuche direkte und Fallback-Suche
-    if (type === 'file') {
-      // Direkte Übereinstimmung
-      const exactMatch = fileItems.find(item => item.name === name && item.type === type);
-      if (exactMatch) return exactMatch.tags;
-      
-      // Fallback: Versuche, unabhängig vom Pfad oder exaktem Namen zu finden
-      const baseFilename = name.split('/').pop()?.split('\\').pop();
-      if (baseFilename) {
-        const partialMatch = fileItems.find(item => 
-          item.type === type && (
-            item.name.includes(baseFilename) || baseFilename.includes(item.name)
-          )
-        );
-        if (partialMatch) return partialMatch.tags;
-      }
-    } else {
-      // Für URLs normale Suche durchführen
-      const match = fileItems.find(item => item.name === name && item.type === type);
-      if (match) return match.tags;
+    // Lookup ist jetzt O(1) statt O(n)
+    const exactMatch = itemMap.get(`${type}:${name}`);
+    if (exactMatch) return exactMatch.tags;
+    
+    // Fallback: Versuche, unabhängig vom Pfad oder exaktem Namen zu finden
+    const baseFilename = name.split('/').pop()?.split('\\').pop();
+    if (baseFilename) {
+      const partialMatch = fileItems.find(item => 
+        item.type === type && (
+          item.name.includes(baseFilename) || baseFilename.includes(item.name)
+        )
+      );
+      if (partialMatch) return partialMatch.tags;
     }
     
     console.warn(`Keine Tags gefunden für ${type} "${name}"`);

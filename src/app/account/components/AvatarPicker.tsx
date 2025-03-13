@@ -177,7 +177,7 @@ export function AvatarPicker({ username, currentAvatar, onAvatarChanged }: Avata
   // Bestimme dynamisch, ob der Avatar angezeigt werden soll
   const hasAvatar = Boolean(displayAvatar) && !displayAvatar?.includes('defaultavatar');
   const avatarSrc = hasAvatar 
-    ? getImageUrlWithCacheBuster(displayAvatar as string, forceRender.toString()) 
+    ? getImageUrlWithCacheBuster(displayAvatar as string) 
     : getDefaultAvatarUrl();
   
   console.log("AvatarPicker rendering with:", { 

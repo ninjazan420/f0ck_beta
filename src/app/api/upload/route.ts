@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { processUpload, downloadImageFromUrl } from '@/lib/upload';
-import { initializeUploadDirectory } from '@/lib/init';
 import { initializeUploadDirectories } from '@/lib/upload';
 import fs from 'fs/promises';
 import { join } from 'path';
@@ -12,10 +11,8 @@ import dbConnect from '@/lib/db/mongodb';
 import { revalidatePath } from 'next/cache';
 import { fileTypeFromBuffer } from 'file-type';
 import { checkUploadLimit } from '@/lib/upload-limit';
-
-// Initialize upload directories
-initializeUploadDirectory().catch(console.error);
-initializeUploadDirectories().catch(console.error);
+import { ContentRating } from '@/types';
+import { createErrorResponse, ApplicationError } from '@/lib/error-handling';
 
 // Kommentiere den Rate Limiter aus
 // Initialize rate limiter
@@ -28,21 +25,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log('Starting upload process...');
     
-    // Initialisiere die Upload-Verzeichnisse am Anfang
-    try {
-      await initializeUploadDirectories().catch(error => {
-        console.error('Failed to initialize upload directories:', error);
-        throw error;
-      });
-    } catch (error) {
-      console.error('Critical error initializing directories:', error);
-      return NextResponse.json(
-        { error: 'Server configuration error: Failed to initialize upload directories' },
-        { status: 500 }
-      );
-    }
-
-    // Connect to database
+    await initializeUploadDirectories();
     await dbConnect();
     
     // Kommentiere Rate Limiting aus
@@ -66,7 +49,7 @@ export async function POST(request: NextRequest) {
     const files = formData.getAll('file') as File[];
     const imageUrl = formData.get('imageUrl') as string;
     const tempFilePath = formData.get('tempFilePath') as string;
-    const rating = formData.get('rating') as 'safe' | 'sketchy' | 'unsafe' || 'safe';
+    const rating = formData.get('rating') as ContentRating || DEFAULT_CONTENT_RATING;
     
     console.log('Upload request received:', {
       filesCount: files.length,
@@ -302,16 +285,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json(
-      { error: 'Failed to process upload: ' + (error.message || 'Unknown error') },
-      { 
-        status: 500,
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      }
-    );
+    return createErrorResponse(error);
   }
 }

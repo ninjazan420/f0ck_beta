@@ -16,13 +16,22 @@ export function checkUploadLimit(userId: string | null, fileSize: number, maxSiz
     };
   }
   
-  // Einfacher Lock-Mechanismus um Race Conditions zu vermeiden
+  // Verbesserter Lock-Mechanismus mit Timeout
   if (userUploadLimits[key].lock) {
-    // Kurz warten und erneut versuchen
-    return new Promise<ReturnType<typeof NextResponse> | null>(resolve => {
-      setTimeout(() => {
-        resolve(checkUploadLimit(userId, fileSize, maxSizePerHour));
-      }, 50);
+    // Maximale Anzahl von Versuchen und Timeout
+    const maxAttempts = 5;
+    let attempts = 0;
+    
+    return new Promise<NextResponse | null>((resolve) => {
+      const tryAgain = () => {
+        attempts++;
+        if (!userUploadLimits[key].lock || attempts >= maxAttempts) {
+          resolve(checkUploadLimit(userId, fileSize, maxSizePerHour));
+        } else {
+          setTimeout(tryAgain, 50 * attempts); // Exponentielles Backoff
+        }
+      };
+      setTimeout(tryAgain, 50);
     });
   }
   

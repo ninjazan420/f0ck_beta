@@ -55,7 +55,7 @@ export class SpamDetectionService {
     }
 
     // Zeitbasierte Analyse (simuliert)
-    const recentComments = await this.getRecentCommentCount(authorId, 5); // 5 Minuten
+    const recentComments = await this.getRecentCommentCount(authorId, 5);
     if (recentComments > 5) {
       reasons.push('Too many comments in short time');
       spamScore += 0.6;

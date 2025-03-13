@@ -28,53 +28,53 @@ if (!cached) {
   }
 }
 
-async function dbConnect() {
-  if (cached.conn) {
-    // If connection already exists, ensure indexes if not done yet
-    if (!cached.indexesEnsured) {
-      try {
-        // Import ensureIndexes dynamically to avoid circular dependencies
-        const { ensureIndexes } = await import('./ensureIndexes');
-        await ensureIndexes();
-        cached.indexesEnsured = true;
-      } catch (error) {
-        console.error('Failed to ensure indexes:', error);
-        // Don't fail the entire connection if indexes fail
+async function dbConnect(retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      if (cached.conn) {
+        // If connection already exists, ensure indexes if not done yet
+        if (!cached.indexesEnsured) {
+          try {
+            // Import ensureIndexes dynamically to avoid circular dependencies
+            const { ensureIndexes } = await import('./ensureIndexes');
+            await ensureIndexes();
+            cached.indexesEnsured = true;
+          } catch (error) {
+            console.error('Failed to ensure indexes:', error);
+            // Don't fail the entire connection if indexes fail
+          }
+        }
+        return cached.conn;
       }
-    }
-    return cached.conn;
-  }
 
-  if (!cached.promise) {
-    const opts: mongoose.ConnectOptions = {
-      bufferCommands: false,
-      autoCreate: true,
-      autoIndex: false, // We'll handle indexes manually
-    }
+      if (!cached.promise) {
+        const opts: mongoose.ConnectOptions = {
+          bufferCommands: false,
+          autoCreate: true,
+          autoIndex: false, // We'll handle indexes manually
+        }
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then(async (mongoose) => {
-      console.log('Connected to MongoDB');
-      try {
-        // Import ensureIndexes dynamically to avoid circular dependencies
-        const { ensureIndexes } = await import('./ensureIndexes');
-        await ensureIndexes();
-        cached.indexesEnsured = true;
-      } catch (error) {
-        console.error('Failed to ensure indexes:', error);
-        // Don't fail the entire connection if indexes fail
+        cached.promise = mongoose.connect(MONGODB_URI, opts).then(async (mongoose) => {
+          console.log('Connected to MongoDB');
+          try {
+            // Import ensureIndexes dynamically to avoid circular dependencies
+            const { ensureIndexes } = await import('./ensureIndexes');
+            await ensureIndexes();
+            cached.indexesEnsured = true;
+          } catch (error) {
+            console.error('Failed to ensure indexes:', error);
+            // Don't fail the entire connection if indexes fail
+          }
+          return mongoose.connection;
+        });
       }
-      return mongoose.connection;
-    });
+      
+      cached.conn = await cached.promise;
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+    }
   }
-  
-  try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-    throw e;
-  }
-
-  return cached.conn;
 }
 
 export default dbConnect;

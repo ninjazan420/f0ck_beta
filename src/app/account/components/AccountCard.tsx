@@ -365,17 +365,16 @@ export function AccountCard() {
           }
         });
         
-        // Nach erfolgreicher Aktualisierung der Session ein Ereignis auslösen
+        // Löse ein explizites Event aus
         window.dispatchEvent(new CustomEvent('avatar-updated'));
         
-        // Force reload der Seite nach kurzer Verzögerung
+        // Warte kurz bevor eine Seiten-Aktualisierung erzwungen wird
         setTimeout(() => {
-          if (typeof window !== 'undefined') {
-            window.location.reload();
-          }
-        }, 500);
+          toast.success('Avatar updated successfully');
+        }, 300);
       } catch (error) {
         console.error('Failed to update session with new avatar:', error);
+        toast.error('Failed to update avatar in session');
       }
     }
   }, [session, updateSession]);

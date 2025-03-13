@@ -3,6 +3,9 @@ import { readdir, stat } from 'fs/promises';
 import { join } from 'path';
 
 export async function GET() {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not available in production' }, { status: 403 });
+  }
   try {
     const baseDir = join(process.cwd(), 'public', 'uploads');
     const dirs = ['original', 'thumbnails', 'temp'];
