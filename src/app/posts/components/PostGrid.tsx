@@ -89,19 +89,39 @@ export function PostGrid({
       if (filters.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
       if (filters.dateTo) queryParams.append('dateTo', filters.dateTo);
       if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
-      if (filters.contentRating?.length) {
-        filters.contentRating.forEach(rating => {
-          queryParams.append('contentRating', rating);
-        });
-      }
       
-      // Füge Tags-Filter hinzu
+      // Verbesserter Tag-Filter: Speichern Sie den aktuellen Tag im sessionStorage
       if (filters.tags?.length) {
         console.log('Adding tags to API request:', filters.tags);
         filters.tags.forEach(tag => {
           queryParams.append('tag', tag);
         });
+        
+        // Speichern für den Fall eines unbeabsichtigten Zurücksetzens
+        if (typeof window !== 'undefined' && filters.tags.length === 1) {
+          sessionStorage.setItem('active_tag_filter', filters.tags[0]);
+        }
+      } else {
+        // Prüfen, ob ein Tag im Session Storage ist, der angewendet werden sollte
+        if (typeof window !== 'undefined') {
+          const savedTag = sessionStorage.getItem('active_tag_filter');
+          if (savedTag && window.location.href.includes('tag=')) {
+            console.log('Restoring tag from sessionStorage:', savedTag);
+            queryParams.append('tag', savedTag);
+          }
+        }
       }
+      
+      if (filters.contentRating?.length) {
+        filters.contentRating.forEach(rating => {
+          queryParams.append('contentRating', rating);
+        });
+      }
+
+      // Fügen Sie einen Cache-Buster hinzu, um sicherzustellen, dass wir frische Daten erhalten
+      queryParams.append('_ts', Date.now().toString());
+      
+      console.log(`Fetching page ${pageNum} with params:`, queryParams.toString());
       
       const response = await fetch(`/api/posts?${queryParams.toString()}`);
       if (!response.ok) {
@@ -193,6 +213,24 @@ export function PostGrid({
       return () => window.removeEventListener('scroll', handleScroll);
     }
   }, [infiniteScroll, loadedPages, hasMore, totalPages]);
+
+  // Verbesserte Filter-Anwendung
+  useEffect(() => {
+    // Wir nutzen einen Debounce, um mehrere schnelle Änderungen zu vermeiden
+    const timer = setTimeout(() => {
+      // Wir laden nur neu, wenn sich die Filter tatsächlich geändert haben
+      console.log('Filter update delayed execution with tags:', filters.tags);
+      if (page === 1) {
+        fetchPage(1).then(newPosts => {
+          console.log(`Received ${newPosts.length} posts after filter update`);
+          setPosts(newPosts);
+          setLoadedPages([1]);
+        });
+      }
+    }, 100); // 100ms Verzögerung
+    
+    return () => clearTimeout(timer);
+  }, [JSON.stringify(filters), page]);
 
   if (isLoading && posts.length === 0) {
     return (

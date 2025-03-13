@@ -185,6 +185,38 @@ export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleIn
           </div>
         </label>
       </div>
+
+      {/* Fügen Sie eine Anzeige für aktive Tag-Filter hinzu */}
+      {filters.tags && filters.tags.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="text-xs text-gray-500 dark:text-gray-400">Aktive Tags:</span>
+          {filters.tags.map(tag => (
+            <div key={tag} className="flex items-center gap-1 px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded-full text-xs">
+              {tag}
+              <button
+                onClick={() => {
+                  // Entfernen des Tags aus den Filtern
+                  const newTags = filters.tags.filter(t => t !== tag);
+                  onFilterChange({ ...filters, tags: newTags });
+                  
+                  // Entfernen aus dem URL-Parameter
+                  const url = new URL(window.location.href);
+                  const params = new URLSearchParams(url.search);
+                  params.delete('tag');
+                  newTags.forEach(t => params.append('tag', t));
+                  
+                  // URL aktualisieren ohne Neuladen der Seite
+                  window.history.pushState({}, '', `${url.pathname}?${params.toString()}`);
+                  sessionStorage.removeItem('active_tag_filter');
+                }}
+                className="ml-1 text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-200"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

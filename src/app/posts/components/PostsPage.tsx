@@ -38,22 +38,73 @@ export function PostsPage() {
     sortBy: 'newest' as 'newest' | 'oldest' | 'most_liked' | 'most_commented'
   });
 
-  // Effect zum Auslesen von URL-Parametern (wie tag)
+  // Verbesserter useEffect für tag-Parameter
   useEffect(() => {
     const tagParam = searchParams.get('tag');
     
     if (tagParam) {
       console.log('Tag parameter found in URL:', tagParam);
-      // Nur setzen, wenn noch nicht in den Tags vorhanden
-      setFilters(prev => {
-        if (!prev.tags.includes(tagParam)) {
-          console.log('Adding tag to filters:', tagParam);
-          return { ...prev, tags: [...prev.tags, tagParam] };
+      
+      // Check if the tag is already in our filters
+      const hasTag = filters.tags.includes(tagParam);
+      
+      if (!hasTag) {
+        console.log('Adding tag to filters:', tagParam);
+        // Verzögern Sie die Aktualisierung leicht, um Race Conditions zu vermeiden
+        setTimeout(() => {
+          setFilters(prev => ({
+            ...prev,
+            tags: [...prev.tags, tagParam]
+          }));
+        }, 50);
+        
+        // Speichern des Tags im Session Storage
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('active_tag_filter', tagParam);
+          // Setzen eines Flags, um zu verhindern, dass andere useEffects die Filter überschreiben
+          sessionStorage.setItem('tag_filter_applied', 'true');
         }
-        return prev;
-      });
+      }
     }
-  }, [searchParams, filters.contentRating]);
+  }, [searchParams]);
+
+  // Fügen Sie einen neuen useEffect hinzu, der die Seitennavigation überwacht
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleRouteChange = () => {
+        const params = new URLSearchParams(window.location.search);
+        const tagParam = params.get('tag');
+        
+        if (tagParam) {
+          // Wenn wir einen Tag in der URL haben, stellen Sie sicher, dass er angewendet wird
+          console.log('Route changed with tag:', tagParam);
+          
+          setFilters(prev => {
+            if (!prev.tags.includes(tagParam)) {
+              return {
+                ...prev,
+                tags: [...prev.tags, tagParam]
+              };
+            }
+            return prev;
+          });
+        } else {
+          // Wenn kein Tag in der URL, aber wir haben Tags im Filter, setzen Sie sie zurück
+          if (filters.tags.length > 0 && !window.location.href.includes('tag=')) {
+            console.log('Clearing tag filters as URL has no tag parameter');
+            setFilters(prev => ({
+              ...prev,
+              tags: []
+            }));
+            sessionStorage.removeItem('active_tag_filter');
+          }
+        }
+      };
+      
+      window.addEventListener('popstate', handleRouteChange);
+      return () => window.removeEventListener('popstate', handleRouteChange);
+    }
+  }, [filters.tags]);
 
   // Update URL when page changes
   useEffect(() => {
@@ -72,7 +123,7 @@ export function PostsPage() {
     }
   }, [currentPage, infiniteScroll]);
 
-  // Beim Laden der Komponente die gespeicherten Content-Rating-Einstellungen wiederherstellen
+  // Verbessere den useEffect für die Initialisierung von Filtern
   useEffect(() => {
     try {
       // Prüfen, ob im Browser-Umfeld (nicht SSR)
@@ -83,26 +134,52 @@ export function PostsPage() {
           setInfiniteScroll(savedInfiniteScroll === 'true');
         }
         
-        const savedContentRating = localStorage.getItem(CONTENT_RATING_STORAGE_KEY);
+        // Standardwert festlegen
+        let initialContentRating: ContentRating[] = ['safe'];
         
-        if (savedContentRating) {
-          const parsedRating = JSON.parse(savedContentRating) as ContentRating[];
-          // Nur aktualisieren, wenn die gespeicherten Werte valide sind
-          if (Array.isArray(parsedRating) && parsedRating.length > 0) {
-            // Nur gültige ContentRating-Werte übernehmen
-            const validRatings = parsedRating.filter(
-              (rating): rating is ContentRating => 
-                rating === 'safe' || rating === 'sketchy' || rating === 'unsafe'
-            );
-            
-            if (validRatings.length > 0) {
-              setFilters(prev => ({
-                ...prev,
-                contentRating: validRatings
-              }));
+        // Prüfe zuerst auf URL-Parameter (diese haben höchste Priorität)
+        const urlParams = new URLSearchParams(window.location.search);
+        const ratingParams = urlParams.getAll('contentRating');
+        
+        if (ratingParams.length > 0) {
+          // URL-Parameter validieren
+          const validRatings = ratingParams.filter(
+            (rating): rating is ContentRating => 
+              rating === 'safe' || rating === 'sketchy' || rating === 'unsafe'
+          );
+          
+          if (validRatings.length > 0) {
+            initialContentRating = validRatings;
+            console.log('Content rating from URL:', initialContentRating);
+          }
+        } else {
+          // Wenn keine URL-Parameter, dann aus localStorage laden
+          const savedContentRating = localStorage.getItem(CONTENT_RATING_STORAGE_KEY);
+          
+          if (savedContentRating) {
+            try {
+              const parsedRating = JSON.parse(savedContentRating) as ContentRating[];
+              // Nur gültige ContentRating-Werte übernehmen
+              const validRatings = parsedRating.filter(
+                (rating): rating is ContentRating => 
+                  rating === 'safe' || rating === 'sketchy' || rating === 'unsafe'
+              );
+              
+              if (validRatings.length > 0) {
+                initialContentRating = validRatings;
+                console.log('Content rating from localStorage:', initialContentRating);
+              }
+            } catch (error) {
+              console.error('Fehler beim Parsen des gespeicherten Content Ratings:', error);
             }
           }
         }
+        
+        // Aktualisiere den Filter-Zustand mit den ermittelten Werten
+        setFilters(prev => ({
+          ...prev,
+          contentRating: initialContentRating
+        }));
       }
     } catch (error) {
       console.error('Fehler beim Laden der gespeicherten Einstellungen:', error);
