@@ -63,83 +63,102 @@ export async function GET(req: Request) {
           createdAt: activity.createdAt,
         };
 
-        // Try to find the target object
+        // Verbesserte Informationen über Zielobjekte
         try {
           if (activity.targetId) {
             let target = null;
             
-            // Choose the right model based on targetType
-            if (activity.targetType === 'post') {
-              const Post = require('@/models/Post').default;
-              target = await Post.findById(activity.targetId);
-              
-              if (!target && activity.metadata?.previousState) {
-                // If post was deleted, use metadata
-                formattedActivity.target = {
-                  id: activity.targetId,
-                  type: 'post',
-                  title: activity.metadata.previousState.title || 'Deleted Post'
-                };
-              } else if (target) {
-                formattedActivity.target = {
-                  id: target._id,
-                  numericId: target.id,
-                  type: 'post',
-                  title: target.title,
-                  imageUrl: target.thumbnailUrl || target.imageUrl
-                };
-              }
-            } 
-            else if (activity.targetType === 'comment') {
-              const Comment = require('@/models/Comment').default;
-              target = await Comment.findById(activity.targetId);
-              
-              if (!target && activity.metadata?.previousState) {
-                // If comment was deleted, use metadata
-                formattedActivity.target = {
-                  id: activity.targetId,
-                  type: 'comment',
-                  content: activity.metadata.previousState.content || 'Deleted Comment'
-                };
-              } else if (target) {
-                formattedActivity.target = {
-                  id: target._id,
-                  type: 'comment',
-                  content: target.content
-                };
-              }
-            }
-            else if (activity.targetType === 'user') {
-              const User = require('@/models/User').default;
-              target = await User.findById(activity.targetId);
-              
-              if (!target && activity.metadata?.previousState) {
-                // If user was deleted, use metadata
-                formattedActivity.target = {
-                  id: activity.targetId,
-                  type: 'user',
-                  username: activity.metadata.previousState.username || 'Deleted User'
-                };
-              } else if (target) {
-                formattedActivity.target = {
-                  id: target._id,
-                  type: 'user',
-                  username: target.username
-                };
-              }
-            }
-            
-            // If target not found and no target set yet
-            if (!target && !formattedActivity.target) {
+            // Bei gelöschten Elementen, die Informationen aus den Metadaten extrahieren
+            if (activity.action === 'delete' && activity.metadata?.previousState) {
               formattedActivity.target = {
                 id: activity.targetId,
                 type: activity.targetType
               };
+              
+              // Je nach Zieltyp unterschiedliche Informationen speichern
+              if (activity.targetType === 'post') {
+                formattedActivity.target.title = activity.metadata.previousState.title || 'Deleted Post';
+                formattedActivity.target.numericId = activity.metadata.previousState.id;
+                formattedActivity.target.imageUrl = activity.metadata.previousState.thumbnailUrl || 
+                                                  activity.metadata.previousState.imageUrl;
+              } 
+              else if (activity.targetType === 'comment') {
+                formattedActivity.target.content = activity.metadata.previousState.content || 'Deleted Comment';
+              }
+              else if (activity.targetType === 'tag') {
+                formattedActivity.target.name = activity.metadata.previousState.name || 'Deleted Tag';
+              }
+              else if (activity.targetType === 'user') {
+                formattedActivity.target.username = activity.metadata.previousState.username || 'Deleted User';
+              }
+            } 
+            // Wenn es sich nicht um eine Löschaktion handelt, normale Objektsuche
+            else {
+              // Choose the right model based on targetType
+              if (activity.targetType === 'post') {
+                const Post = require('@/models/Post').default;
+                target = await Post.findById(activity.targetId);
+                
+                if (target) {
+                  formattedActivity.target = {
+                    id: target._id,
+                    numericId: target.id,
+                    type: 'post',
+                    title: target.title,
+                    imageUrl: target.thumbnailUrl || target.imageUrl
+                  };
+                }
+              } 
+              else if (activity.targetType === 'comment') {
+                const Comment = require('@/models/Comment').default;
+                target = await Comment.findById(activity.targetId);
+                
+                if (target) {
+                  formattedActivity.target = {
+                    id: target._id,
+                    type: 'comment',
+                    content: target.content,
+                    postId: target.post
+                  };
+                }
+              }
+              else if (activity.targetType === 'user') {
+                const User = require('@/models/User').default;
+                target = await User.findById(activity.targetId);
+                
+                if (target) {
+                  formattedActivity.target = {
+                    id: target._id,
+                    type: 'user',
+                    username: target.username
+                  };
+                }
+              }
+              else if (activity.targetType === 'tag') {
+                const Tag = require('@/models/Tag').default;
+                target = await Tag.findById(activity.targetId);
+                
+                if (target) {
+                  formattedActivity.target = {
+                    id: target._id,
+                    type: 'tag',
+                    name: target.name
+                  };
+                }
+              }
+              
+              // Fallback, wenn Target nicht gefunden wurde
+              if (!target && !formattedActivity.target) {
+                formattedActivity.target = {
+                  id: activity.targetId,
+                  type: activity.targetType
+                };
+              }
             }
           }
         } catch (targetError) {
           console.error("Error loading target object:", targetError);
-          // Fallback to simple target information
+          // Fallback zu einfachen Informationen
           formattedActivity.target = {
             id: activity.targetId,
             type: activity.targetType

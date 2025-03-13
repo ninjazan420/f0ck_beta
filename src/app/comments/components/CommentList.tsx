@@ -88,6 +88,7 @@ interface CommentListProps {
   limit?: number;
   status?: 'pending' | 'reported' | 'all' | 'approved';
   showModActions?: boolean;
+  hideDuplicateButtons?: boolean;
   filters?: {
     username: string;
     searchText: string;
@@ -104,6 +105,7 @@ export function CommentList({
   limit = 10,
   status = 'approved',
   showModActions = false,
+  hideDuplicateButtons = false,
   filters,
   infiniteScroll = false
 }: CommentListProps) {

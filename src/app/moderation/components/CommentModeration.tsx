@@ -21,10 +21,11 @@ export function CommentModeration() {
 
   return (
     <CommentList 
-      limit={20}
+      limit={10}
       initialPage={1}
       status="all"
       showModActions={true}
+      hideDuplicateButtons={true}
     />
   );
 } 

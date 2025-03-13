@@ -20,6 +20,7 @@ interface Activity {
     username?: string;
     content?: string;
     title?: string;
+    name?: string;
     numericId?: number | string;
     imageUrl?: string;
   } | null;
@@ -35,21 +36,18 @@ export function RecentActivity() {
     const fetchActivities = async () => {
       try {
         setLoading(true);
-        console.log("Starting API call for moderation activities");
         
-        // Use timestamp for cache busting, but not as part of the actual query
+        // Cache-Busting beim Abrufen der Aktivitäten
         const cacheBuster = Date.now();
         const response = await fetch(`/api/moderation/activity?limit=15&_cache=${cacheBuster}`);
         
         if (!response.ok) {
-          console.error("Error in API call:", response.status, response.statusText);
           throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
         
         const data = await response.json();
         
         if (!data.activities || !Array.isArray(data.activities)) {
-          console.error("Invalid data format:", data);
           throw new Error('Invalid data format received');
         }
         
@@ -89,67 +87,70 @@ export function RecentActivity() {
     }
   };
 
-  // Generate a descriptive action message
+  // Verbesserte Methode für Aktionsnachrichten
   const getActionMessage = (activity: Activity) => {
     if (!activity.target) {
-      return getActionText(activity.action);
+      return `${getActionText(activity.action)} an unknown ${activity.targetType}`;
     }
 
     const targetId = activity.target.numericId || activity.target.id;
+    const targetName = activity.target.title || activity.target.name || activity.target.username || `#${targetId}`;
     
     switch (activity.action) {
       case 'delete':
         if (activity.targetType === 'post') {
-          return `deleted post`;
+          return `deleted post "${targetName}"`;
         } else if (activity.targetType === 'comment') {
-          return `deleted comment`;
+          return `deleted comment on post`;
+        } else if (activity.targetType === 'tag') {
+          return `deleted tag "${targetName}"`;
         } else {
-          return `deleted ${activity.targetType}`;
+          return `deleted ${activity.targetType} "${targetName}"`;
         }
       
       case 'disableComments':
-        return `disabled comments on post`;
+        return `disabled comments on post "${targetName}"`;
       
       case 'enableComments':
-        return `enabled comments on post`;
+        return `enabled comments on post "${targetName}"`;
       
       case 'approve':
         if (activity.targetType === 'comment') {
-          return `approved comment`;
+          return `approved comment on post`;
         } else {
-          return `approved ${activity.targetType}`;
+          return `approved ${activity.targetType} "${targetName}"`;
         }
       
       case 'reject':
         if (activity.targetType === 'comment') {
-          return `rejected comment`;
+          return `rejected comment on post`;
         } else {
-          return `rejected ${activity.targetType}`;
+          return `rejected ${activity.targetType} "${targetName}"`;
         }
       
       case 'ban':
         if (activity.targetType === 'user') {
-          return `banned user ${activity.target.username || targetId}`;
+          return `banned user ${targetName}`;
         } else {
-          return `banned ${activity.targetType}`;
+          return `banned ${activity.targetType} "${targetName}"`;
         }
       
       case 'unban':
         if (activity.targetType === 'user') {
-          return `unbanned user ${activity.target.username || targetId}`;
+          return `unbanned user ${targetName}`;
         } else {
-          return `unbanned ${activity.targetType}`;
+          return `unbanned ${activity.targetType} "${targetName}"`;
         }
       
       case 'warn':
         if (activity.targetType === 'user') {
-          return `warned user ${activity.target.username || targetId}`;
+          return `warned user ${targetName}`;
         } else {
-          return `warned ${activity.targetType}`;
+          return `warned ${activity.targetType} "${targetName}"`;
         }
         
       default:
-        return `${getActionText(activity.action)} ${activity.targetType}`;
+        return `${getActionText(activity.action)} ${activity.targetType} "${targetName}"`;
     }
   };
 
@@ -178,7 +179,7 @@ export function RecentActivity() {
     }
   };
 
-  // Generate link for the activity
+  // Verbesserte Link-Generierung
   const getTargetLink = (activity: Activity) => {
     if (!activity.target) return null;
     
@@ -191,6 +192,8 @@ export function RecentActivity() {
         return `/post/${activity.target.postId || ''}#comment-${activity.target.id}`;
       case 'user':
         return `/user/${activity.target.username || targetId}`;
+      case 'tag':
+        return `/tags/${activity.target.name || targetId}`;
       default:
         return null;
     }
@@ -248,22 +251,28 @@ export function RecentActivity() {
                     <span className="text-lg mr-2">{getActivityIcon(activity.action)}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-200">
-                        <Link href={targetLink || '#'} className={targetLink ? "hover:underline" : ""}>
+                        <span className="text-gray-600 dark:text-gray-400 mr-1">{activity.moderator}</span>
+                        <span className={activity.action === 'delete' ? 'text-red-600 dark:text-red-400' : ''}>
                           {getActionMessage(activity)}
-                        </Link>
+                        </span>
                       </p>
+                      
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {activity.moderator} • <Link href={targetLink || '#'} className={targetLink ? "hover:underline" : ""}>{formatTime(activity.createdAt)}</Link>
+                        {formatTime(activity.createdAt)}
+                        {targetLink && (
+                          <> • <Link href={targetLink} className="hover:underline text-blue-600 dark:text-blue-400">View</Link></>
+                        )}
                       </p>
+                      
                       {activity.reason && (
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-1">
-                          Reason: {activity.reason}
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          Reason: <span className="font-medium">{activity.reason}</span>
                         </p>
                       )}
                       
-                      {/* Display comment content if available */}
+                      {/* Display additional content if available */}
                       {activity.targetType === 'comment' && activity.target?.content && (
-                        <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800/80 rounded text-xs text-gray-700 dark:text-gray-300">
+                        <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800/80 rounded text-xs text-gray-700 dark:text-gray-300 border-l-2 border-gray-300 dark:border-gray-700">
                           <p className="line-clamp-2">{activity.target.content}</p>
                         </div>
                       )}

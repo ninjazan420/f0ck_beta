@@ -601,18 +601,6 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
                       Edit
                     </button>
                   )}
-                  {/* Moderatorlöschknopf */}
-                  {onModDelete && canModerate && (
-                    <div className="flex items-center gap-2 ml-4">
-                      <button
-                        onClick={() => onModDelete(data.id)}
-                        className="px-3 py-1 text-sm rounded-lg bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30 hover:bg-red-500/30"
-                        disabled={isSubmitting}
-                      >
-                        Delete (Mod)
-                      </button>
-                    </div>
-                  )}
                 </>
               )}
             </div>

@@ -3,18 +3,20 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+type ActionTargetType = 'post' | 'comment' | 'user' | 'tag';
+
 export function ModActionsPanel() {
   const [action, setAction] = useState('');
   const [targetId, setTargetId] = useState('');
   const [reason, setReason] = useState('');
-  const [targetType, setTargetType] = useState('post');
+  const [activeTab, setActiveTab] = useState<ActionTargetType>('post');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resultMessage, setResultMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
   
   const router = useRouter();
 
   // Definiere verfügbare Aktionen basierend auf Zieltyp
-  const getAvailableActions = () => {
+  const getAvailableActions = (targetType: ActionTargetType) => {
     switch(targetType) {
       case 'post':
         return [
@@ -34,8 +36,10 @@ export function ModActionsPanel() {
           { value: 'unban', label: 'Unban User' },
           { value: 'warn', label: 'Warn User' }
         ];
-      default:
-        return [];
+      case 'tag':
+        return [
+          { value: 'delete', label: 'Delete Tag' }
+        ];
     }
   };
 
@@ -57,46 +61,44 @@ export function ModActionsPanel() {
         },
         body: JSON.stringify({
           action,
-          targetType,
+          targetType: activeTab,
           targetId,
           reason
         })
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to perform action');
+        throw new Error(data.error || 'Failed to perform moderation action');
       }
       
-      const result = await response.json();
-      
-      // Zeige Erfolgsmeldung
       setResultMessage({
         type: 'success',
-        text: `Action completed: ${action} on ${targetType} ${targetId}`
+        text: data.message || 'Action completed successfully'
       });
       
-      // Formular zurücksetzen
+      // Reset form
       setAction('');
       setTargetId('');
       setReason('');
       
-      // Aktualisiere die Seite nach kurzer Verzögerung bei bestimmten Aktionen
-      if (action === 'delete') {
-        setTimeout(() => {
-          router.refresh();
-        }, 1500);
-      }
-      
+      // Refresh the dashboard in background
+      router.refresh();
     } catch (error) {
-      console.error('Error performing moderation action:', error);
       setResultMessage({
         type: 'error',
-        text: error instanceof Error ? error.message : 'Unknown error occurred'
+        text: error instanceof Error ? error.message : 'An error occurred'
       });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Bei Tab-Wechsel Action zurücksetzen
+  const handleTabChange = (tab: ActionTargetType) => {
+    setActiveTab(tab);
+    setAction('');
   };
 
   return (
@@ -105,36 +107,61 @@ export function ModActionsPanel() {
         Moderation Actions
       </h2>
       
+      {/* Tab Navigation */}
+      <div className="flex mb-5 border-b border-gray-300 dark:border-gray-700">
+        <button
+          onClick={() => handleTabChange('post')}
+          className={`py-2 px-4 font-medium ${
+            activeTab === 'post'
+              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+        >
+          Posts
+        </button>
+        <button
+          onClick={() => handleTabChange('comment')}
+          className={`py-2 px-4 font-medium ${
+            activeTab === 'comment'
+              ? 'text-green-600 dark:text-green-400 border-b-2 border-green-600 dark:border-green-400'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+        >
+          Comments
+        </button>
+        <button
+          onClick={() => handleTabChange('user')}
+          className={`py-2 px-4 font-medium ${
+            activeTab === 'user'
+              ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+        >
+          Users
+        </button>
+        <button
+          onClick={() => handleTabChange('tag')}
+          className={`py-2 px-4 font-medium ${
+            activeTab === 'tag'
+              ? 'text-yellow-600 dark:text-yellow-400 border-b-2 border-yellow-600 dark:border-yellow-400'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+          }`}
+        >
+          Tags
+        </button>
+      </div>
+      
       {resultMessage && (
-        <div className={`mb-4 p-3 rounded-lg border ${
+        <div className={`mb-4 p-3 rounded-lg text-sm ${
           resultMessage.type === 'success' 
-            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/30 text-green-700 dark:text-green-300' 
-            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-300'
+            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-900/50' 
+            : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-900/50'
         }`}>
           {resultMessage.text}
         </div>
       )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Target Type
-          </label>
-          <select
-            value={targetType}
-            onChange={(e) => {
-              setTargetType(e.target.value);
-              setAction(''); // Reset action when target type changes
-            }}
-            className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
-            required
-          >
-            <option value="post">Post</option>
-            <option value="comment">Comment</option>
-            <option value="user">User</option>
-          </select>
-        </div>
-        
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Action
@@ -145,8 +172,8 @@ export function ModActionsPanel() {
             className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
             required
           >
-            <option value="">Select an action</option>
-            {getAvailableActions().map(actionOption => (
+            <option value="">Select an action for {activeTab}</option>
+            {getAvailableActions(activeTab).map(actionOption => (
               <option key={actionOption.value} value={actionOption.value}>
                 {actionOption.label}
               </option>
@@ -162,13 +189,14 @@ export function ModActionsPanel() {
             type="text"
             value={targetId}
             onChange={(e) => setTargetId(e.target.value)}
-            placeholder={`Enter ${targetType} ID`}
+            placeholder={`Enter ${activeTab} ID`}
             className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
             required
           />
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {targetType === 'post' ? 'Enter post numeric ID or ObjectID' : 
-             targetType === 'user' ? 'Enter username or user ID' : 
+            {activeTab === 'post' ? 'Enter post numeric ID or ObjectID' : 
+             activeTab === 'user' ? 'Enter username or user ID' : 
+             activeTab === 'tag' ? 'Enter tag name or tag ID' :
              'Enter comment ID'}
           </p>
         </div>
