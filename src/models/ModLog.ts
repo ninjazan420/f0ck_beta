@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 export interface IModLog extends mongoose.Document {
   moderator: mongoose.Types.ObjectId;
   action: 'delete' | 'warn' | 'ban' | 'unban' | 'approve' | 'reject' | 'disableComments' | 'enableComments';
-  targetType: 'comment' | 'post' | 'user';
+  targetType: 'comment' | 'post' | 'user' | 'tag';
   targetId: mongoose.Types.ObjectId;
   reason: string;
   metadata: {
@@ -30,7 +30,7 @@ const modLogSchema = new mongoose.Schema({
   },
   targetType: {
     type: String,
-    enum: ['comment', 'post', 'user'],
+    enum: ['comment', 'post', 'user', 'tag'],
     required: true,
     index: true
   },

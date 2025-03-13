@@ -122,6 +122,55 @@ tagSchema.statics.findOrCreate = async function(tagName: string) {
   }
 };
 
+// Neue statische Methode zum Aktualisieren der Tag-Statistiken
+tagSchema.statics.updateStats = async function() {
+  try {
+    const Post = mongoose.model('Post');
+    
+    // Heute, diese Woche
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - 7);
+    weekStart.setHours(0, 0, 0, 0);
+    
+    // Alle Tags finden
+    const tags = await this.find({});
+    
+    for (const tag of tags) {
+      // Zähle Posts heute
+      const postsToday = await Post.countDocuments({
+        tags: tag.name,
+        createdAt: { $gte: today }
+      });
+      
+      // Zähle Posts diese Woche
+      const postsThisWeek = await Post.countDocuments({
+        tags: tag.name,
+        createdAt: { $gte: weekStart }
+      });
+      
+      // Zähle Gesamtanzahl der Posts
+      const totalPosts = await Post.countDocuments({
+        tags: tag.name
+      });
+      
+      // Tag aktualisieren
+      await this.findByIdAndUpdate(tag._id, {
+        newPostsToday: postsToday,
+        newPostsThisWeek: postsThisWeek,
+        postsCount: totalPosts
+      });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating tag stats:', error);
+    return false;
+  }
+};
+
 const Tag = mongoose.models.Tag || mongoose.model<ITag>('Tag', tagSchema);
 
 export default Tag; 

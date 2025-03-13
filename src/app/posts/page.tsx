@@ -2,6 +2,7 @@ import { PostsPage } from "./components/PostsPage";
 import { Metadata } from "next";
 import { siteConfig } from "../metadata";
 import { Suspense } from "react";
+import { PostsWithTagCheck } from './components/PostsWithTagCheck';
 
 export const metadata: Metadata = {
   title: `Posts | ${siteConfig.name}`,
@@ -14,7 +15,9 @@ export const metadata: Metadata = {
 export default function Posts() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading posts...</div>}>
-      <PostsPage />
+      <PostsWithTagCheck>
+        <PostsPage />
+      </PostsWithTagCheck>
     </Suspense>
   );
 }

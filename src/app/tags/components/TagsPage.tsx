@@ -39,6 +39,11 @@ export function TagsPage() {
   const [loading, setLoading] = useState(true);
   const [tags, setTags] = useState<Tag[]>([]);
 
+  // Zurücksetzen der Seite bei Filteränderungen
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
   // Fetch live data
   useEffect(() => {
     async function fetchTags() {
@@ -49,6 +54,12 @@ export function TagsPage() {
         params.append('page', currentPage.toString());
         params.append('sortBy', filters.sortBy);
         
+        // Weitere Filter hinzufügen
+        if (filters.author) params.append('author', filters.author);
+        if (filters.usedBy) params.append('usedBy', filters.usedBy);
+        if (filters.timeRange !== 'all') params.append('timeRange', filters.timeRange);
+        if (filters.minPosts > 0) params.append('minPosts', filters.minPosts.toString());
+        
         const response = await fetch(`/api/tags?${params.toString()}`);
         const data = await response.json();
         
@@ -58,6 +69,7 @@ export function TagsPage() {
         }
       } catch (error) {
         console.error('Error fetching tags:', error);
+        setTags([]);
       } finally {
         setLoading(false);
       }
