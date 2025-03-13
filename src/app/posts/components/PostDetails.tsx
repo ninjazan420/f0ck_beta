@@ -12,6 +12,7 @@ import { useSession } from 'next-auth/react';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { GifSelector } from '@/components/GifSelector';
 import { PostModerator } from './PostModerator';
+import { PostTagEditor } from '@/app/posts/components/PostTagEditor';
 
 interface PostData {
   id: string;
@@ -437,6 +438,11 @@ export function PostDetails({ postId }: { postId: string }) {
     );
   }
 
+  // Extrahieren der Tag-Namen für den TagEditor
+  const tagNames = Array.isArray(post.tags) 
+    ? post.tags.map(tag => typeof tag === 'string' ? tag : tag.name)
+    : [];
+
   return (
     <div className="space-y-6">
       {/* Main Content */}
@@ -811,16 +817,16 @@ export function PostDetails({ postId }: { postId: string }) {
             </div>
           )}
 
-          {/* Tags */}
-          <PostTags tags={post.tags} />
+          {/* Tags - mit postId übergeben */}
+          <PostTags tags={post.tags} postId={post.id} />
 
-          {/* Moderator Actions - ausgelagert in eine separate Komponente */}
+          {/* Moderator Actions */}
           <PostModerator postId={post.id} />
 
-          {/* Reverse Image Search - jetzt über den Metadaten */}
+          {/* Reverse Image Search */}
           <ReverseSearch imageUrl={post.imageUrl} />
           
-          {/* Metadata - jetzt nach der ReverseSearch */}
+          {/* Metadata */}
           <PostMetadata meta={{...post.meta, uploadDate: post.uploadDate}} />
         </div>
       </div>

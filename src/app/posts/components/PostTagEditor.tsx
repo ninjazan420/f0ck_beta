@@ -1,23 +1,40 @@
 'use client';
-import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect, KeyboardEvent } from 'react';
 import { useSession } from 'next-auth/react';
 import { StatusBanner } from '@/components/StatusBanner';
 
-interface PostTagsProps {
-  tags: Array<{id: string; name: string; type?: string; count?: number}>;
+interface PostTagEditorProps {
   postId: string;
+  initialTags: string[];
 }
 
-export function PostTags({ tags, postId }: PostTagsProps) {
+export function PostTagEditor({ postId, initialTags }: PostTagEditorProps) {
   const { data: session } = useSession();
-  const [editMode, setEditMode] = useState(false);
-  const [tagList, setTagList] = useState(tags.map(tag => tag.name));
+  const [tags, setTags] = useState<string[]>(initialTags || []);
   const [inputValue, setInputValue] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showStatusBanner, setShowStatusBanner] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Only allow authenticated users to edit tags
+  if (!session?.user) {
+    return (
+      <div className="mt-4">
+        <div className="flex flex-wrap gap-2 mb-2">
+          {tags.map((tag, index) => (
+            <span 
+              key={index}
+              className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300 text-sm"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const handleAddTag = (tag: string) => {
     const normalizedTag = tag.toLowerCase().trim();
@@ -38,23 +55,23 @@ export function PostTags({ tags, postId }: PostTagsProps) {
     }
     
     // Check for duplicates
-    if (tagList.includes(normalizedTag)) {
+    if (tags.includes(normalizedTag)) {
       setError('This tag already exists');
       return;
     }
     
     // Check for maximum number of tags
-    if (tagList.length >= 30) {
+    if (tags.length >= 30) {
       setError('Maximum of 30 tags allowed');
       return;
     }
     
-    setTagList([...tagList, normalizedTag]);
+    setTags([...tags, normalizedTag]);
     setInputValue('');
     setError(null);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
       e.preventDefault();
       handleAddTag(inputValue);
@@ -62,7 +79,7 @@ export function PostTags({ tags, postId }: PostTagsProps) {
   };
 
   const handleRemoveTag = (index: number) => {
-    setTagList(tagList.filter((_, i) => i !== index));
+    setTags(tags.filter((_, i) => i !== index));
   };
 
   const handleSaveTags = async () => {
@@ -75,7 +92,7 @@ export function PostTags({ tags, postId }: PostTagsProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ tags: tagList }),
+        body: JSON.stringify({ tags }),
       });
       
       const data = await response.json();
@@ -86,10 +103,7 @@ export function PostTags({ tags, postId }: PostTagsProps) {
       
       setStatusMessage('Tags updated successfully');
       setShowStatusBanner(true);
-      setEditMode(false);
-      
-      // Force full page reload to ensure tag statistics are updated
-      window.location.reload();
+      setIsEditing(false);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to update tags');
     } finally {
@@ -98,8 +112,8 @@ export function PostTags({ tags, postId }: PostTagsProps) {
   };
 
   const handleCancelEdit = () => {
-    setTagList(tags.map(tag => tag.name));
-    setEditMode(false);
+    setTags(initialTags || []);
+    setIsEditing(false);
     setError(null);
   };
 
@@ -111,23 +125,18 @@ export function PostTags({ tags, postId }: PostTagsProps) {
         type="default"
       />
       
-      <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+      <div className="mt-4 pb-2">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400">
-            Tags
-          </h3>
+          <h3 className="text-md font-medium text-zinc-800 dark:text-zinc-200">Tags</h3>
           
-          {/* Show edit button only for authenticated users */}
-          {session?.user && !editMode && (
+          {!isEditing ? (
             <button
-              onClick={() => setEditMode(true)}
+              onClick={() => setIsEditing(true)}
               className="px-2 py-1 text-xs rounded-lg text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
             >
               Edit
             </button>
-          )}
-          
-          {editMode && (
+          ) : (
             <div className="flex gap-2">
               <button
                 onClick={handleCancelEdit}
@@ -153,60 +162,37 @@ export function PostTags({ tags, postId }: PostTagsProps) {
           </div>
         )}
         
-        {/* Display tags differently based on mode */}
-        {tags.length === 0 && !editMode ? (
-          <div className="text-gray-500 dark:text-gray-400 text-sm">
-            No Tags available yet. Be the first who adds some!
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {/* In edit mode, show tags with delete button */}
-            {editMode ? (
-              <>
-                {tagList.map((tag, index) => (
-                  <div 
-                    key={index} 
-                    className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300 text-sm flex items-center gap-1"
-                  >
-                    {tag}
-                    <button 
-                      className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                      onClick={() => handleRemoveTag(index)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-                
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Add tag..."
-                  className="px-2 py-1 text-sm border rounded bg-transparent text-gray-700 dark:text-gray-300"
-                  disabled={tagList.length >= 30}
-                />
-              </>
-            ) : (
-              // In view mode, show tags as links with the original gradient design
-              tags.map((tag, index) => (
-                <Link 
-                  key={index}
-                  href={`/posts?tag=${encodeURIComponent(tag.name)}`}
-                  className="px-2 py-1 rounded-lg text-xs font-medium 
-                    bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent
-                    hover:opacity-80 transition-opacity
-                    border border-gray-200 dark:border-gray-700"
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag, index) => (
+            <div 
+              key={index} 
+              className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300 text-sm flex items-center gap-1"
+            >
+              {tag}
+              {isEditing && (
+                <button 
+                  className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  onClick={() => handleRemoveTag(index)}
                 >
-                  {tag.name}
-                  <span className="ml-1 text-gray-400">({tag.count || 0})</span>
-                </Link>
-              ))
-            )}
-          </div>
-        )}
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+          
+          {isEditing && (
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Add tag..."
+              className="px-2 py-1 text-sm border rounded bg-transparent text-gray-700 dark:text-gray-300"
+              disabled={tags.length >= 30}
+            />
+          )}
+        </div>
       </div>
     </>
   );
-}
+} 

@@ -7,6 +7,10 @@ import dbConnect from '@/lib/db/mongodb';
 import Post from '@/models/Post';
 import Tag from '@/models/Tag';
 import Comment from '@/models/Comment';
+import { PostTagEditor } from '@/app/posts/components/PostTagEditor';
+import { PostModerator } from '@/app/posts/components/PostModerator';
+import { Suspense } from 'react';
+import PostContent from './PostContent';
 
 // Mock function to fetch post data (replace with your actual data fetching)
 async function getPost(id: string) {
