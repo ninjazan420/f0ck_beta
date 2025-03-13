@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { processUpload, downloadImageFromUrl } from '@/lib/upload';
-import { initializeUploadDirectories } from '@/lib/upload';
-import fs from 'fs/promises';
-import { join } from 'path';
+import { processUpload, downloadImageFromUrl, initializeUploadDirectories, ContentRating, DEFAULT_CONTENT_RATING } from '@/lib/upload';
 // Kommentiere den Rate Limiter aus
 // import { rateLimit } from '@/lib/rateLimit';
 import dbConnect from '@/lib/db/mongodb';
 import { revalidatePath } from 'next/cache';
 import { fileTypeFromBuffer } from 'file-type';
 import { checkUploadLimit } from '@/lib/upload-limit';
-import { ContentRating } from '@/types';
 import { createErrorResponse, ApplicationError } from '@/lib/error-handling';
+import fs from 'fs/promises';
+import { join } from 'path';
 
 // Kommentiere den Rate Limiter aus
 // Initialize rate limiter
@@ -49,7 +47,7 @@ export async function POST(request: NextRequest) {
     const files = formData.getAll('file') as File[];
     const imageUrl = formData.get('imageUrl') as string;
     const tempFilePath = formData.get('tempFilePath') as string;
-    const rating = formData.get('rating') as ContentRating || DEFAULT_CONTENT_RATING;
+    const rating = (formData.get('rating') as ContentRating) || DEFAULT_CONTENT_RATING;
     
     console.log('Upload request received:', {
       filesCount: files.length,
@@ -274,7 +272,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true,
-      files: results,
+      files: results.map(result => ({
+        ...result,
+        id: result.id
+      })),
       file: results[0] // For backward compatibility
     }, {
       headers: {

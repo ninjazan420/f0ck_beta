@@ -37,18 +37,18 @@ export default function UploadPage() {
   // Füge einen neuen State hinzu, um zu verfolgen, ob ein Paste-Event verarbeitet wurde
   const [processingPaste, setProcessingPaste] = useState(false);
 
-  // Verbesserte getItemTags-Funktion
+  // Erstelle itemMap als separaten Hook auf Komponentenebene
+  const itemMap = useMemo(() => {
+    const map = new Map<string, FileItem>();
+    fileItems.forEach(item => {
+      const key = `${item.type}:${item.name}`;
+      map.set(key, item);
+    });
+    return map;
+  }, [fileItems]);
+
+  // Verwende die vorberechnete Map in getItemTags
   const getItemTags = useCallback((name: string, type: 'file' | 'url'): string[] => {
-    // Erstelle eine Map für schnellere Lookups
-    const itemMap = useMemo(() => {
-      const map = new Map<string, FileItem>();
-      fileItems.forEach(item => {
-        const key = `${item.type}:${item.name}`;
-        map.set(key, item);
-      });
-      return map;
-    }, [fileItems]);
-    
     // Lookup ist jetzt O(1) statt O(n)
     const exactMatch = itemMap.get(`${type}:${name}`);
     if (exactMatch) return exactMatch.tags;
@@ -66,7 +66,7 @@ export default function UploadPage() {
     
     console.warn(`Keine Tags gefunden für ${type} "${name}"`);
     return [];
-  }, [fileItems]);
+  }, [fileItems, itemMap]);
 
   // File handling functions mit useCallback
   const handleFileDrop = useCallback((newFiles: File[]) => {
@@ -257,7 +257,7 @@ export default function UploadPage() {
         } catch (fileError) {
           // Einzelfehler beim File-Upload abfangen ohne den gesamten Prozess zu stoppen
           console.error(`[ERROR] Fehler beim Upload von Datei "${file.name}":`, fileError);
-          setError(prev => prev ? `${prev}; ${fileError.message}` : fileError.message);
+          setError(prev => prev ? `${prev}; ${(fileError as Error).message}` : (fileError as Error).message);
         }
       }
 
@@ -324,7 +324,7 @@ export default function UploadPage() {
         } catch (urlError) {
           // Einzelfehler beim URL-Upload abfangen
           console.error(`[ERROR] Fehler beim Upload von URL "${item.url}":`, urlError);
-          setError(prev => prev ? `${prev}; ${urlError.message}` : urlError.message);
+          setError(prev => prev ? `${prev}; ${(urlError as Error).message}` : (urlError as Error).message);
         }
       }
 

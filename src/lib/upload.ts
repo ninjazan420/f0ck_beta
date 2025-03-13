@@ -7,8 +7,12 @@ import { Types } from 'mongoose';
 import crypto from 'crypto';
 import User from '@/models/User';
 import fs from 'fs/promises';
-import { ContentRating, DEFAULT_CONTENT_RATING } from '@/types';
 import { ApplicationError } from '@/lib/error-handling';
+
+// Lokale Definition von ContentRating
+export type ContentRating = 'safe' | 'sketchy' | 'unsafe';
+export const DEFAULT_CONTENT_RATING: ContentRating = 'safe';
+export const CONTENT_RATINGS: ContentRating[] = ['safe', 'sketchy', 'unsafe'];
 
 // Erweitere UPLOAD_DIRS um baseDir
 const UPLOAD_DIRS = {
@@ -61,7 +65,7 @@ export async function initializeUploadDirectories() {
 }
 
 interface ProcessedUpload {
-  id: Types.ObjectId;
+  id: number;
   filename: string;
   originalPath: string;
   thumbnailPath: string;
@@ -98,8 +102,12 @@ function validateUploadParams(
     throw new ApplicationError('Invalid content type', 'ValidationError', 400);
   }
 
-  if (!Object.values(ContentRating).includes(contentRating)) {
-    throw new ApplicationError('Invalid content rating', 'ValidationError', 400);
+  if (!CONTENT_RATINGS.includes(contentRating)) {
+    throw new ApplicationError(
+      `Invalid content rating. Must be one of: ${CONTENT_RATINGS.join(', ')}`,
+      'ValidationError',
+      400
+    );
   }
 
   if (tags.length > 30) {
@@ -108,16 +116,16 @@ function validateUploadParams(
 }
 
 export async function processUpload(
-  file: Buffer, 
-  originalFilename: string, 
+  file: Buffer,
+  filename: string,
   contentType: string,
-  userId?: string,
+  userId: string | null,
   contentRating: ContentRating = DEFAULT_CONTENT_RATING,
   tags: string[] = []
 ): Promise<ProcessedUpload> {
   try {
     // Validiere Parameter
-    validateUploadParams(file, originalFilename, contentType, contentRating, tags);
+    validateUploadParams(file, filename, contentType, contentRating, tags);
     
     // Verarbeite das Bild direkt mit Sharp
     const image = sharp(file);
@@ -162,7 +170,7 @@ export async function processUpload(
 
     // Erstelle einen neuen Post mit den verarbeiteten Tags
     const post = new Post({
-      title: originalFilename,
+      title: filename,
       author: userId || null,
       contentRating: contentRating,
       tags: processedTags, // Diese Liste sollte jetzt korrekt gefüllt sein
@@ -180,7 +188,7 @@ export async function processUpload(
     
     // Speichere den Post
     await post.save();
-    console.log('💾 Post saved with ID:', post._id, 'and tags:', post.tags);
+    console.log('💾 Post saved with ID:', post._id, 'and numeric ID:', post.id);
 
     // Wenn ein User vorhanden ist, füge den Post zu seinen Uploads hinzu
     if (userId) {
@@ -191,11 +199,11 @@ export async function processUpload(
     
     // Generiere eine eindeutige Bild-ID
     const imageId = generateImageId();
-    const filename = `${imageId}.jpg`; // Wir speichern alles als JPG
-    const thumbnailFilename = `thumb_${filename}`; // Thumbnail mit Präfix
+    const finalFilename = `${imageId}.jpg`; // Wir speichern alles als JPG
+    const thumbnailFilename = `thumb_${finalFilename}`; // Thumbnail mit Präfix
 
     // Speichere das Originalbild mit expliziten Berechtigungen
-    const originalPath = join(UPLOAD_DIRS.original, filename);
+    const originalPath = join(UPLOAD_DIRS.original, finalFilename);
     await writeFile(originalPath, file, { mode: 0o644 });
     console.log(`Original image saved to: ${originalPath}`);
 
@@ -234,14 +242,20 @@ export async function processUpload(
     }
 
     // Aktualisiere den Post mit den Bildpfaden
-    post.imageUrl = `/uploads/original/${filename}`;
+    post.imageUrl = `/uploads/original/${finalFilename}`;
     post.thumbnailUrl = `/uploads/thumbnails/${thumbnailFilename}`;
     await post.save();
     console.log(`Saved image paths to database: ${post.imageUrl}, ${post.thumbnailUrl}`);
 
+    // Stelle sicher, dass contentRating korrekt ist, mit Fallback zur DEFAULT_CONTENT_RATING
+    const validContentRating: ContentRating = 
+      ['safe', 'sketchy', 'unsafe'].includes(contentRating) 
+        ? contentRating as ContentRating 
+        : DEFAULT_CONTENT_RATING;
+
     return {
-      id: post._id,
-      filename,
+      id: post.id,
+      filename: finalFilename,
       originalPath: post.imageUrl,
       thumbnailPath: post.thumbnailUrl,
       contentType,
@@ -251,7 +265,7 @@ export async function processUpload(
         height: metadata.height || 0
       },
       tags: processedTags,
-      contentRating,
+      contentRating: validContentRating,
       uploadDate: new Date(),
       userId
     };
