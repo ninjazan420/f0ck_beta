@@ -1,6 +1,31 @@
-# Changelog
+# Änderungsprotokoll
 
-Alle wichtigen Änderungen am Projekt werden in dieser Datei dokumentiert.
+## 2.3.0
+
+### Funktionen hinzugefügt
+- Komplett überarbeitete Moderationsseite mit Tab-Navigation
+  - Verbesserte Benutzeroberfläche mit separaten Tabs für Übersicht, Kommentare, Aktivitätslog und Aktionen
+  - Intuitivere Navigation zwischen den verschiedenen Moderationsbereichen
+  - Optimierte Darstellung der Moderationsaktivitäten
+- Moderationsroute für Tags hinzugefügt
+  - Neue Funktionen zur Verwaltung von Tags für Moderatoren
+  - Löschfunktion für problematische oder unerwünschte Tags
+  - Verbesserte Übersicht über Tag-Aktivitäten im Aktivitätslog
+- Tag-Bearbeitungsfunktion für normale Benutzer
+  - Benutzer können nun selbst Tags zu ihren Beiträgen hinzufügen und bearbeiten
+  - Vereinfachte Benutzeroberfläche für die Tag-Verwaltung
+  - Verbesserte Tag-Validierung und Fehlermeldungen
+
+### Fehlerbehebungen
+- Behebung eines Race-Condition-Problems beim Hochladen von Dateien
+  - Stabilere Verarbeitung von Uploads, insbesondere bei mehreren gleichzeitigen Anfragen
+  - Zuverlässigere Thumbnail-Generierung
+- Tag- und NSFW-Filter auf der /posts-Seite korrigiert, die nach API-Aktualisierung nicht angewendet wurden
+  - Filter werden nun korrekt beibehalten, wenn die Seite aktualisiert wird
+  - Konsistente Filterergebnisse bei Seitennavigation
+- Verschiedene Pfadkorrekturen für eine bessere Navigation
+- Umfangreiche Sicherheitsupdates zur Verbesserung des Datenschutzes
+- Probleme beim Avatar-Upload behoben, die zu fehlerhaften Darstellungen führen konnten
 
 ## [2.2.0]
 

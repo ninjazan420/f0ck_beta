@@ -1,6 +1,6 @@
-# f0ck.org Beta v2.2.0
+# f0ck.org Beta v2.3.0
 
-> ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still broken.
+> ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
 Modern, next-generation anonymous imageboard platform built with Next.js 14 and TailwindCSS. Upload and share images freely - accounts optional!
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v2.2.0](#f0ckorg-beta-v220)
+- [f0ck.org Beta v2.3.0](#f0ckorg-beta-v230)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,7 +21,11 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v2.2.0 (Current)](#beta-v220-current)
+    - [Beta v2.3.0 (Current)](#beta-v230-current)
+      - [🔧 Enhanced Moderation](#-enhanced-moderation)
+      - [🏷️ Tag Management](#️-tag-management)
+      - [🐛 Bug Fixes](#-bug-fixes)
+    - [Beta v2.2.0](#beta-v220)
       - [🔧 Technical Improvements](#-technical-improvements)
     - [Beta v2.0.0](#beta-v200)
       - [🚀 State of the Art Beta Website](#-state-of-the-art-beta-website)
@@ -30,18 +34,6 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
       - [💬 Enhanced Comment Features](#-enhanced-comment-features)
       - [🔍 Advanced Search Features](#-advanced-search-features)
     - [Older Versions (click to expand)](#older-versions-click-to-expand)
-      - [👤 Improved User Interface](#-improved-user-interface)
-      - [🚀 New Features](#-new-features)
-      - [🛠️ Bug Fixes](#️-bug-fixes)
-      - [🏷️ Tag System Fully Implemented](#️-tag-system-fully-implemented)
-      - [🔍 Key Functional Improvements](#-key-functional-improvements)
-      - [🎨 UI Refinements](#-ui-refinements)
-      - [🔍 Search Improvements](#-search-improvements)
-      - [📱 Mobile Optimization](#-mobile-optimization)
-      - [🚀 Performance Enhancements](#-performance-enhancements)
-      - [🔄 Updates](#-updates)
-      - [💬 Complete Comment System](#-complete-comment-system)
-      - [🛠️ Fixes](#️-fixes)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
 
@@ -157,7 +149,34 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v2.2.0 (Current)
+### Beta v2.3.0 (Current)
+
+#### 🔧 Enhanced Moderation
+
+- **Redesigned Moderation Dashboard**:
+  - New tab-based navigation system for improved workflow
+  - Consolidated moderation tools in a single, intuitive interface
+  - Improved activity logging with detailed action information
+  - Better visualization of moderation activities
+
+#### 🏷️ Tag Management
+
+- **Tag Moderation**:
+  - New moderation routes for tag management
+  - Delete functionality for problematic tags
+- **User Tag Editing**:
+  - Added tag editing capabilities for regular users
+  - Improved tag validation and error messaging
+
+#### 🐛 Bug Fixes
+
+- Fixed race condition issues in file uploads
+- Corrected tag and NSFW filtering on the posts page
+- Enhanced security through various updates
+- Resolved avatar upload problems
+- Fixed various path issues and security vulnerabilities
+
+### Beta v2.2.0
 
 #### 🔧 Technical Improvements
 
@@ -437,5 +456,5 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 
 MIT License - © 2024 f0ck.org Team
 
-> Beta Version 2.2.0 - We build something new...
+> Beta Version 2.3.0 - We build something new...
 

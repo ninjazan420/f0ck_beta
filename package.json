@@ -1,6 +1,6 @@
 {
-  "name": "f0ck_beta",
-  "version": "2.2.0",
+  "name": "f0ck_beta_3",
+  "version": "2.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3000",
