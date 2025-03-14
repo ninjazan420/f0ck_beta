@@ -12,7 +12,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       body: JSON.stringify({
         content: comment,
         postId,
-        isAnonymous: false // Setze es explizit auf false statt den state zu verwenden
+        isAnonymous
       })
     });
     

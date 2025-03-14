@@ -80,7 +80,7 @@ export default function RegisterClient() {
                   <input
                     type="password"
                     name="password"
-                    placeholder="Password (5+ Characters)"
+                    placeholder="Password (8+ Characters)"
                     required
                     minLength={5}
                     className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"

@@ -333,14 +333,14 @@ export function CommentList({
     // Nur verbinden, wenn postId definiert ist
     if (!postId) return;
     
-    // Vereinfache die Socket-ID
+    // Vereinfache die Socket-ID - WICHTIG: Verwende eine einfache Zeichenkette als ID
     const socketId = `comments-${postId}`;
     
-    // Trenne die vorherige Verbindung (falls vorhanden)
+    // Korrekt: Trenne die vorherige Verbindung (falls vorhanden)
     commentSocket.unsubscribe(socketId);
     
-    // Erstelle eine neue Verbindung
-    commentSocket.subscribe(socketId, (update) => {
+    // Korrekt: Erstelle eine neue Verbindung mit einer separaten Callback-Funktion
+    const handleCommentUpdate = (update: any) => {
       if (!update || typeof update !== 'object') return;
       
       // Sichere Verarbeitung von WebSocket-Updates
@@ -355,7 +355,9 @@ export function CommentList({
       else if (update.type === 'delete' && update.commentId) {
         setComments(prev => prev.filter(comment => comment.id !== update.commentId));
       }
-    });
+    };
+
+    commentSocket.subscribe(socketId, handleCommentUpdate);
 
     return () => {
       commentSocket.unsubscribe(socketId);

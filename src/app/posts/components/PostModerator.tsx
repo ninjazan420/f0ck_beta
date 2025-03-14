@@ -14,6 +14,7 @@ export function PostModerator({ postId }: PostModeratorProps) {
   const { data: session } = useSession();
   const [isProcessing, setIsProcessing] = useState(false);
   const [commentsBlocked, setCommentsBlocked] = useState(false);
+  const [isFeatured, setIsFeatured] = useState(false);
   const [showStatusBanner, setShowStatusBanner] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState<'default' | 'success'>('default');
@@ -26,6 +27,13 @@ export function PostModerator({ postId }: PostModeratorProps) {
         if (response.ok) {
           const data = await response.json();
           setCommentsBlocked(!!data.commentsDisabled);
+        }
+        
+        // Prüfen, ob dieser Post der featured post ist
+        const featuredResponse = await fetch('/api/featured');
+        if (featuredResponse.ok) {
+          const featuredData = await featuredResponse.json();
+          setIsFeatured(featuredData.featured?.id === parseInt(postId, 10));
         }
       } catch (error) {
         console.error('Error fetching post status:', error);
@@ -132,6 +140,47 @@ export function PostModerator({ postId }: PostModeratorProps) {
       setIsProcessing(false);
     }
   };
+  
+  const toggleFeaturePost = async () => {
+    try {
+      setIsProcessing(true);
+      const method = isFeatured ? 'DELETE' : 'POST';
+      const message = isFeatured ? 'Post removed from homepage' : 'Post featured on homepage';
+      
+      const response = await fetch('/api/moderation/feature', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: isFeatured ? undefined : JSON.stringify({ postId })
+      });
+      
+      if (response.ok) {
+        setIsFeatured(!isFeatured);
+        
+        // Show status banner
+        setStatusMessage(message);
+        setStatusType('success');
+        setShowStatusBanner(true);
+        
+        if (typeof toast !== 'undefined') {
+          toast.success(message);
+        }
+        
+        // Aktualisiere die Startseite, falls sichtbar
+        router.refresh();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Error ${isFeatured ? 'unfeaturing' : 'featuring'} post`);
+      }
+    } catch (error) {
+      console.error(`Error ${isFeatured ? 'unfeaturing' : 'featuring'} post:`, error);
+      
+      if (typeof toast !== 'undefined') {
+        toast.error(error instanceof Error ? error.message : 'An error occurred');
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <>
@@ -164,7 +213,7 @@ export function PostModerator({ postId }: PostModeratorProps) {
               <line y2={17} y1={11} x2={10} x1={10} />
               <line y2={17} y1={11} x2={14} x1={14} />
             </svg>
-            <p className="font-medium">Delete Post</p>
+            <p className="font-medium text-sm">Delete Post</p>
           </li>
         </ul>
 
@@ -177,7 +226,17 @@ export function PostModerator({ postId }: PostModeratorProps) {
               <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
               <circle r={3} cy={12} cx={12} />
             </svg>
-            <p className="font-medium">{commentsBlocked ? "Enable Comments" : "Block Comments"}</p>
+            <p className="font-medium text-sm">{commentsBlocked ? "Enable Comments" : "Block Comments"}</p>
+          </li>
+          
+          <li className="flex cursor-pointer items-center gap-3 px-4 py-2 text-blue-400 transition-all hover:bg-blue-500/20 hover:text-white"
+              onClick={toggleFeaturePost}
+              style={{ opacity: isProcessing ? 0.6 : 1, pointerEvents: isProcessing ? 'none' : 'auto' }}
+          >
+            <svg className="h-5 w-5" strokeLinejoin="round" strokeLinecap="round" strokeWidth={2} stroke="currentColor" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z" />
+            </svg>
+            <p className="font-medium text-sm">{isFeatured ? "Unfeature Post" : "Feature this Post"}</p>
           </li>
         </ul>
       </div>
