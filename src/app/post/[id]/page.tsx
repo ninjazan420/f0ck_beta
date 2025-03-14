@@ -278,6 +278,23 @@ async function getAdjacentPosts(currentId: string) {
   }
 }
 
+// Hilfsfunktion zum Überprüfen, ob die URL localhost ist
+function getAbsoluteImageUrl(relativeUrl: string): string {
+  // Wenn die URL bereits absolut ist, gib sie unverändert zurück
+  if (relativeUrl.startsWith('http')) {
+    return relativeUrl;
+  }
+  
+  // Verwende immer die Produktions-URL für Vorschaubilder, nie localhost
+  // Das löst das Problem mit fehlenden Vorschaubildern beim lokalen Entwickeln
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://f0ck.org';
+  
+  // Stelle sicher, dass die URL mit einem Slash beginnt
+  const formattedRelativeUrl = relativeUrl.startsWith('/') ? relativeUrl : `/${relativeUrl}`;
+  
+  return `${baseUrl}${formattedRelativeUrl}`;
+}
+
 export async function generateMetadata({ params, searchParams }: { params: { id: string }, searchParams: Record<string, string> }): Promise<Metadata> {
   // params muss zuerst aufgelöst werden
   const resolvedParams = await params;
@@ -297,14 +314,22 @@ export async function generateMetadata({ params, searchParams }: { params: { id:
   // Bereinige den Titel für SEO
   const cleanTitle = sanitizeTitle(postData.title);
   
-  // Erstelle eine Beschreibung mit den ersten 5 Tags
-  const tagDescription = createTagDescription(postData.tags);
+  // Erstelle eine Tag-Liste ohne Rauten
+  const tagsList = postData.tags
+    .slice(0, 5)
+    .map((tag: {name: string}) => tag.name)
+    .join(', ');
   
-  // Basis-Beschreibung
-  let description = postData.description || 
-    `View this ${postData.contentRating === 'unsafe' ? 'mature ' : ''}content with tags: ${
-      postData.tags.slice(0, 5).map((tag: {name: string}) => tag.name).join(', ')
-    } on ${siteConfig.name}`;
+  // Neues Format für die Beschreibung:
+  // "View <bildtitel> post by <username> on f0ck.org | <tags ohne raute>"
+  let description = `View ${cleanTitle || `Image #${postData.numericId || postData.id}`} post by ${
+    postData.author?.username || 'Anonymous'
+  } on ${siteConfig.name}`;
+  
+  // Füge Tags hinzu, wenn vorhanden
+  if (tagsList) {
+    description = `${description} | ${tagsList}`;
+  }
   
   // Wenn ein Kommentar verlinkt ist, füge dessen Inhalt zur Beschreibung hinzu
   if (commentData) {
@@ -313,13 +338,6 @@ export async function generateMetadata({ params, searchParams }: { params: { id:
       : commentData.content;
       
     description = `Comment by ${commentData.author.username}: "${commentPreview}" | ${description}`;
-  }
-  
-  // Füge Tags zur Beschreibung hinzu, wenn vorhanden
-  if (tagDescription) {
-    description = description 
-      ? `${description} | ${tagDescription}`
-      : tagDescription;
   }
   
   // Passe den Titel an, wenn ein Kommentar verlinkt wird
@@ -332,15 +350,17 @@ export async function generateMetadata({ params, searchParams }: { params: { id:
   // Bestimme den Inhaltstyp für OG/Twitter
   const contentType = postData.contentRating === 'unsafe' ? 'mature' : 'image';
   
-  // Erstelle die Bild-URL mit Cache-Busting, falls erforderlich
-  const imageUrl = postData.imageUrl.includes('?') 
-    ? postData.imageUrl
-    : `${postData.imageUrl}?t=${Date.now()}`;
+  // Wichtig: Verwende die absolute URL für Bilder, auch bei lokaler Entwicklung
+  const imageUrl = getAbsoluteImageUrl(postData.imageUrl);
   
   // Erstelle die volle URL mit Kommentar-Fragment, falls vorhanden
   const fullUrl = commentFragment
-    ? `${process.env.NEXT_PUBLIC_BASE_URL || 'https://f0ck.org'}/post/${postData.numericId || postData.id}${commentFragment}`
-    : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://f0ck.org'}/post/${postData.numericId || postData.id}`;
+    ? `${process.env.NEXT_PUBLIC_BASE_URL || "https://beta.f0ck.org"}/post/${
+        postData.numericId || postData.id
+      }${commentFragment}`
+    : `${process.env.NEXT_PUBLIC_BASE_URL || "https://beta.f0ck.org"}/post/${
+        postData.numericId || postData.id
+      }`;
   
   return {
     title,
