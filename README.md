@@ -1,4 +1,4 @@
-# f0ck.org Beta v2.3.0
+# f0ck.org Beta v2.4.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v2.3.0](#f0ckorg-beta-v230)
+- [f0ck.org Beta v2.4.0](#f0ckorg-beta-v240)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,7 +21,12 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v2.3.0 (Current)](#beta-v230-current)
+    - [Beta v2.4.0 (Current)](#beta-v240-current)
+      - [🌟 New Feature System](#-new-feature-system)
+      - [🏠 Improved Frontend](#-improved-frontend)
+      - [🔗 Optimized Social Sharing](#-optimized-social-sharing)
+      - [🛠️ Technical Improvements](#️-technical-improvements)
+    - [Beta v2.3.0](#beta-v230)
       - [🔧 Enhanced Moderation](#-enhanced-moderation)
       - [🏷️ Tag Management](#️-tag-management)
       - [🐛 Bug Fixes](#-bug-fixes)
@@ -34,6 +39,18 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
       - [💬 Enhanced Comment Features](#-enhanced-comment-features)
       - [🔍 Advanced Search Features](#-advanced-search-features)
     - [Older Versions (click to expand)](#older-versions-click-to-expand)
+      - [👤 Improved User Interface](#-improved-user-interface)
+      - [🚀 New Features](#-new-features)
+      - [🛠️ Bug Fixes](#️-bug-fixes)
+      - [🏷️ Tag System Fully Implemented](#️-tag-system-fully-implemented)
+      - [🔍 Key Functional Improvements](#-key-functional-improvements)
+      - [🎨 UI Refinements](#-ui-refinements)
+      - [🔍 Search Improvements](#-search-improvements)
+      - [📱 Mobile Optimization](#-mobile-optimization)
+      - [🚀 Performance Enhancements](#-performance-enhancements)
+      - [🔄 Updates](#-updates)
+      - [💬 Complete Comment System](#-complete-comment-system)
+      - [🛠️ Fixes](#️-fixes)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
 
@@ -149,7 +166,39 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v2.3.0 (Current)
+### Beta v2.4.0 (Current)
+
+#### 🌟 New Feature System
+
+- **"Featured Post" Option**:
+  - Moderators and admins can now highlight posts on the homepage
+  - New API endpoints for featured post management
+  - ModLog entries for feature/unfeature actions
+  - Visual indication of featured posts
+
+#### 🏠 Improved Frontend
+
+- **Complete Redesign of Homepage**:
+  - Modern layout with highlighted featured content
+  - Enhanced statistics display with more detailed information
+  - Responsive UI for all devices
+  - New PostPreview component for unified presentation
+
+#### 🔗 Optimized Social Sharing
+
+- **Improved Social Media Metadata**:
+  - OG titles and images for better previews in social networks
+  - Optimized social sharing previews
+  - Enhanced SEO through structured metadata
+
+#### 🛠️ Technical Improvements
+
+- **Extended Data Models**:
+  - New SiteSettings model for global settings
+  - Expanded ModLog system with new action types
+  - Improved WebSocket connections for comments
+
+### Beta v2.3.0
 
 #### 🔧 Enhanced Moderation
 
@@ -456,5 +505,5 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 
 MIT License - © 2024 f0ck.org Team
 
-> Beta Version 2.3.0 - We build something new...
+> Beta Version 2.4.0 - We build something new...
 

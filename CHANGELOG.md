@@ -1,22 +1,51 @@
 # Änderungsprotokoll
 
+## 2.4.0
+
+### 🌟 Neues Feature-System
+- **"Featured Post" Option hinzugefügt**:
+  - Moderatoren und Admins können nun Beiträge auf der Startseite hervorheben
+  - Neue API-Endpunkte für die Verwaltung von Featured Posts
+  - ModLog-Einträge für Feature/Unfeature-Aktionen
+  - Visuelle Kennzeichnung von Featured Posts
+
+### 🏠 Verbessertes Frontend
+- **Komplettes Redesign der Startseite**:
+  - Moderneres Layout mit hervorgehobenen Beiträgen
+  - Verbesserte Statistikdarstellung mit detaillierteren Informationen
+  - Reaktionsschnellere Benutzeroberfläche für alle Geräte
+  - Neue PostPreview-Komponente für einheitliche Darstellung
+
+### 🔗 Optimiertes Social Sharing
+- **Verbesserte Metadaten für Social Media**:
+  - OG-Titel und Bilder für bessere Vorschau in sozialen Netzwerken
+  - Optimierte Social-Sharing-Previews
+  - Verbesserte SEO durch strukturierte Metadaten
+
+### 🛠️ Technische Verbesserungen
+- **Erweiterte Datenmodelle**:
+  - Neues SiteSettings-Modell für globale Einstellungen
+  - Erweitertes ModLog-System mit neuen Aktionstypen
+  - Verbesserte WebSocket-Verbindungen für Kommentare
+
 ## 2.3.0
 
-### Funktionen hinzugefügt
-- Komplett überarbeitete Moderationsseite mit Tab-Navigation
-  - Verbesserte Benutzeroberfläche mit separaten Tabs für Übersicht, Kommentare, Aktivitätslog und Aktionen
-  - Intuitivere Navigation zwischen den verschiedenen Moderationsbereichen
-  - Optimierte Darstellung der Moderationsaktivitäten
-- Moderationsroute für Tags hinzugefügt
-  - Neue Funktionen zur Verwaltung von Tags für Moderatoren
-  - Löschfunktion für problematische oder unerwünschte Tags
-  - Verbesserte Übersicht über Tag-Aktivitäten im Aktivitätslog
-- Tag-Bearbeitungsfunktion für normale Benutzer
-  - Benutzer können nun selbst Tags zu ihren Beiträgen hinzufügen und bearbeiten
-  - Vereinfachte Benutzeroberfläche für die Tag-Verwaltung
-  - Verbesserte Tag-Validierung und Fehlermeldungen
+### 🔧 Komplett überarbeitete Moderationsseite
+- Verbesserte Benutzeroberfläche mit separaten Tabs für Übersicht, Kommentare, Aktivitätslog und Aktionen
+- Intuitivere Navigation zwischen den verschiedenen Moderationsbereichen
+- Optimierte Darstellung der Moderationsaktivitäten
 
-### Fehlerbehebungen
+### 🏷️ Moderationsroute für Tags
+- Neue Funktionen zur Verwaltung von Tags für Moderatoren
+- Löschfunktion für problematische oder unerwünschte Tags
+- Verbesserte Übersicht über Tag-Aktivitäten im Aktivitätslog
+
+### ✏️ Tag-Bearbeitungsfunktion für normale Benutzer
+- Benutzer können nun selbst Tags zu ihren Beiträgen hinzufügen und bearbeiten
+- Vereinfachte Benutzeroberfläche für die Tag-Verwaltung
+- Verbesserte Tag-Validierung und Fehlermeldungen
+
+### 🐛 Fehlerbehebungen
 - Behebung eines Race-Condition-Problems beim Hochladen von Dateien
   - Stabilere Verarbeitung von Uploads, insbesondere bei mehreren gleichzeitigen Anfragen
   - Zuverlässigere Thumbnail-Generierung
