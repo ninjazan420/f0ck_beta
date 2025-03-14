@@ -7,6 +7,7 @@ import User from '@/models/User';
 import { rateLimit } from '@/lib/rateLimit';
 import mongoose from 'mongoose';
 import DOMPurify from 'isomorphic-dompurify';
+import { NotificationService } from '@/lib/services/notificationService';
 
 // GET /api/comments
 export async function GET(req: Request) {
@@ -260,6 +261,20 @@ export async function POST(req: Request) {
     try {
       await comment.save();
       console.log('Comment saved successfully:', comment._id);
+
+      // Benachrichtigung senden
+      try {
+        if (replyTo) {
+          // Für Antworten auf Kommentare
+          await NotificationService.notifyCommentReply(comment._id.toString());
+        } else {
+          // Für neue Kommentare unter Posts
+          await NotificationService.notifyNewComment(comment._id.toString());
+        }
+      } catch (notifyError) {
+        console.error('Error sending notification:', notifyError);
+        // Fehler beim Senden der Benachrichtigung sollte den Erfolg des Kommentars nicht beeinträchtigen
+      }
     } catch (saveError) {
       console.error('Error saving comment:', saveError);
       return NextResponse.json(

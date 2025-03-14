@@ -144,7 +144,8 @@ async function getPostData(id: string) {
         role: post.author.role || 'user'
       } : null,
       tags: tagData,
-      createdAt: post.createdAt || new Date()
+      createdAt: post.createdAt || new Date(),
+      stats: post.stats || { likes: 0, favorites: 0, comments: 0, views: 0 }
     };
   } catch (error) {
     console.error('Error fetching post:', error);

@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { usePageMeta } from '@/context/PageMetaContext';
 import Image from 'next/image';
 import { getImageUrlWithCacheBuster } from '@/lib/utils';
+import { NotificationBell } from './NotificationBell';
 
 type MenuItem = {
   label: string;
@@ -139,6 +140,7 @@ export const Navbar = () => {
               <Link href="/account" className="font-mono">
                 {truncateUsername(session?.user?.username)}
               </Link>
+              <NotificationBell />
             </div>
           )
         },

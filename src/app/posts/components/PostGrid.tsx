@@ -274,7 +274,7 @@ export function PostGrid({
     <div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 auto-rows-fr gap-2">
         {visiblePosts.map((post, index) => (
-          <div key={post.id}>
+          <div key={post.id} data-post-id={post.id}>
             {/* Page separator */}
             {infiniteScroll && index > 0 && index % POSTS_PER_PAGE === 0 && (
               <div className="col-span-full my-6 flex items-center justify-center">
@@ -337,9 +337,18 @@ export function PostGrid({
                   {/* Stats and Media Type */}
                   <div className="flex items-center justify-between text-gray-300 text-[8px] sm:text-[10px]">
                     <div className="flex items-center gap-1 sm:gap-2">
-                      <span>❤️ {post.likes}</span>
-                      <span>💬 {post.comments}</span>
-                      <span>⭐ {post.favorites}</span>
+                      <span className="flex items-center gap-0.5">
+                        <span className="opacity-60">👍</span>
+                        <span data-like-count={post.id}>{post.likes}</span>
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <span className="opacity-60">❤️</span>
+                        <span data-favorite-count={post.id}>{post.favorites}</span>
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        <span className="opacity-60">💬</span>
+                        <span data-comment-count={post.id}>{post.comments}</span>
+                      </span>
                     </div>
                     <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-gray-500/40 text-white border border-gray-500/50">
                       {post.mediaType === 'gif' 
