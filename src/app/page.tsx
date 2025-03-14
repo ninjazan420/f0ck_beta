@@ -37,8 +37,27 @@ export default function Home() {
 // Client Component für Featured Post
 import { useEffect, useState } from "react";
 
+// Definiere zuerst einen Typ für den Featured Post
+interface Author {
+  username: string;
+  avatar?: string;
+}
+
+interface FeaturedPost {
+  id: string;
+  title: string;
+  imageUrl: string;
+  description?: string;
+  author?: Author;
+  stats?: {
+    comments: number;
+  };
+  tags?: string[];
+  createdAt: string | number | Date;
+}
+
 function FeaturedPostSection() {
-  const [featuredPost, setFeaturedPost] = useState(null);
+  const [featuredPost, setFeaturedPost] = useState<FeaturedPost | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -185,31 +204,31 @@ function StatsSection() {
   return (
     <div className="w-full max-w-2xl mx-auto px-4 space-y-8 mb-8 mt-6">
       <div className="flex justify-between items-center rounded-lg p-4 bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
-        <div className="text-center flex-1">
+        <Link href="/users" className="text-center flex-1 hover:opacity-80 transition-opacity">
           <div className="text-xl font-light tracking-tight text-gray-900 dark:text-gray-300">{stats.activeUsers}</div>
           <div className="text-xs font-medium text-gray-500 dark:text-gray-500">Active Users</div>
-        </div>
+        </Link>
         
         <div className="h-10 w-px bg-gray-200 dark:bg-gray-700"></div>
         
-        <div className="text-center flex-1">
+        <Link href="/posts" className="text-center flex-1 hover:opacity-80 transition-opacity">
           <div className="text-xl font-light tracking-tight text-gray-900 dark:text-gray-300">{stats.newPosts}</div>
           <div className="text-xs font-medium text-gray-500 dark:text-gray-500">New Posts</div>
-        </div>
+        </Link>
         
         <div className="h-10 w-px bg-gray-200 dark:bg-gray-700"></div>
         
-        <div className="text-center flex-1">
+        <Link href="/comments" className="text-center flex-1 hover:opacity-80 transition-opacity">
           <div className="text-xl font-light tracking-tight text-gray-900 dark:text-gray-300">{stats.newComments}</div>
           <div className="text-xs font-medium text-gray-500 dark:text-gray-500">Comments</div>
-        </div>
+        </Link>
         
         <div className="h-10 w-px bg-gray-200 dark:bg-gray-700"></div>
         
-        <div className="text-center flex-1">
+        <Link href="/tags" className="text-center flex-1 hover:opacity-80 transition-opacity">
           <div className="text-xl font-light tracking-tight text-gray-900 dark:text-gray-300">{stats.newTags}</div>
           <div className="text-xs font-medium text-gray-500 dark:text-gray-500">New Tags</div>
-        </div>
+        </Link>
       </div>
 
       <div className="text-center text-sm text-gray-500 dark:text-gray-400 font-[family-name:var(--font-geist-mono)]">

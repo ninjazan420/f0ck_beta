@@ -26,6 +26,7 @@ interface IPost extends mongoose.Document {
   createdAt: Date;
   updatedAt: Date;
   hasCommentsDisabled?: boolean;
+  isPinned?: boolean;
 }
 
 const postSchema = new mongoose.Schema({
@@ -78,6 +79,10 @@ const postSchema = new mongoose.Schema({
     favorites: { type: Number, default: 0 }
   },
   hasCommentsDisabled: {
+    type: Boolean,
+    default: false
+  },
+  isPinned: {
     type: Boolean,
     default: false
   }

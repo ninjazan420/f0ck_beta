@@ -123,6 +123,12 @@ export async function POST(req: Request) {
         target.hasCommentsDisabled = false;
         await target.save();
         break;
+      case 'pin':
+        await handlePinAction(targetId, session.user.id);
+        return NextResponse.json({ success: true });
+      case 'unpin':
+        await handleUnpinAction(targetId, session.user.id);
+        return NextResponse.json({ success: true });
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
@@ -155,5 +161,97 @@ export async function POST(req: Request) {
       { error: error instanceof Error ? error.message : 'An error occurred' },
       { status: 500 }
     );
+  }
+}
+
+async function handlePinAction(postId: string, userId: string): Promise<any> {
+  try {
+    // Setze zuerst alle anderen Posts zurück
+    await Post.updateMany(
+      { isPinned: true },
+      { $set: { isPinned: false } }
+    );
+    
+    // Finde den Post auf die gleiche Weise wie im Haupthandler
+    let post;
+    
+    // Versuche zuerst, den Post durch seine MongoDB ObjectId zu finden
+    if (mongoose.Types.ObjectId.isValid(postId)) {
+      post = await Post.findByIdAndUpdate(
+        postId,
+        { $set: { isPinned: true } },
+        { new: true }
+      );
+    }
+    
+    // Wenn nicht gefunden, versuche als numerische ID zu finden
+    if (!post) {
+      post = await Post.findOneAndUpdate(
+        { id: parseInt(postId, 10) },
+        { $set: { isPinned: true } },
+        { new: true }
+      );
+    }
+    
+    if (!post) {
+      throw new Error('Post not found');
+    }
+    
+    // Erstelle einen Moderations-Log-Eintrag
+    await ModLog.create({
+      moderator: userId,
+      action: 'pin',
+      targetType: 'post',
+      targetId: post._id, // Wichtig: Wir verwenden die _id des gefundenen Posts
+      reason: 'Post pinned to posts page'
+    });
+    
+    return post;
+  } catch (error) {
+    console.error('Failed to pin post:', error);
+    throw new Error('Failed to pin post');
+  }
+}
+
+async function handleUnpinAction(postId: string, userId: string): Promise<any> {
+  try {
+    // Finde den Post mit der gleichen Logik wie oben
+    let post;
+    
+    // Versuche zuerst, den Post durch seine MongoDB ObjectId zu finden
+    if (mongoose.Types.ObjectId.isValid(postId)) {
+      post = await Post.findByIdAndUpdate(
+        postId,
+        { $set: { isPinned: false } },
+        { new: true }
+      );
+    }
+    
+    // Wenn nicht gefunden, versuche als numerische ID zu finden
+    if (!post) {
+      post = await Post.findOneAndUpdate(
+        { id: parseInt(postId, 10) },
+        { $set: { isPinned: false } },
+        { new: true }
+      );
+    }
+    
+    if (!post) {
+      throw new Error('Post not found');
+    }
+    
+    // Erstelle einen Moderations-Log-Eintrag
+    await ModLog.create({
+      moderator: userId,
+      action: 'unpin',
+      targetType: 'post',
+      targetId: post._id, // Verwende die _id des gefundenen Posts
+      reason: 'Post unpinned from posts page'
+    });
+    
+    return post;
+  } catch (error) {
+    console.error('Failed to unpin post:', error);
+    throw new Error('Failed to unpin post');
   }
 } 

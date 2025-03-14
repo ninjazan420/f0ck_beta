@@ -16,12 +16,12 @@ export async function GET(
     
     // Try to find by MongoDB ObjectId first
     if (mongoose.Types.ObjectId.isValid(postId)) {
-      post = await Post.findById(postId).select('hasCommentsDisabled');
+      post = await Post.findById(postId).select('hasCommentsDisabled isPinned');
     }
     
     // If not found, try as numeric ID
     if (!post) {
-      post = await Post.findOne({ id: parseInt(postId, 10) }).select('hasCommentsDisabled');
+      post = await Post.findOne({ id: parseInt(postId, 10) }).select('hasCommentsDisabled isPinned');
     }
     
     if (!post) {
@@ -34,12 +34,14 @@ export async function GET(
     // Add debugging log to see what we're returning
     console.log("Post status API returning:", {
       id: post._id,
-      commentsDisabled: post.hasCommentsDisabled || false
+      commentsDisabled: post.hasCommentsDisabled || false,
+      isPinned: post.isPinned || false
     });
     
     return NextResponse.json({
       id: post._id,
-      commentsDisabled: post.hasCommentsDisabled || false
+      commentsDisabled: post.hasCommentsDisabled || false,
+      isPinned: post.isPinned || false
     });
   } catch (error) {
     console.error('Error fetching post status:', error);

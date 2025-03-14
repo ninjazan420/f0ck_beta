@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db/mongodb';
 import SiteSettings from '@/models/SiteSettings';
 import Post from '@/models/Post';
 import ModLog from '@/models/ModLog';
+import mongoose from 'mongoose';
 
 export async function POST(req: Request) {
   try {
@@ -17,18 +18,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const body = await req.json();
-    const { postId } = body;
-
-    if (!postId) {
-      return NextResponse.json({ error: 'Missing post ID' }, { status: 400 });
-    }
-
     await dbConnect();
 
-    // Post finden
+    const { postId } = await req.json();
+
+    if (!postId) {
+      return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
+    }
+
     let post;
-    if (Number.isInteger(parseInt(postId, 10))) {
+    if (mongoose.Types.ObjectId.isValid(postId)) {
+      post = await Post.findById(postId);
+    }
+
+    if (!post) {
       post = await Post.findOne({ id: parseInt(postId, 10) });
     }
 
@@ -36,34 +39,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    // SiteSettings aktualisieren
     const settings = await SiteSettings.getInstance();
-    const previousFeaturedPostId = settings.featuredPostId;
-    settings.featuredPostId = post.id;
+    settings.featuredPostId = typeof post.id === 'number' ? post.id : parseInt(post.id, 10);
     await settings.save();
 
-    // ModLog erstellen
-    const modLog = new ModLog({
+    await ModLog.create({
       moderator: session.user.id,
       action: 'feature',
       targetType: 'post',
       targetId: post._id,
-      reason: 'Featured post on homepage',
-      metadata: {
-        previousState: { featuredPostId: previousFeaturedPostId },
-        newState: { featuredPostId: post.id },
-        autoTriggered: false
-      }
+      reason: 'Post featured on homepage'
     });
 
-    await modLog.save();
-
-    return NextResponse.json({
-      success: true,
-      message: 'Post featured successfully'
-    });
+    return NextResponse.json({ success: true, featured: { id: post.id } });
   } catch (error) {
-    console.error('Feature post error:', error);
+    console.error('Error featuring post:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'An error occurred' },
       { status: 500 }
@@ -84,34 +74,32 @@ export async function DELETE(req: Request) {
 
     await dbConnect();
 
-    // SiteSettings aktualisieren
     const settings = await SiteSettings.getInstance();
-    const previousFeaturedPostId = settings.featuredPostId;
+    const featuredPostId = settings.featuredPostId;
+
+    if (!featuredPostId) {
+      return NextResponse.json({ error: 'No featured post to unfeature' }, { status: 400 });
+    }
+
+    let post;
+    post = await Post.findOne({ id: featuredPostId });
+
     settings.featuredPostId = null;
     await settings.save();
 
-    // ModLog erstellen
-    const modLog = new ModLog({
-      moderator: session.user.id,
-      action: 'unfeature',
-      targetType: 'post',
-      targetId: null, // Kein spezifisches Target
-      reason: 'Removed featured post from homepage',
-      metadata: {
-        previousState: { featuredPostId: previousFeaturedPostId },
-        newState: { featuredPostId: null },
-        autoTriggered: false
-      }
-    });
+    if (post) {
+      await ModLog.create({
+        moderator: session.user.id,
+        action: 'unfeature',
+        targetType: 'post',
+        targetId: post._id,
+        reason: 'Post removed from homepage'
+      });
+    }
 
-    await modLog.save();
-
-    return NextResponse.json({
-      success: true,
-      message: 'Featured post removed successfully'
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Unfeature post error:', error);
+    console.error('Error unfeaturing post:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'An error occurred' },
       { status: 500 }

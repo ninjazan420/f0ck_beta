@@ -45,6 +45,11 @@ export function PostThumbnail({ post }: PostProps) {
 
         {/* Badges */}
         <div className="absolute top-1 left-1 flex items-center gap-1 text-[10px]">
+          {post.isPinned && (
+            <div className="px-1.5 py-0.5 rounded bg-amber-500/40 text-white border border-amber-500/50">
+              📌 PINNED
+            </div>
+          )}
           {post.isAd && (
             <div className="px-1.5 py-0.5 rounded bg-blue-500/40 text-white border border-blue-400/50">
               AD
@@ -53,11 +58,6 @@ export function PostThumbnail({ post }: PostProps) {
           <div className={`px-1.5 py-0.5 rounded ${ratingColors[post.contentRating]}`}>
             {post.contentRating}
           </div>
-          {post.isPinned && (
-            <div className="px-1.5 py-0.5 rounded bg-purple-600/50 text-white border border-purple-400/50">
-              📌
-            </div>
-          )}
         </div>
 
         {/* Info Overlay mit Emoji-Prefix */}

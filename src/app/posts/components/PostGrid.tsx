@@ -242,16 +242,29 @@ export function PostGrid({
     );
   }
 
-  // Get posts for the current view
+  // Verbesserte Methode für die Anzeige der Posts mit Unterstützung für gepinnte Posts
   const getVisiblePosts = () => {
     if (infiniteScroll) {
-      // For infinite scroll, return all loaded posts (filtered by content rating)
-      return posts.filter(post => 
+      // Für Infinite Scroll, alle geladenen Posts zurückgeben (gefiltert nach Content Rating)
+      // Aber jetzt mit gepinnten Posts zuerst
+      const filteredPosts = posts.filter(post => 
         !filters.contentRating?.length || filters.contentRating.includes(post.contentRating)
       );
+      
+      // Sortiere Posts: gepinnte Posts zuerst, dann die restlichen
+      return [...filteredPosts].sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return 0;
+      });
     } else {
-      // For pagination, return only the current page
-      return posts;
+      // Für Paginierung, nur die aktuelle Seite zurückgeben
+      // Ebenfalls mit gepinnten Posts zuerst
+      return [...posts].sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return 0;
+      });
     }
   };
 
@@ -295,8 +308,8 @@ export function PostGrid({
                 {/* Left Badges */}
                 <div className="flex flex-col gap-0.5 sm:gap-1">
                   {post.isPinned && (
-                    <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-blue-500/40 text-white border border-blue-500/50">
-                      📌 PIN
+                    <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-amber-500/40 text-white border border-amber-500/50">
+                      📌 PINNED
                     </span>
                   )}
                   {post.isAd && (

@@ -15,6 +15,7 @@ export function PostModerator({ postId }: PostModeratorProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [commentsBlocked, setCommentsBlocked] = useState(false);
   const [isFeatured, setIsFeatured] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
   const [showStatusBanner, setShowStatusBanner] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState<'default' | 'success'>('default');
@@ -26,7 +27,9 @@ export function PostModerator({ postId }: PostModeratorProps) {
         const response = await fetch(`/api/posts/${postId}/status`);
         if (response.ok) {
           const data = await response.json();
+          console.log("Post status data received:", data); // Debug-Ausgabe
           setCommentsBlocked(!!data.commentsDisabled);
+          setIsPinned(!!data.isPinned);
         }
         
         // Prüfen, ob dieser Post der featured post ist
@@ -150,7 +153,7 @@ export function PostModerator({ postId }: PostModeratorProps) {
       const response = await fetch('/api/moderation/feature', {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: isFeatured ? undefined : JSON.stringify({ postId })
+        body: JSON.stringify({ postId })
       });
       
       if (response.ok) {
@@ -173,6 +176,54 @@ export function PostModerator({ postId }: PostModeratorProps) {
       }
     } catch (error) {
       console.error(`Error ${isFeatured ? 'unfeaturing' : 'featuring'} post:`, error);
+      
+      if (typeof toast !== 'undefined') {
+        toast.error(error instanceof Error ? error.message : 'An error occurred');
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  
+  const togglePinPost = async () => {
+    try {
+      setIsProcessing(true);
+      const action = isPinned ? 'unpin' : 'pin';
+      const message = isPinned ? 'Post unpinned from posts page' : 'Post pinned to the top of posts page';
+      
+      const response = await fetch('/api/moderation/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: action,
+          targetType: 'post',
+          targetId: postId,
+          reason: `Moderation - ${isPinned ? 'Unpin post' : 'Pin post'}`
+        })
+      });
+      
+      if (response.ok) {
+        setIsPinned(!isPinned);
+        
+        // Show status banner
+        setStatusMessage(message);
+        setStatusType('success');
+        setShowStatusBanner(true);
+        
+        if (typeof toast !== 'undefined') {
+          toast.success(message);
+        }
+        
+        // Aktualisiere die Seite, um die Änderungen zu sehen
+        router.refresh();
+        
+        console.log("Pin status after toggle:", !isPinned);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Error ${isPinned ? 'unpinning' : 'pinning'} post`);
+      }
+    } catch (error) {
+      console.error(`Error ${isPinned ? 'unpinning' : 'pinning'} post:`, error);
       
       if (typeof toast !== 'undefined') {
         toast.error(error instanceof Error ? error.message : 'An error occurred');
@@ -236,7 +287,20 @@ export function PostModerator({ postId }: PostModeratorProps) {
             <svg className="h-5 w-5" strokeLinejoin="round" strokeLinecap="round" strokeWidth={2} stroke="currentColor" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z" />
             </svg>
-            <p className="font-medium text-sm">{isFeatured ? "Unfeature Post" : "Feature this Post"}</p>
+            <p className="font-medium text-sm">{isFeatured ? "Unfeature from Homepage" : "Feature on Homepage"}</p>
+          </li>
+          
+          <li className="flex cursor-pointer items-center gap-3 px-4 py-2 text-amber-400 transition-all hover:bg-amber-500/20 hover:text-white"
+              onClick={togglePinPost}
+              style={{ opacity: isProcessing ? 0.6 : 1, pointerEvents: isProcessing ? 'none' : 'auto' }}
+          >
+            <svg className="h-5 w-5" strokeLinejoin="round" strokeLinecap="round" strokeWidth={2} stroke="currentColor" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 10v10" />
+              <path d="m12 10 4-4" />
+              <path d="m12 10-4-4" />
+              <path d="M4 4h16" />
+            </svg>
+            <p className="font-medium text-sm">{isPinned ? "Unpin Post" : "Pin this Post"}</p>
           </li>
         </ul>
       </div>
