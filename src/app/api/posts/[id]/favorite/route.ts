@@ -105,67 +105,94 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const resolvedParams = await params;
-    const postId = resolvedParams.id;
-    
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Parameter korrekt auflösen
+    const resolvedParams = await params;
+    const postId = resolvedParams.id;
+    
     await dbConnect();
-
-    const post = await Post.findById(postId);
+    
+    // Verbesserte Suche nach dem Post mit Überprüfung der ObjectId-Gültigkeit
+    let post;
+    
+    // Prüfen, ob postId eine gültige MongoDB ObjectId ist
+    if (mongoose.isValidObjectId(postId)) {
+      post = await Post.findById(postId);
+    }
+    
+    // Falls nicht gefunden, versuche als numerische ID zu finden
+    if (!post) {
+      const numericId = parseInt(postId, 10);
+      if (!isNaN(numericId)) {
+        post = await Post.findOne({ id: numericId });
+      }
+    }
+    
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
+    // Finde den Benutzer
     const user = await User.findById(session.user.id);
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if user has favorited this post
-    const favoriteIndex = user.favorites ? user.favorites.findIndex(
-      (fav) => fav.toString() === postId
-    ) : -1;
-
-    if (favoriteIndex === -1) {
+    // Überprüfe, ob der Benutzer den Post favorisiert hat
+    if (!user.favorites) {
+      user.favorites = [];
       return NextResponse.json({ 
         favorited: false,
-        message: 'Post not in favorites' 
+        favoriteCount: post.stats?.favorites || 0 
       });
     }
 
-    // Remove post from user's favorites
-    user.favorites.splice(favoriteIndex, 1);
-    await user.save();
+    // Finde und entferne den Post aus den Favoriten des Benutzers
+    const postMongoId = post._id.toString();
+    const favoriteIndex = user.favorites.findIndex(
+      favId => favId.toString() === postMongoId
+    );
 
-    // Decrement favorites count on post
-    post.stats.favorites = Math.max(0, (post.stats.favorites || 0) - 1);
-    await post.save();
-
-    // Create ModLog entry
-    await ModLog.create({
-      moderator: session.user.id,
-      action: 'unfavorite',
-      targetType: 'post',
-      targetId: post._id,
-      reason: 'User removed post from favorites',
-      metadata: {
-        autoTriggered: true
+    if (favoriteIndex !== -1) {
+      // Post aus Favoriten entfernen
+      user.favorites.splice(favoriteIndex, 1);
+      await user.save();
+      
+      // Aktualisiere den Post-Zähler
+      if (!post.stats) {
+        post.stats = { likes: 0, views: 0, comments: 0, favorites: 0 };
       }
-    });
+      
+      post.stats.favorites = Math.max(0, (post.stats.favorites || 0) - 1);
+      await post.save();
+      
+      // ModLog eintragen mit korrekter action
+      await ModLog.create({
+        moderator: session.user.id,
+        action: 'favorite', // Änderung von 'unfavorite' zu 'favorite'
+        targetType: 'post',
+        targetId: post._id,
+        reason: 'User removed post from favorites',
+        metadata: {
+          postId: post._id,
+          postTitle: post.title,
+          removed: true // Zeigt an, dass es eine Entfernung ist
+        }
+      });
+    }
 
     return NextResponse.json({ 
-      success: true,
       favorited: false,
-      favoritesCount: post.stats.favorites
+      favoriteCount: post.stats.favorites 
     });
   } catch (error) {
-    console.error('Error removing post from favorites:', error);
+    console.error('Error removing favorite:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: 'Error removing favorite' },
       { status: 500 }
     );
   }

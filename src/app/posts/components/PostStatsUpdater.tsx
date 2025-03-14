@@ -13,7 +13,7 @@ interface PostStats {
 export function PostStatsUpdater() {
   const [stats, setStats] = useState<PostStats>({});
   
-  // Poll for stats updates every 30 seconds
+  // Poll for stats updates every 15 seconds (häufiger aktualisieren)
   useEffect(() => {
     let isMounted = true;
     
@@ -27,6 +27,8 @@ export function PostStatsUpdater() {
         
         if (postIds.length === 0) return;
         
+        console.log('Updating stats for visible posts:', postIds);
+        
         // Fetch stats for all visible posts
         const response = await fetch('/api/posts/batch-stats', {
           method: 'POST',
@@ -34,11 +36,15 @@ export function PostStatsUpdater() {
           body: JSON.stringify({ postIds })
         });
         
-        if (!response.ok) return;
+        if (!response.ok) {
+          console.error('Failed to fetch post stats:', response.status);
+          return;
+        }
         
         const newStats = await response.json();
         if (!isMounted) return;
         
+        console.log('Received updated stats:', newStats);
         setStats(newStats);
         
         // Update the stats in the DOM
@@ -56,9 +62,9 @@ export function PostStatsUpdater() {
       }
     };
     
-    // Update immediately and then every 30 seconds
+    // Update immediately and then every 15 seconds
     updateVisiblePostStats();
-    const interval = setInterval(updateVisiblePostStats, 30000);
+    const interval = setInterval(updateVisiblePostStats, 15000);
     
     return () => {
       isMounted = false;

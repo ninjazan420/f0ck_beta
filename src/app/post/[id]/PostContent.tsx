@@ -51,6 +51,14 @@ export default function PostContent({ postData, postId }) {
     setIsProcessing(true);
     
     try {
+      // Aktuellen Zustand sichern
+      const currentLiked = liked;
+      const currentCount = likeCount;
+      
+      // UI optimistisch aktualisieren
+      setLiked(!liked);
+      setLikeCount(prev => prev + (liked ? -1 : 1));
+      
       const method = liked ? 'DELETE' : 'POST';
       const response = await fetch(`/api/posts/${postId}/like`, {
         method,
@@ -60,18 +68,27 @@ export default function PostContent({ postData, postId }) {
       });
       
       if (response.ok) {
+        // Daten aus der Antwort lesen
         const data = await response.json();
+        
+        // Server-Zustand übernehmen
         setLiked(data.liked);
         setLikeCount(data.likeCount);
         
-        // Zeige eine Benachrichtigung an
-        toast.success(liked ? 'Like entfernt' : 'Beitrag geliked');
+        // Feedback zeigen
+        const message = data.message || (liked ? 'Like entfernt' : 'Beitrag geliked');
+        toast.success(message);
         
-        // Refresh page to update other components
+        // Aktualisiere die Seite
         router.refresh();
       } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update like');
+        // Bei Fehler alten Zustand wiederherstellen
+        setLiked(currentLiked);
+        setLikeCount(currentCount);
+        
+        // Fehlermeldung zeigen
+        const errorData = await response.json().catch(() => ({ error: 'Unbekannter Fehler' }));
+        throw new Error(errorData.error || 'Fehler bei der Aktualisierung des Likes');
       }
     } catch (error) {
       console.error('Error updating like:', error);
@@ -91,6 +108,19 @@ export default function PostContent({ postData, postId }) {
     setIsProcessing(true);
     
     try {
+      // Aktuellen Wert für die Wiederherstellung im Fehlerfall speichern
+      const currentFavorited = favorited;
+      const currentCount = favoriteCount;
+      
+      // Optimistisches UI-Update
+      setFavorited(!favorited);
+      setFavoriteCount(favoriteCount + (favorited ? -1 : 1));
+      
+      console.log('Sending favorite request:', {
+        method: favorited ? 'DELETE' : 'POST',
+        url: `/api/posts/${postId}/favorite`
+      });
+      
       const method = favorited ? 'DELETE' : 'POST';
       const response = await fetch(`/api/posts/${postId}/favorite`, {
         method,
@@ -99,19 +129,42 @@ export default function PostContent({ postData, postId }) {
         }
       });
       
+      console.log('Favorite response status:', response.status);
+      const responseText = await response.text();
+      console.log('Favorite response text:', responseText);
+      
       if (response.ok) {
-        const data = await response.json();
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (e) {
+          console.error('Failed to parse response JSON:', e);
+          data = { favorited: !favorited, favoriteCount: favoriteCount + (favorited ? -1 : 1) };
+        }
+        
+        console.log('Parsed favorite response:', data);
         setFavorited(data.favorited);
-        setFavoriteCount(data.favoritesCount);
+        setFavoriteCount(data.favoriteCount || data.favoritesCount);
         
         toast.success(favorited ? 'Aus Favoriten entfernt' : 'Zu Favoriten hinzugefügt');
         
         router.refresh();
       } else {
-        const error = await response.json();
+        // Bei Fehler zurück zum vorherigen Zustand
+        setFavorited(currentFavorited);
+        setFavoriteCount(currentCount);
+        let error;
+        try {
+          error = JSON.parse(responseText);
+        } catch (e) {
+          error = { message: 'Failed to update favorites' };
+        }
         throw new Error(error.message || 'Failed to update favorites');
       }
     } catch (error) {
+      // Bei Ausnahme zurück zum vorherigen Zustand
+      setFavorited(currentFavorited);
+      setFavoriteCount(currentCount);
       console.error('Error updating favorites:', error);
       toast.error('Fehler beim Aktualisieren der Favoriten');
     } finally {

@@ -32,6 +32,17 @@ const handleSubmit = async (e: React.FormEvent) => {
     if (onCommentAdded) {
       onCommentAdded(newComment);
     }
+    
+    // Optional: Aktualisiere die Stats
+    try {
+      await fetch(`/api/posts/${postId}/updateStats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (statsError) {
+      console.error('Fehler beim Aktualisieren der Statistiken:', statsError);
+      // Sollte den Erfolg des Kommentars nicht beeinträchtigen
+    }
   } catch (error) {
     console.error('Error submitting comment:', error);
     alert(`Fehler beim Senden des Kommentars: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);

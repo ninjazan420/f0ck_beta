@@ -112,7 +112,7 @@ export function PostActions({
       if (response.ok) {
         const data = await response.json();
         setFavorited(data.favorited);
-        setFavoriteCount(data.favoritesCount);
+        setFavoriteCount(data.favoriteCount);
         
         // Update UI optimistically
         toast.success(favorited ? 'Removed from favorites' : 'Added to favorites');

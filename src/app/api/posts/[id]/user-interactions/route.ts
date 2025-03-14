@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db/mongodb';
@@ -18,7 +18,8 @@ export async function GET(
     if (!session?.user) {
       return NextResponse.json({
         liked: false,
-        favorited: false
+        favorited: false,
+        disliked: false
       });
     }
 
@@ -36,6 +37,7 @@ export async function GET(
       return NextResponse.json({
         liked: false,
         favorited: false,
+        disliked: false,
         error: 'Post not found'
       });
     }
@@ -46,17 +48,20 @@ export async function GET(
     if (!user) {
       return NextResponse.json({
         liked: false,
-        favorited: false
+        favorited: false,
+        disliked: false
       });
     }
 
-    // Check if user has liked or favorited this post using the MongoDB _id
+    // Check if user has liked, disliked or favorited this post using the MongoDB _id
     const liked = user.likes ? user.likes.some(id => id.toString() === postId) : false;
     const favorited = user.favorites ? user.favorites.some(id => id.toString() === postId) : false;
+    const disliked = user.dislikes ? user.dislikes.some(id => id.toString() === postId) : false;
 
     return NextResponse.json({
       liked,
       favorited,
+      disliked,
       postId: postId // Send back the actual MongoDB _id for future reference
     });
   } catch (error) {

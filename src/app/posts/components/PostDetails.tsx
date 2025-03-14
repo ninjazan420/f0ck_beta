@@ -13,6 +13,8 @@ import { EmojiPicker } from '@/components/EmojiPicker';
 import { GifSelector } from '@/components/GifSelector';
 import { PostModerator } from './PostModerator';
 import { PostTagEditor } from '@/app/posts/components/PostTagEditor';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 interface PostData {
   id: string;
@@ -238,42 +240,132 @@ export function PostDetails({ postId }: { postId: string }) {
   };
 
   // Voting Handler
-  const handleVote = (type: 'like' | 'dislike') => {
-    if (userVote === type) {
-      setUserVote(null);
-      setPost(prev => prev ? {
-        ...prev,
-        stats: {
-          ...prev.stats,
-          likes: type === 'like' ? prev.stats.likes - 1 : prev.stats.likes,
-          dislikes: type === 'dislike' ? prev.stats.dislikes - 1 : prev.stats.dislikes
-        }
-      } : null);
-    } else {
-      setUserVote(type);
-      setPost(prev => prev ? {
-        ...prev,
-        stats: {
-          ...prev.stats,
-          likes: type === 'like' ? prev.stats.likes + 1 : 
-                 userVote === 'like' ? prev.stats.likes - 1 : prev.stats.likes,
-          dislikes: type === 'dislike' ? prev.stats.dislikes + 1 : 
-                    userVote === 'dislike' ? prev.stats.dislikes - 1 : prev.stats.dislikes
-        }
-      } : null);
+  const handleVote = async (voteType: 'like' | 'dislike') => {
+    if (!session?.user) {
+      router.push(`/login?callbackUrl=/posts/${postId}`);
+      return;
+    }
+    
+    // Vermeide mehrere Anfragen gleichzeitig
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    
+    try {
+      // Neue, vereinheitlichte API verwenden
+      const endpoint = `/api/posts/${postId}/interactions`;
+      
+      // Bestimme, ob wir hinzufügen oder entfernen
+      const isLike = voteType === 'like';
+      const shouldRemove = isLike ? userVote === 'like' : userVote === 'dislike';
+      
+      console.log(`Sending interaction request with type: ${voteType}, remove: ${shouldRemove}`);
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: voteType,
+          remove: shouldRemove
+        })
+      });
+      
+      console.log(`Vote response status: ${response.status}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to ${shouldRemove ? 'remove' : 'add'} ${voteType}: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log(`Vote response data:`, data);
+      
+      // Update der lokalen Zustände mit den genauen Werten aus der API
+      setPost(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            likes: data.likeCount,
+            dislikes: data.dislikeCount
+          }
+        };
+      });
+      
+      // Update des Benutzervotings basierend auf dem API-Ergebnis
+      if (isLike) {
+        setUserVote(data.liked ? 'like' : null);
+      } else {
+        setUserVote(data.disliked ? 'dislike' : null);
+      }
+    } catch (error) {
+      console.error(`Error with vote operation:`, error);
+      alert(`Fehler: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   // Favorite Handler
-  const handleFavorite = () => {
-    setIsFavorited(!isFavorited);
-    setPost(prev => prev ? {
-      ...prev,
-      stats: {
-        ...prev.stats,
-        favorites: isFavorited ? prev.stats.favorites - 1 : prev.stats.favorites + 1
+  const handleFavorite = async () => {
+    if (!session?.user) {
+      router.push(`/login?callbackUrl=/posts/${postId}`);
+      return;
+    }
+    
+    // Vermeide mehrere Anfragen gleichzeitig
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    
+    try {
+      const method = isFavorited ? 'DELETE' : 'POST';
+      const endpoint = `/api/posts/${postId}/favorite`;
+      
+      console.log(`Sending ${method} request to ${endpoint}`);
+      
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log(`Favorite response status: ${response.status}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to ${method} favorite: ${response.status}`);
       }
-    } : null);
+      
+      const data = await response.json();
+      console.log(`Favorite response data:`, data);
+      
+      // Update der lokalen Zustände
+      setIsFavorited(!isFavorited);
+      setPost(prev => ({
+        ...prev,
+        stats: {
+          ...prev.stats,
+          favorites: data.favoriteCount
+        }
+      }));
+      
+      // Benachrichtigung anzeigen
+      toast.success(
+        isFavorited 
+          ? 'Aus Favoriten entfernt' 
+          : 'Zu Favoriten hinzugefügt'
+      );
+      
+      // Router aktualisieren, damit alle Komponenten die neue Daten erhalten
+      router.refresh();
+      
+    } catch (error) {
+      console.error('Error handling favorite:', error);
+      toast.error('Fehler beim Aktualisieren der Favoriten');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Role badge rendering function similar to the one used in comments
@@ -304,6 +396,8 @@ export function PostDetails({ postId }: { postId: string }) {
       );
     }
   };
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -414,6 +508,25 @@ export function PostDetails({ postId }: { postId: string }) {
     
     fetchPostStatus();
   }, [postId]);
+
+  useEffect(() => {
+    if (session?.user && post) {
+      async function loadUserInteractions() {
+        try {
+          const response = await fetch(`/api/posts/${postId}/user-interactions`);
+          if (response.ok) {
+            const data = await response.json();
+            setUserVote(data.liked ? 'like' : data.disliked ? 'dislike' : null);
+            setIsFavorited(data.favorited);
+          }
+        } catch (error) {
+          console.error('Error loading user interactions:', error);
+        }
+      }
+      
+      loadUserInteractions();
+    }
+  }, [session, postId, post]);
 
   if (loading) {
     return (
