@@ -1,5 +1,44 @@
 # Änderungsprotokoll
 
+## 2.5.0
+
+### 🌟 Verbesserte Interaktionssysteme
+- **Umfassendes Like- und Dislike-System**:
+  - Vollständige Implementierung der Like- und Dislike-Funktionalität
+  - Optimistisches UI-Update für unmittelbare Benutzerrückmeldung
+  - Konsistente Verarbeitung von Benutzerinteraktionen über alle Seiten hinweg
+  - ModLog-Einträge für alle Interaktionen zur besseren Nachverfolgung
+
+### 📌 Neue Post-Management-Funktionen
+- **Pinned Posts Feature implementiert**:
+  - Möglichkeit, wichtige Beiträge an der Spitze der Seite anzupinnen
+  - Verbesserte Sichtbarkeit für wichtige Informationen
+  - Intuitives Pin/Unpin-System für Administratoren
+  - "unfeature" Typ-Never-Fehler behoben für zuverlässige Funktionalität
+
+### 🔔 Benachrichtigungssystem
+- **Verbesserte Benachrichtigungen für Benutzerinteraktionen**:
+  - Echtzeitbenachrichtigungen für Likes, Dislikes und Favoriten
+  - Klare Rückmeldung bei allen Benutzerinteraktionen
+  - Optimierte Verarbeitung und Zustellung von Benachrichtigungen
+
+### 📊 Überarbeitete Statistiken
+- **Neu gestalteter Statistikbereich auf der Startseite**:
+  - Visuelle Verbesserungen zur besseren Datenvisualisierung
+  - Ersetzung von Template-Daten durch Echtzeit-Daten
+  - Effizientere Aktualisierung von Beitragsstatistiken
+
+### 🖼️ Medienverbesserungen
+- **Optimierte Bildanzeige**:
+  - Korrigierte Bildvorschau in Metadaten für besseres Social Sharing
+  - Verbesserte Darstellung von Bildern in verschiedenen Kontexten
+
+### 🛠️ Technische Verbesserungen
+- **Vereinheitlichte API-Endpunkte**:
+  - Neue Interactions-API für konsistente Handhabung aller Benutzerinteraktionen
+  - Optimierte Datenverarbeitung mit verbesserten Fehlerbehandlungen
+  - Effizientere Batches für Aktualisierung von Statistiken
+
 ## 2.4.0
 
 ### 🌟 Neues Feature-System
@@ -209,7 +248,7 @@ Diese Version markiert einen wichtigen Meilenstein für das f0ck.org Projekt und
   - Post-Navigator repariert, sodass nur der aktuelle Zustand berücksichtigt wird
 - **Verbesserte Metadaten**: Hinzufügen von og:title Tags für bessere Darstellung in sozialen Medien und Suchmaschinen
 
-### 🚀 Neue Funktionalitäten
+### �� Neue Funktionalitäten
 
 - **Erweiterte Upload-Möglichkeiten**: 
   - Copy & Paste-Funktion implementiert

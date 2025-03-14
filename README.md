@@ -1,4 +1,4 @@
-# f0ck.org Beta v2.4.0
+# f0ck.org Beta v2.5.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v2.4.0](#f0ckorg-beta-v240)
+- [f0ck.org Beta v2.5.0](#f0ckorg-beta-v250)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,7 +21,13 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v2.4.0 (Current)](#beta-v240-current)
+    - [Beta v2.5.0 (Current)](#beta-v250-current)
+      - [🌟 Enhanced Interaction Systems](#-enhanced-interaction-systems)
+      - [📌 New Post Management Functions](#-new-post-management-functions)
+      - [🔔 Notification System](#-notification-system)
+      - [📊 Redesigned Statistics](#-redesigned-statistics)
+      - [🖼️ Media Improvements](#️-media-improvements)
+    - [Beta v2.4.0](#beta-v240)
       - [🌟 New Feature System](#-new-feature-system)
       - [🏠 Improved Frontend](#-improved-frontend)
       - [🔗 Optimized Social Sharing](#-optimized-social-sharing)
@@ -166,7 +172,46 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v2.4.0 (Current)
+### Beta v2.5.0 (Current)
+
+#### 🌟 Enhanced Interaction Systems
+
+- **Comprehensive Like and Dislike System**:
+  - Full implementation of like and dislike functionality
+  - Optimistic UI updates for immediate user feedback
+  - Consistent processing of user interactions across all pages
+  - ModLog entries for improved tracking of all interactions
+
+#### 📌 New Post Management Functions
+
+- **Pinned Posts Feature**:
+  - Ability to pin important posts to the top of the page
+  - Improved visibility for important information
+  - Intuitive pin/unpin system for administrators
+  - Fixed "unfeature" type never error for reliable functionality
+
+#### 🔔 Notification System
+
+- **Enhanced Notifications for User Interactions**:
+  - Real-time notifications for likes, dislikes and favorites
+  - Clear feedback for all user interactions
+  - Optimized processing and delivery of notifications
+
+#### 📊 Redesigned Statistics
+
+- **Redesigned Statistics Area on Homepage**:
+  - Visual improvements for better data visualization
+  - Replacement of template data with real-time data
+  - More efficient updating of post statistics
+
+#### 🖼️ Media Improvements
+
+- **Optimized Image Display**:
+  - Fixed image preview in metadata for better social sharing
+  - Improved presentation of images in various contexts
+  - Enhanced technical backend for media handling
+
+### Beta v2.4.0
 
 #### 🌟 New Feature System
 
@@ -505,5 +550,5 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 
 MIT License - © 2024 f0ck.org Team
 
-> Beta Version 2.4.0 - We build something new...
+> Beta Version 2.5.0 - We build something new...
 
