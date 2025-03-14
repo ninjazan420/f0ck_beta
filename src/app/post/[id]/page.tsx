@@ -287,7 +287,7 @@ function getAbsoluteImageUrl(relativeUrl: string): string {
   
   // Verwende immer die Produktions-URL für Vorschaubilder, nie localhost
   // Das löst das Problem mit fehlenden Vorschaubildern beim lokalen Entwickeln
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://f0ck.org';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://beta.f0ck.org';
   
   // Stelle sicher, dass die URL mit einem Slash beginnt
   const formattedRelativeUrl = relativeUrl.startsWith('/') ? relativeUrl : `/${relativeUrl}`;

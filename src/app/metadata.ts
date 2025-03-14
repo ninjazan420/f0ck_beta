@@ -4,7 +4,7 @@ import { Metadata } from "next";
 export const siteConfig = {
   name: "f0ck.org",
   description: "Anonymous Imageboard platform for sharing Memes, Cats, and more",
-  url: "https://f0ck.org",
+  url: "https://beta.f0ck.org",
   icon: "/favicon.ico",
 };
 

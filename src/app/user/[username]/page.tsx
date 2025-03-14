@@ -92,7 +92,7 @@ export async function generateMetadata({ params }: { params: { username: string 
     : `Check out ${formattedUsername}'s profile on f0ck.org`;
   
   // Default Avatar, falls der Benutzer keinen hat
-  const defaultAvatarUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://f0ck.org'}/api/user/default-avatar?username=${encodeURIComponent(user.username)}`;
+  const defaultAvatarUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://beta.f0ck.org'}/api/user/default-avatar?username=${encodeURIComponent(user.username)}`;
   
   // Verwende das tatsächliche Avatarbild oder die Fallback-URL
   const avatarUrl = user.avatar || defaultAvatarUrl;
@@ -104,7 +104,7 @@ export async function generateMetadata({ params }: { params: { username: string 
       title,
       description,
       type: 'profile',
-      url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://f0ck.org'}/user/${user.username}`,
+      url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://beta.f0ck.org'}/user/${user.username}`,
       images: [
         {
           url: avatarUrl,
