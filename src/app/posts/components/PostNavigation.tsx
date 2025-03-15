@@ -3,6 +3,16 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+// Hilfsfunktion um zu prüfen, ob der Nutzer in einem Eingabefeld tippt
+function isUserTypingInInput(): boolean {
+  const activeElement = document.activeElement;
+  const isInputField = activeElement instanceof HTMLInputElement || 
+                       activeElement instanceof HTMLTextAreaElement || 
+                       activeElement instanceof HTMLSelectElement ||
+                       (activeElement?.getAttribute('contenteditable') === 'true');
+  return !!isInputField;
+}
+
 interface PostNavigationProps {
   currentId: string;
   nextPostId?: string | null;
@@ -15,6 +25,11 @@ export function PostNavigation({ currentId, nextPostId, previousPostId }: PostNa
   // Add keyboard navigation
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      // Wenn der Nutzer in einem Eingabefeld tippt, die Navigation nicht auslösen
+      if (isUserTypingInInput()) {
+        return;
+      }
+      
       // Previous post: Left arrow or A
       if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') && previousPostId) {
         router.push(`/post/${previousPostId}`);
