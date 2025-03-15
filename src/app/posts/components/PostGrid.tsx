@@ -291,7 +291,7 @@ export function PostGrid({
               className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 block"
             >
               <div className="relative w-full h-full flex items-center justify-center">
-                <div className="relative w-full h-full p-1 sm:p-2">
+                <div className="relative">
                   <Image
                     src={getImageUrlWithCacheBuster(post.thumbnail)}
                     alt={post.title}
