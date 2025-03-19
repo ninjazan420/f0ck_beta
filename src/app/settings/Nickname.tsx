@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
+import Switch from "@/components/ui/Switch";
 
 // Definiere Typen für die Settings
 interface UserSettings {
@@ -246,20 +247,14 @@ export function Nickname({ settings, setSettings, hasPremiumAccess }: NicknamePr
                 Customize your nickname appearance
               </span>
             </div>
-            <label className={`toggle-switch ${!hasPremiumAccess && "opacity-50 cursor-not-allowed"}`}>
-              <input
-                type="checkbox"
-                checked={settings.nicknameStyle?.type !== undefined}
-                onChange={() => setSettings(prev => ({
-                  ...prev,
-                  nicknameStyle: prev.nicknameStyle ? undefined : { type: 'solid', value: 'purple-500' }
-                }))}
-                disabled={!hasPremiumAccess}
-              />
-              <div className="toggle-switch-background">
-                <div className="toggle-switch-handle"></div>
-              </div>
-            </label>
+            <Switch
+              checked={settings.nicknameStyle?.type !== undefined}
+              onChange={() => setSettings(prev => ({
+                ...prev,
+                nicknameStyle: prev.nicknameStyle ? undefined : { type: 'solid', value: 'purple-500' }
+              }))}
+              disabled={!hasPremiumAccess}
+            />
           </div>
 
           {/* Style Options */}

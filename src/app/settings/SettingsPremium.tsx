@@ -1,4 +1,5 @@
-import { Nickname } from './Nickname';  // Removed unused ChangeEvent import
+import { Nickname } from './Nickname';
+import Switch from '@/components/ui/Switch';
 
 // Define a proper type for settings
 interface PremiumSettings {
@@ -61,21 +62,14 @@ export function SettingsPremium({ settings, setSettings, userRole }: PremiumProp
               {hasPremiumAccess ? "Up to 50MB" : "Up to 10MB (50MB with premium)"}
             </span>
           </div>
-          {/* Entferne die Bedingung aus der className, da sie möglicherweise Probleme verursacht */}
-          <label className="toggle-switch">
-            <input
-              type="checkbox"
-              checked={settings.premium.maxGifSize}
-              onChange={(e) => setSettings(prev => ({
-                ...prev,
-                premium: { ...prev.premium, maxGifSize: e.target.checked }
-              }))}
-              disabled={!hasPremiumAccess}
-            />
-            <div className={`toggle-switch-background ${!hasPremiumAccess ? 'opacity-50' : ''}`}>
-              <div className="toggle-switch-handle"></div>
-            </div>
-          </label>
+          <Switch
+            checked={settings.premium.maxGifSize}
+            onChange={(e) => setSettings(prev => ({
+              ...prev,
+              premium: { ...prev.premium, maxGifSize: e.target.checked }
+            }))}
+            disabled={!hasPremiumAccess}
+          />
         </div>
 
         {/* Original Video Quality */}
@@ -90,20 +84,14 @@ export function SettingsPremium({ settings, setSettings, userRole }: PremiumProp
                 : "Rendered down to 720p | Premium keep original resolution"}
             </span>
           </div>
-          <label className={`toggle-switch ${!hasPremiumAccess && "opacity-50 cursor-not-allowed"}`}>
-            <input
-              type="checkbox"
-              checked={settings.premium.keepOriginalVideoQuality}
-              onChange={(e) => setSettings(prev => ({
-                ...prev,
-                premium: { ...prev.premium, keepOriginalVideoQuality: e.target.checked }
-              }))}
-              disabled={!hasPremiumAccess}
-            />
-            <div className="toggle-switch-background">
-              <div className="toggle-switch-handle"></div>
-            </div>
-          </label>
+          <Switch
+            checked={settings.premium.keepOriginalVideoQuality}
+            onChange={(e) => setSettings(prev => ({
+              ...prev,
+              premium: { ...prev.premium, keepOriginalVideoQuality: e.target.checked }
+            }))}
+            disabled={!hasPremiumAccess}
+          />
         </div>
 
         {/* Hide Advertisements */}
@@ -116,20 +104,14 @@ export function SettingsPremium({ settings, setSettings, userRole }: PremiumProp
               Remove all ads from the site
             </span>
           </div>
-          <label className={`toggle-switch ${!hasPremiumAccess && "opacity-50 cursor-not-allowed"}`}>
-            <input
-              type="checkbox"
-              checked={settings.premium.hideAds}
-              onChange={(e) => setSettings(prev => ({
-                ...prev,
-                premium: { ...prev.premium, hideAds: e.target.checked }
-              }))}
-              disabled={!hasPremiumAccess}
-            />
-            <div className="toggle-switch-background">
-              <div className="toggle-switch-handle"></div>
-            </div>
-          </label>
+          <Switch
+            checked={settings.premium.hideAds}
+            onChange={(e) => setSettings(prev => ({
+              ...prev,
+              premium: { ...prev.premium, hideAds: e.target.checked }
+            }))}
+            disabled={!hasPremiumAccess}
+          />
         </div>
 
         {/* Custom Pools */}
@@ -142,27 +124,21 @@ export function SettingsPremium({ settings, setSettings, userRole }: PremiumProp
               Create unlimited public & private pools
             </span>
           </div>
-          <label className={`toggle-switch ${!hasPremiumAccess && "opacity-50 cursor-not-allowed"}`}>
-            <input
-              type="checkbox"
-              checked={settings.premium.pools.enabled}
-              onChange={(e) => setSettings(prev => ({
-                ...prev,
-                premium: {
-                  ...prev.premium,
-                  pools: {
-                    ...prev.premium.pools,
-                    enabled: e.target.checked,
-                    privatePools: e.target.checked
-                  }
+          <Switch
+            checked={settings.premium.pools.enabled}
+            onChange={(e) => setSettings(prev => ({
+              ...prev,
+              premium: {
+                ...prev.premium,
+                pools: {
+                  ...prev.premium.pools,
+                  enabled: e.target.checked,
+                  privatePools: e.target.checked
                 }
-              }))}
-              disabled={!hasPremiumAccess}
-            />
-            <div className="toggle-switch-background">
-              <div className="toggle-switch-handle"></div>
-            </div>
-          </label>
+              }
+            }))}
+            disabled={!hasPremiumAccess}
+          />
         </div>
 
         {/* Advanced Tag Features */}
@@ -175,27 +151,21 @@ export function SettingsPremium({ settings, setSettings, userRole }: PremiumProp
               Unlimited tag favorites & custom categories
             </span>
           </div>
-          <label className={`toggle-switch ${!hasPremiumAccess && "opacity-50 cursor-not-allowed"}`}>
-            <input
-              type="checkbox"
-              checked={settings.premium.tags.favorites}
-              onChange={(e) => setSettings(prev => ({
-                ...prev,
-                premium: {
-                  ...prev.premium,
-                  tags: {
-                    ...prev.premium.tags,
-                    favorites: e.target.checked,
-                    customCategories: e.target.checked
-                  }
+          <Switch
+            checked={settings.premium.tags.favorites}
+            onChange={(e) => setSettings(prev => ({
+              ...prev,
+              premium: {
+                ...prev.premium,
+                tags: {
+                  ...prev.premium.tags,
+                  favorites: e.target.checked,
+                  customCategories: e.target.checked
                 }
-              }))}
-              disabled={!hasPremiumAccess}
-            />
-            <div className="toggle-switch-background">
-              <div className="toggle-switch-handle"></div>
-            </div>
-          </label>
+              }
+            }))}
+            disabled={!hasPremiumAccess}
+          />
         </div>
 
         {/* Enhanced Notifications */}
@@ -208,29 +178,23 @@ export function SettingsPremium({ settings, setSettings, userRole }: PremiumProp
               Custom filters & advanced alerts
             </span>
           </div>
-          <label className={`toggle-switch ${!hasPremiumAccess && "opacity-50 cursor-not-allowed"}`}>
-            <input
-              type="checkbox"
-              checked={settings.premium.notifications.customFilters}
-              onChange={(e) => setSettings(prev => ({
-                ...prev,
-                premium: {
-                  ...prev.premium,
-                  notifications: {
-                    ...prev.premium.notifications,
-                    customFilters: e.target.checked,
-                    mentionAlerts: e.target.checked,
-                    tagUpdates: e.target.checked,
-                    poolUpdates: e.target.checked
-                  }
+          <Switch
+            checked={settings.premium.notifications.customFilters}
+            onChange={(e) => setSettings(prev => ({
+              ...prev,
+              premium: {
+                ...prev.premium,
+                notifications: {
+                  ...prev.premium.notifications,
+                  customFilters: e.target.checked,
+                  mentionAlerts: e.target.checked,
+                  tagUpdates: e.target.checked,
+                  poolUpdates: e.target.checked
                 }
-              }))}
-              disabled={!hasPremiumAccess}
-            />
-            <div className="toggle-switch-background">
-              <div className="toggle-switch-handle"></div>
-            </div>
-          </label>
+              }
+            }))}
+            disabled={!hasPremiumAccess}
+          />
         </div>
 
         {/* Private Messaging */}
@@ -243,37 +207,30 @@ export function SettingsPremium({ settings, setSettings, userRole }: PremiumProp
               Unlimited conversations & attachments
             </span>
           </div>
-          <label className={`toggle-switch ${!hasPremiumAccess && "opacity-50 cursor-not-allowed"}`}>
-            <input
-              type="checkbox"
-              checked={settings.premium.messaging.enabled}
-              onChange={(e) => setSettings(prev => ({
-                ...prev,
-                premium: {
-                  ...prev.premium,
-                  messaging: {
-                    ...prev.premium.messaging,
-                    enabled: e.target.checked,
-                    attachments: e.target.checked,
-                    groupChats: e.target.checked
-                  }
+          <Switch
+            checked={settings.premium.messaging.enabled}
+            onChange={(e) => setSettings(prev => ({
+              ...prev,
+              premium: {
+                ...prev.premium,
+                messaging: {
+                  ...prev.premium.messaging,
+                  enabled: e.target.checked,
+                  attachments: e.target.checked,
+                  groupChats: e.target.checked
                 }
-              }))}
-              disabled={!hasPremiumAccess}
-            />
-            <div className="toggle-switch-background">
-              <div className="toggle-switch-handle"></div>
-            </div>
-          </label>
+              }
+            }))}
+            disabled={!hasPremiumAccess}
+          />
         </div>
 
-        {/* Nickname Styling - Vereinfacht */}
+        {/* Nickname Styling */}
         <Nickname 
           settings={settings} 
           setSettings={setSettings} 
           hasPremiumAccess={hasPremiumAccess}
         />
-
       </div>
     </section>
   );

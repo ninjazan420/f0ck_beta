@@ -4,6 +4,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { RandomLogo } from "@/components/RandomLogo";
 import { useState, ChangeEvent } from 'react';
 import { SettingsPremium } from './SettingsPremium';
+import Switch from '@/components/ui/Switch';
 
 interface SettingsClientProps {
   userRole: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
@@ -124,32 +125,20 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
               <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
                 Dark Mode
               </span>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={theme === "dark"}
-                  onChange={toggleTheme}
-                />
-                <div className="toggle-switch-background">
-                  <div className="toggle-switch-handle"></div>
-                </div>
-              </label>
+              <Switch
+                checked={theme === "dark"}
+                onChange={toggleTheme}
+              />
             </div>
 
             <div className="settings-row">
               <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
                 Blur NSFW Content
               </span>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={settings.blurNsfw}
-                  onChange={handleSettingChange("blurNsfw")}
-                />
-                <div className="toggle-switch-background">
-                  <div className="toggle-switch-handle"></div>
-                </div>
-              </label>
+              <Switch
+                checked={settings.blurNsfw}
+                onChange={handleSettingChange("blurNsfw")}
+              />
             </div>
           </section>
 
@@ -163,32 +152,20 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
               <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
                 Show Email in Profile
               </span>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={settings.showEmail}
-                  onChange={handleSettingChange("showEmail")}
-                />
-                <div className="toggle-switch-background">
-                  <div className="toggle-switch-handle"></div>
-                </div>
-              </label>
+              <Switch
+                checked={settings.showEmail}
+                onChange={handleSettingChange("showEmail")}
+              />
             </div>
 
             <div className="settings-row">
               <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
                 Allow Direct Messages
               </span>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={settings.allowDm}
-                  onChange={handleSettingChange("allowDm")}
-                />
-                <div className="toggle-switch-background">
-                  <div className="toggle-switch-handle"></div>
-                </div>
-              </label>
+              <Switch
+                checked={settings.allowDm}
+                onChange={handleSettingChange("allowDm")}
+              />
             </div>
           </section>
 
@@ -202,74 +179,50 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
               <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
                 Auto-play GIFs
               </span>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={settings.autoplayGifs}
-                  onChange={handleSettingChange("autoplayGifs")}
-                />
-                <div className="toggle-switch-background">
-                  <div className="toggle-switch-handle"></div>
-                </div>
-              </label>
+              <Switch
+                checked={settings.autoplayGifs}
+                onChange={handleSettingChange("autoplayGifs")}
+              />
             </div>
 
             <div className="settings-row">
               <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
                 High-Quality Thumbnails
               </span>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={settings.highQualityThumbs}
-                  onChange={handleSettingChange("highQualityThumbs")}
-                />
-                <div className="toggle-switch-background">
-                  <div className="toggle-switch-handle"></div>
-                </div>
-              </label>
+              <Switch
+                checked={settings.highQualityThumbs}
+                onChange={handleSettingChange("highQualityThumbs")}
+              />
             </div>
 
             <div className="settings-row">
               <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
                 Autoplay Videos
               </span>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={settings.autoplayVideos}
-                  onChange={(e) =>
-                    setSettings((prev) => ({
-                      ...prev,
-                      autoplayVideos: e.target.checked,
-                    }))
-                  }
-                />
-                <div className="toggle-switch-background">
-                  <div className="toggle-switch-handle"></div>
-                </div>
-              </label>
+              <Switch
+                checked={settings.autoplayVideos}
+                onChange={(e) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    autoplayVideos: e.target.checked,
+                  }))
+                }
+              />
             </div>
 
             <div className="settings-row">
               <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
                 Mute Autoplay Videos
               </span>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={settings.muteAutoplay}
-                  onChange={(e) =>
-                    setSettings((prev) => ({
-                      ...prev,
-                      muteAutoplay: e.target.checked,
-                    }))
-                  }
-                />
-                <div className="toggle-switch-background">
-                  <div className="toggle-switch-handle"></div>
-                </div>
-              </label>
+              <Switch
+                checked={settings.muteAutoplay}
+                onChange={(e) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    muteAutoplay: e.target.checked,
+                  }))
+                }
+              />
             </div>
           </section>
 
@@ -290,24 +243,18 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
                     Customize your viewing experience
                   </span>
                 </div>
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={settings.gridLayout.customLayout}
-                    onChange={(e) =>
-                      setSettings((prev) => ({
-                        ...prev,
-                        gridLayout: {
-                          ...prev.gridLayout,
-                          customLayout: e.target.checked,
-                        },
-                      }))
-                    }
-                  />
-                  <div className="toggle-switch-background">
-                    <div className="toggle-switch-handle"></div>
-                  </div>
-                </label>
+                <Switch
+                  checked={settings.gridLayout.customLayout}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      gridLayout: {
+                        ...prev.gridLayout,
+                        customLayout: e.target.checked,
+                      },
+                    }))
+                  }
+                />
               </div>
 
               {settings.gridLayout.customLayout && (

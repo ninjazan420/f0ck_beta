@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
+import Switch from '@/components/ui/Switch';
 
 type Notification = {
   _id: string;
@@ -262,15 +263,10 @@ export default function NotificationsPage() {
                   Receive notifications when someone comments on your posts
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={notificationSettings.comments}
-                  onChange={e => setNotificationSettings({...notificationSettings, comments: e.target.checked})}
-                />
-                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-              </label>
+              <Switch 
+                checked={notificationSettings.comments}
+                onChange={e => setNotificationSettings({...notificationSettings, comments: e.target.checked})}
+              />
             </div>
             
             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
@@ -280,15 +276,10 @@ export default function NotificationsPage() {
                   Receive notifications when someone replies to your comments
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={notificationSettings.replies}
-                  onChange={e => setNotificationSettings({...notificationSettings, replies: e.target.checked})}
-                />
-                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-              </label>
+              <Switch 
+                checked={notificationSettings.replies}
+                onChange={e => setNotificationSettings({...notificationSettings, replies: e.target.checked})}
+              />
             </div>
             
             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
@@ -298,15 +289,10 @@ export default function NotificationsPage() {
                   Receive notifications when someone likes your posts
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={notificationSettings.likes}
-                  onChange={e => setNotificationSettings({...notificationSettings, likes: e.target.checked})}
-                />
-                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-              </label>
+              <Switch 
+                checked={notificationSettings.likes}
+                onChange={e => setNotificationSettings({...notificationSettings, likes: e.target.checked})}
+              />
             </div>
             
             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
@@ -316,15 +302,10 @@ export default function NotificationsPage() {
                   Receive notifications when someone adds your posts to favorites
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={notificationSettings.favorites}
-                  onChange={e => setNotificationSettings({...notificationSettings, favorites: e.target.checked})}
-                />
-                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-              </label>
+              <Switch 
+                checked={notificationSettings.favorites}
+                onChange={e => setNotificationSettings({...notificationSettings, favorites: e.target.checked})}
+              />
             </div>
             
             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
@@ -334,15 +315,10 @@ export default function NotificationsPage() {
                   Receive notifications when someone mentions you
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={notificationSettings.mentions}
-                  onChange={e => setNotificationSettings({...notificationSettings, mentions: e.target.checked})}
-                />
-                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-              </label>
+              <Switch 
+                checked={notificationSettings.mentions}
+                onChange={e => setNotificationSettings({...notificationSettings, mentions: e.target.checked})}
+              />
             </div>
             
             <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
@@ -352,15 +328,10 @@ export default function NotificationsPage() {
                   Receive important system notifications and updates
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={notificationSettings.system}
-                  onChange={e => setNotificationSettings({...notificationSettings, system: e.target.checked})}
-                />
-                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-              </label>
+              <Switch 
+                checked={notificationSettings.system}
+                onChange={e => setNotificationSettings({...notificationSettings, system: e.target.checked})}
+              />
             </div>
           </div>
           
