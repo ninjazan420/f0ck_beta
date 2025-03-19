@@ -159,4 +159,30 @@ export async function PATCH(req: Request) {
       { status: 500 }
     );
   }
+}
+
+// DELETE /api/notifications - Alle Benachrichtigungen des Benutzers löschen
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await dbConnect();
+    
+    // Alle Benachrichtigungen des Benutzers löschen
+    const result = await Notification.deleteMany({ recipient: session.user.id });
+    
+    return NextResponse.json({ 
+      success: true, 
+      deletedCount: result.deletedCount || 0 
+    });
+  } catch (error) {
+    console.error('Error deleting notifications:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete notifications' },
+      { status: 500 }
+    );
+  }
 } 

@@ -56,16 +56,21 @@ export class NotificationService {
       await dbConnect();
       
       const comment = await Comment.findById(commentId)
-        .populate('post', 'title author numericId id thumbnailUrl imageUrl');
+        .populate('post', 'title author numericId id thumbnailUrl imageUrl')
+        .populate('author', 'username name id numericId');
       
       if (!comment || !comment.post) return;
       
       // Only create notification if comment author is not post author
-      if (comment.author && comment.post.author && 
-          comment.author.toString() !== comment.post.author.toString()) {
+      if (comment.post.author && 
+          (!comment.author || comment.author._id.toString() !== comment.post.author.toString())) {
         
-        // WICHTIG: Hier bevorzugen wir numericId oder id (falls numericId fehlt)
         const postId = comment.post.numericId || comment.post.id || comment.post._id;
+        
+        // Verwende den Benutzernamen für die Verlinkung anstelle der ID
+        const actorName = comment.author ? (comment.author.name || comment.author.username) : "Anonymous";
+        const actorUsername = comment.author ? comment.author.username : null; // Benutzername für die URL
+        const actorAnonymous = !comment.author;
         
         await this.createNotification({
           recipientId: comment.post.author.toString(),
@@ -78,7 +83,10 @@ export class NotificationService {
             postTitle: comment.post.title,
             commentId: comment._id,
             commentContent: comment.content.substring(0, 100),
-            postThumbnail: comment.post.thumbnailUrl || comment.post.imageUrl
+            postThumbnail: comment.post.thumbnailUrl || comment.post.imageUrl,
+            actorName,
+            actorUsername, // Benutzername für die URL
+            actorAnonymous
           }
         });
       }
@@ -96,16 +104,21 @@ export class NotificationService {
       
       const comment = await Comment.findById(commentId)
         .populate('replyTo', 'author')
-        .populate('post', 'title numericId id thumbnailUrl imageUrl');
+        .populate('post', 'title numericId id thumbnailUrl imageUrl')
+        .populate('author', 'username name id numericId');
       
       if (!comment || !comment.replyTo || !comment.post) return;
       
       // Only create notification if reply author is not original comment author
-      if (comment.author && comment.replyTo.author && 
-          comment.author.toString() !== comment.replyTo.author.toString()) {
+      if (comment.replyTo.author && 
+          (!comment.author || comment.author._id.toString() !== comment.replyTo.author.toString())) {
         
-        // WICHTIG: Hier auch numericId oder id bevorzugen
         const postId = comment.post.numericId || comment.post.id || comment.post._id;
+        
+        // Aktoreninformationen hinzufügen
+        const actorName = comment.author ? (comment.author.name || comment.author.username) : "Anonymous";
+        const actorUsername = comment.author ? comment.author.username : null; // Benutzername für die URL statt ID
+        const actorAnonymous = !comment.author;
         
         await this.createNotification({
           recipientId: comment.replyTo.author.toString(),
@@ -119,7 +132,10 @@ export class NotificationService {
             commentId: comment._id,
             replyToId: comment.replyTo._id,
             commentContent: comment.content.substring(0, 100),
-            postThumbnail: comment.post.thumbnailUrl || comment.post.imageUrl
+            postThumbnail: comment.post.thumbnailUrl || comment.post.imageUrl,
+            actorName,
+            actorUsername, // Benutzername statt ID verwenden
+            actorAnonymous
           }
         });
       }

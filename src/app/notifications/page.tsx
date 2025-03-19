@@ -31,8 +31,8 @@ export default function NotificationsPage() {
     replies: true,
     likes: true,
     favorites: true,
-    mentions: true,
-    system: true
+    mentions: false,
+    system: false
   });
   const [showSettings, setShowSettings] = useState(false);
 
@@ -105,6 +105,43 @@ export default function NotificationsPage() {
       setLoading(false);
     }
   };
+
+  // Funktion zum Löschen aller Benachrichtigungen
+  const clearAllNotifications = async () => {
+    try {
+      setLoading(true);
+      
+      const response = await fetch('/api/notifications', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.ok) {
+        setNotifications([]);
+        toast.success('All notifications cleared');
+      } else {
+        throw new Error('Failed to clear notifications');
+      }
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      toast.error('Failed to clear notifications');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Anwenden der Filter auf die Benachrichtigungen
+  const filteredNotifications = notifications.filter(notification => {
+    switch (notification.type) {
+      case 'comment': return notificationSettings.comments;
+      case 'reply': return notificationSettings.replies;
+      case 'like': return notificationSettings.likes;
+      case 'favorite': return notificationSettings.favorites;
+      case 'mention': return notificationSettings.mentions;
+      case 'system': return notificationSettings.system;
+      default: return true;
+    }
+  });
 
   useEffect(() => {
     fetchNotifications(1);
@@ -200,7 +237,15 @@ export default function NotificationsPage() {
             onClick={() => setShowSettings(!showSettings)}
             className="px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors text-sm"
           >
-            Settings
+            {showSettings ? 'Hide settings' : 'Settings'}
+          </button>
+          
+          <button
+            onClick={clearAllNotifications}
+            disabled={loading || notifications.length === 0}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm disabled:opacity-50"
+          >
+            Clear all
           </button>
         </div>
       </div>
@@ -347,7 +392,15 @@ export default function NotificationsPage() {
         <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg">
           {error}
         </div>
-      ) : notifications.length === 0 ? (
+      ) : filteredNotifications.length === 0 && notifications.length > 0 ? (
+        <div className="py-16 text-center">
+          <div className="text-5xl mb-4">🔍</div>
+          <h2 className="text-xl font-semibold mb-2">No matching notifications</h2>
+          <p className="text-gray-500 dark:text-gray-400">
+            Try adjusting your notification filters in Settings.
+          </p>
+        </div>
+      ) : filteredNotifications.length === 0 ? (
         <div className="py-16 text-center">
           <div className="text-5xl mb-4">🔔</div>
           <h2 className="text-xl font-semibold mb-2">No notifications yet</h2>
@@ -358,49 +411,69 @@ export default function NotificationsPage() {
       ) : (
         <>
           <ul className="space-y-4">
-            {notifications.map((notification) => (
+            {filteredNotifications.map((notification) => (
               <li key={notification._id} className={`transition-all ${!notification.read ? 'bg-purple-50/50 dark:bg-purple-900/10' : 'bg-white dark:bg-gray-800'} rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-md`}>
                 <Link 
                   href={getNotificationLink(notification)}
                   className="block"
                 >
                   <div className="p-4">
-                    <div className="flex items-start space-x-4">
-                      {/* Icon */}
+                    <div className="flex items-start gap-4">
                       <div className="flex-shrink-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20 dark:from-purple-900/30 dark:to-blue-900/30 p-3 rounded-full text-xl">
                         {getNotificationIcon(notification.type)}
                       </div>
                       
-                      {/* Content */}
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-gray-200">
-                          {notification.content}
-                        </p>
-                        
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          {formatTime(notification.createdAt)}
-                        </p>
-                        
-                        {/* Post preview if available */}
-                        {notification.data?.postThumbnail && (
-                          <div className="mt-3">
-                            <div className="relative h-24 overflow-hidden rounded-lg">
-                              <img
-                                src={notification.data.postThumbnail}
-                                alt="Post thumbnail"
-                                className="w-full h-full object-cover"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
-                                <p className="text-white text-sm p-2 truncate w-full">
-                                  {notification.data.postTitle || 'View post'}
-                                </p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900 dark:text-gray-200">
+                              {notification.data?.actorName ? (
+                                <>
+                                  <span 
+                                    className={notification.data.actorAnonymous ? 
+                                      "font-medium" : 
+                                      "font-medium text-purple-600 dark:text-purple-400"}
+                                  >
+                                    {notification.data.actorName}
+                                  </span>
+                                  {' '}
+                                  {notification.type === 'comment' && 'commented on your post'}
+                                  {notification.type === 'reply' && 'replied to your comment'}
+                                  {notification.type === 'like' && 'liked your post'}
+                                  {notification.type === 'favorite' && 'added your post to favorites'}
+                                  {notification.type === 'mention' && 'mentioned you'}
+                                  {notification.type === 'system' && notification.content}
+                                </>
+                              ) : (
+                                notification.content
+                              )}
+                            </p>
+                            
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                              {formatTime(notification.createdAt)}
+                            </p>
+                          </div>
+                          
+                          {/* Thumbnail als kleineres Element */}
+                          {notification.data?.postThumbnail && (
+                            <div className="sm:w-20 sm:h-20 h-24 w-full mt-2 sm:mt-0 flex-shrink-0">
+                              <div className="relative h-full w-full overflow-hidden rounded-lg">
+                                <img
+                                  src={notification.data.postThumbnail}
+                                  alt="Post thumbnail"
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+                                  <p className="text-white text-xs p-1 truncate w-full">
+                                    {notification.data.postTitle || 'View post'}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                       
-                      {/* Unread indicator */}
                       {!notification.read && (
                         <span className="flex-shrink-0 h-3 w-3 rounded-full bg-blue-500"></span>
                       )}

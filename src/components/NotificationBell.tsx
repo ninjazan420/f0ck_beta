@@ -202,7 +202,32 @@ export function NotificationBell() {
         
         <div className="flex-1 min-w-0">
           <p className="text-sm text-gray-900 dark:text-gray-200">
-            {notification.content}
+            {notification.data?.actorName ? (
+              <>
+                <span 
+                  className={notification.data.actorAnonymous ? 
+                    "font-medium" : 
+                    "font-medium text-purple-600 dark:text-purple-400 cursor-pointer hover:underline"}
+                  onClick={(e) => {
+                    if (!notification.data.actorAnonymous) {
+                      e.stopPropagation();
+                      window.location.href = `/user/${notification.data.actorUsername || notification.data.actorName}`;
+                    }
+                  }}
+                >
+                  {notification.data.actorName}
+                </span>
+                {' '}
+                {notification.type === 'comment' && 'commented on your post'}
+                {notification.type === 'reply' && 'replied to your comment'}
+                {notification.type === 'like' && 'liked your post'}
+                {notification.type === 'favorite' && 'added your post to favorites'}
+                {notification.type === 'mention' && 'mentioned you'}
+                {notification.type === 'system' && notification.content}
+              </>
+            ) : (
+              notification.content
+            )}
           </p>
           
           {/* Zeige Thumbnails für relevante Benachrichtigungen */}
@@ -237,30 +262,33 @@ export function NotificationBell() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Benachrichtigungsglocke mit Badge für ungelesene Nachrichten */}
+      {/* Benachrichtigungsglocke mit transparentem Hintergrund */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-1 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full focus:outline-none"
+        className="relative p-1 rounded-md bg-transparent hover:bg-gray-700/10 dark:hover:bg-gray-600/10 transition-colors focus:outline-none"
         aria-label="Notifications"
       >
         <svg 
-          className="w-5 h-5" 
-          fill="full" 
-          stroke="currentColor" 
           viewBox="0 0 24 24" 
-          xmlns="http://www.w3.org/2000/svg"
+          fill="none" 
+          height={24} 
+          width={24} 
+          xmlns="http://www.w3.org/2000/svg" 
+          aria-hidden="true" 
+          className="w-5 h-5 text-gray-800 dark:text-white transition-colors"
         >
           <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
+            d="M12 5.365V3m0 2.365a5.338 5.338 0 0 1 5.133 5.368v1.8c0 2.386 1.867 2.982 1.867 4.175 0 .593 0 1.292-.538 1.292H5.538C5 18 5 17.301 5 16.708c0-1.193 1.867-1.789 1.867-4.175v-1.8A5.338 5.338 0 0 1 12 5.365ZM8.733 18c.094.852.306 1.54.944 2.112a3.48 3.48 0 0 0 4.646 0c.638-.572 1.236-1.26 1.33-2.112h-6.92Z" 
             strokeWidth={2} 
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" 
+            strokeLinejoin="round" 
+            strokeLinecap="round" 
+            stroke="currentColor" 
           />
         </svg>
         
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
-            {unreadCount > 99 ? '99+' : unreadCount}
+          <span className="absolute bottom-0.5 left-0.5 w-2 h-2 bg-green-500 rounded-full flex items-center justify-center">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
           </span>
         )}
       </button>
@@ -273,7 +301,10 @@ export function NotificationBell() {
             
             {unreadCount > 0 && (
               <button 
-                onClick={markAllAsRead}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  markAllAsRead();
+                }}
                 className="text-xs text-purple-600 dark:text-purple-400 hover:underline"
               >
                 Mark all as read
@@ -290,33 +321,36 @@ export function NotificationBell() {
               <div className="p-4 text-center text-sm text-red-500 dark:text-red-400">
                 {error}
               </div>
-            ) : notifications.length === 0 ? (
+            ) : notifications.filter(n => !n.read).length === 0 && unreadCount === 0 ? (
               <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                No notifications available
+                No new notifications
               </div>
             ) : (
               <ul>
-                {notifications.map(notification => (
-                  <li 
-                    key={notification._id} 
-                    className={`border-b border-gray-100 dark:border-gray-800 last:border-0 ${
-                      !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                    }`}
-                  >
-                    <Link 
-                      href={getNotificationLink(notification)}
-                      onClick={() => {
-                        if (!notification.read) {
-                          markAsRead(notification._id);
-                        }
-                        setIsOpen(false);
-                      }}
-                      className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                {notifications
+                  .filter(notification => !notification.read || notifications.indexOf(notification) < 5)
+                  .slice(0, 10)
+                  .map(notification => (
+                    <li 
+                      key={notification._id} 
+                      className={`border-b border-gray-100 dark:border-gray-800 last:border-0 ${
+                        !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                      }`}
                     >
-                      {renderNotification(notification)}
-                    </Link>
-                  </li>
-                ))}
+                      <Link 
+                        href={getNotificationLink(notification)}
+                        onClick={() => {
+                          if (!notification.read) {
+                            markAsRead(notification._id);
+                          }
+                          setIsOpen(false);
+                        }}
+                        className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      >
+                        {renderNotification(notification)}
+                      </Link>
+                    </li>
+                  ))}
               </ul>
             )}
           </div>
