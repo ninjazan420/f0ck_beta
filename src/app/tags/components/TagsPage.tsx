@@ -38,6 +38,7 @@ export function TagsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Zurücksetzen der Seite bei Filteränderungen
   useEffect(() => {
@@ -69,6 +70,7 @@ export function TagsPage() {
         }
       } catch (error) {
         console.error('Error fetching tags:', error);
+        setError('An error occurred while fetching tags.');
         setTags([]);
       } finally {
         setLoading(false);
@@ -79,62 +81,68 @@ export function TagsPage() {
   }, [filters, currentPage]);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="container mx-auto px-4 flex-grow space-y-6 pb-6">
-        <TagFilter filters={filters} onFilterChange={setFilters} />
-        
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <TagFilter
+        filters={filters}
+        onFilterChange={setFilters}
+      />
+      
+      <div className="mt-6">
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+          <div className="animate-pulse">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              {[...Array(20)].map((_, i) => (
+                <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+              ))}
+            </div>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-500 p-4 rounded-lg">
+            {error}
+          </div>
+        ) : tags.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-gray-500 dark:text-gray-400">No tags found with the current filter criteria.</p>
           </div>
         ) : (
-          <TagList tags={tags} filters={filters} page={currentPage} />
-        )}
-        
-        {/* Pagination */}
-        {totalPages > 0 && (
-          <div className="flex justify-center items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 text-sm"
-            >
-              ← Previous
-            </button>
+          <>
+            <TagList tags={tags} filters={filters} page={currentPage} />
             
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const pageNum = currentPage + i - 2;
-                if (pageNum < 1 || pageNum > totalPages) return null;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`w-8 h-8 rounded-lg text-sm ${
-                      currentPage === pageNum
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-purple-100 dark:hover:bg-purple-900/30'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-              {currentPage < totalPages - 2 && <span className="text-gray-500">...</span>}
+            {/* Pagination */}
+            <div className="mt-6 flex justify-center">
+              <nav className="flex space-x-2" aria-label="Pagination">
+                <button
+                  onClick={() => setCurrentPage(currentPage > 1 ? currentPage - 1 : 1)}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-md ${
+                    currentPage === 1
+                      ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-700'
+                      : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Previous
+                </button>
+                
+                <span className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-md">
+                  {currentPage}
+                </span>
+                
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-md ${
+                    currentPage === totalPages
+                      ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-700'
+                      : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Next
+                </button>
+              </nav>
             </div>
-
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 text-sm"
-            >
-              Next →
-            </button>
-          </div>
+          </>
         )}
       </div>
-      
-      <Footer />
     </div>
   );
 }

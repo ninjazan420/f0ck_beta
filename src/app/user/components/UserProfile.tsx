@@ -346,26 +346,26 @@ export function UserProfile({ username }: { username: string }) {
 
             {/* Kompakte Stats in einer Zeile */}
             <div className="flex justify-between items-end gap-4 py-2 text-sm">
-              <div className="text-center">
+              <Link href={`/posts?uploader=${userData.username}`} className="text-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
                 <div className="text-xs text-gray-500 mb-1">uploads</div>
                 <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.uploads}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-500 mb-1">favorites</div>
-                <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.favorites}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-500 mb-1">likes</div>
-                <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.likes}</div>
-              </div>
-              <div className="text-center">
+              </Link>
+              <Link href={`/comments?author=${userData.username}`} className="text-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
                 <div className="text-xs text-gray-500 mb-1">comments</div>
                 <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.comments}</div>
-              </div>
-              <div className="text-center">
+              </Link>
+              <Link href={`/posts?liked=${userData.username}`} className="text-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                <div className="text-xs text-gray-500 mb-1">likes</div>
+                <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.likes}</div>
+              </Link>
+              <Link href={`/posts?favorited=${userData.username}`} className="text-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                <div className="text-xs text-gray-500 mb-1">favorites</div>
+                <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.favorites}</div>
+              </Link>
+              <Link href={`/tags?creator=${userData.username}`} className="text-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
                 <div className="text-xs text-gray-500 mb-1">tags</div>
                 <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.tags}</div>
-              </div>
+              </Link>
             </div>
           </div>
         </div>

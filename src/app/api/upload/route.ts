@@ -11,6 +11,7 @@ import { checkUploadLimit } from '@/lib/upload-limit';
 import { createErrorResponse, ApplicationError } from '@/lib/error-handling';
 import fs from 'fs/promises';
 import { join } from 'path';
+import { withAuth } from '@/lib/api-utils';
 
 // Kommentiere den Rate Limiter aus
 // Initialize rate limiter
@@ -19,8 +20,45 @@ import { join } from 'path';
 //   uniqueTokenPerInterval: 500
 // });
 
+// Funktion zum Extrahieren von Tags aus FormData
+function extractTags(formData: FormData): string[] {
+  const tagsData = formData.get('tags');
+  if (!tagsData) {
+    return [];
+  }
+  
+  try {
+    // Sicherstellen, dass wir einen String haben
+    const tagsString = typeof tagsData === 'string' 
+      ? tagsData
+      : tagsData instanceof Blob 
+        ? 'Blob data not supported for tags'
+        : String(tagsData);
+    
+    // Nur parsen, wenn es ein nicht-leerer String ist
+    if (tagsString && tagsString.trim()) {
+      const parsed = JSON.parse(tagsString);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+  } catch (e) {
+    console.error('Failed to parse tags:', e);
+    console.log('Raw tags data:', tagsData);
+  }
+  
+  return [];
+}
+
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+    
     console.log('Starting upload process...');
     
     await initializeUploadDirectories();
@@ -38,8 +76,7 @@ export async function POST(request: NextRequest) {
     // }
 
     // Get user session (if authenticated)
-    const session = await getServerSession(authOptions);
-    const userId = session?.user?.id || null;
+    const userId = session.user.id;
     console.log('User ID from session:', userId);
     
     // Parse form data
@@ -57,18 +94,7 @@ export async function POST(request: NextRequest) {
     });
     
     // Get tags if provided
-    let tags: string[] = [];
-    const tagsData = formData.get('tags');
-    if (tagsData) {
-      try {
-        tags = JSON.parse(tagsData as string);
-        console.log('🏷️ Parsed tags from request:', tags);
-        console.log('🧪 Tags type:', typeof tags, Array.isArray(tags));
-      } catch (e) {
-        console.error('❌ Error parsing tags:', e);
-        console.log('📄 Raw tags data:', tagsData);
-      }
-    }
+    const tags = extractTags(formData);
     
     // Check if we have either files or imageUrl
     if (!files.length && !imageUrl) {

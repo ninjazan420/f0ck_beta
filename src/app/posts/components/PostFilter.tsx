@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ContentRating } from './PostsPage';
+import { useSearchParams } from 'next/navigation';
 
 const SORT_OPTIONS = {
   newest: 'Newest First',
@@ -19,6 +20,9 @@ interface FilterState {
   dateFrom: string;
   dateTo: string;
   contentRating: ContentRating[];
+  author: string;
+  likedBy: string;
+  favoritedBy: string;
 }
 
 interface PostFilterProps {
@@ -30,6 +34,7 @@ interface PostFilterProps {
 
 export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleInfiniteScroll }: PostFilterProps) {
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const searchParams = useSearchParams();
 
   const toggleRating = (rating: ContentRating) => {
     const newRatings = [...filters.contentRating];
@@ -46,6 +51,13 @@ export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleIn
     
     onFilterChange({ ...filters, contentRating: newRatings });
   };
+
+  useEffect(() => {
+    const author = searchParams.get('uploader');
+    if (author && filters.uploader !== author) {
+      onFilterChange({ ...filters, uploader: author });
+    }
+  }, [searchParams, filters.uploader]);
 
   return (
     <div className="p-3 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
@@ -215,6 +227,27 @@ export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleIn
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {filters.author && (
+        <div className="filter-pill">
+          <span>Autor: {filters.author}</span>
+          <button onClick={() => onFilterChange({ ...filters, author: '' })} className="ml-1 text-gray-500 hover:text-gray-700">×</button>
+        </div>
+      )}
+
+      {filters.likedBy && (
+        <div className="filter-pill">
+          <span>Geliked von: {filters.likedBy}</span>
+          <button onClick={() => onFilterChange({ ...filters, likedBy: '' })} className="ml-1 text-gray-500 hover:text-gray-700">×</button>
+        </div>
+      )}
+
+      {filters.favoritedBy && (
+        <div className="filter-pill">
+          <span>Favorisiert von: {filters.favoritedBy}</span>
+          <button onClick={() => onFilterChange({ ...filters, favoritedBy: '' })} className="ml-1 text-gray-500 hover:text-gray-700">×</button>
         </div>
       )}
     </div>

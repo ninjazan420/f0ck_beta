@@ -145,8 +145,8 @@ export async function processUpload(
           
           console.log('🔄 Processing tag:', tagName);
           
-          // Find or create the tag
-          const tag = await Tag.findOrCreate(tagName);
+          // Find or create the tag - userId übergeben!
+          const tag = await Tag.findOrCreate(tagName, userId);
           console.log('✅ Tag result:', tag);
           
           if (!tag) {

@@ -2,6 +2,7 @@
 import { useState, useEffect, KeyboardEvent } from 'react';
 import { useSession } from 'next-auth/react';
 import { StatusBanner } from '@/components/StatusBanner';
+import { toast } from 'react-hot-toast';
 
 interface PostTagEditorProps {
   postId: string;
@@ -17,6 +18,7 @@ export function PostTagEditor({ postId, initialTags }: PostTagEditorProps) {
   const [showStatusBanner, setShowStatusBanner] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isAddingTag, setIsAddingTag] = useState(false);
 
   // Only allow authenticated users to edit tags
   if (!session?.user) {
@@ -36,39 +38,31 @@ export function PostTagEditor({ postId, initialTags }: PostTagEditorProps) {
     );
   }
 
-  const handleAddTag = (tag: string) => {
-    const normalizedTag = tag.toLowerCase().trim();
+  const handleAddTag = async (tag: string) => {
+    if (!tag.trim()) return;
     
-    // Validate tag format
-    if (!normalizedTag) return;
-    
-    // Validate tag format (only letters, numbers, German umlauts, and underscore)
-    if (!/^[a-z0-9äöüß_-]+$/.test(normalizedTag)) {
-      setError('Tags can only contain letters, German umlauts, numbers, underscores, and hyphens');
-      return;
+    setIsAddingTag(true);
+    try {
+      // 1. Prüfen, ob das Tag bereits existiert
+      const tagExists = await checkTagExists(tag);
+      
+      // 2. Wenn nicht, Tag erstellen (hier muss der creator korrekt übergeben werden)
+      if (!tagExists) {
+        await createTag(tag);
+      }
+      
+      // 3. Tag zum Post hinzufügen
+      await addTagToPost(tag);
+      
+      // 4. UI aktualisieren
+      setTags(prev => [...prev, tag]);
+      setInputValue('');
+    } catch (error) {
+      console.error('Error adding tag:', error);
+      toast.error('Fehler beim Hinzufügen des Tags');
+    } finally {
+      setIsAddingTag(false);
     }
-    
-    // Check length
-    if (normalizedTag.length > 20) {
-      setError('Tags can be at most 20 characters long');
-      return;
-    }
-    
-    // Check for duplicates
-    if (tags.includes(normalizedTag)) {
-      setError('This tag already exists');
-      return;
-    }
-    
-    // Check for maximum number of tags
-    if (tags.length >= 30) {
-      setError('Maximum of 30 tags allowed');
-      return;
-    }
-    
-    setTags([...tags, normalizedTag]);
-    setInputValue('');
-    setError(null);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -115,6 +109,25 @@ export function PostTagEditor({ postId, initialTags }: PostTagEditorProps) {
     setTags(initialTags || []);
     setIsEditing(false);
     setError(null);
+  };
+
+  // Tag erstellen Funktion
+  const createTag = async (tag: string) => {
+    const response = await fetch('/api/tags', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        name: tag, 
+        // Keine creator-Info wird hier übergeben, wodurch der authUtility nicht weiß
+        // welcher User beim withAuth-Wrapper verwendet werden soll
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to create tag');
+    }
+    
+    return response.json();
   };
 
   return (

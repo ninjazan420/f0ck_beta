@@ -1,4 +1,4 @@
-# f0ck.org Beta v2.6.0
+# f0ck.org Beta v2.7.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v2.6.0](#f0ckorg-beta-v260)
+- [f0ck.org Beta v2.7.0](#f0ckorg-beta-v270)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,47 +21,10 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v2.6.0 (Current)](#beta-v260-current)
-      - [💎 Redesigned Notification System](#-redesigned-notification-system)
-      - [🎨 Styled Components Integration](#-styled-components-integration)
-      - [📱 Mobile Enhancements](#-mobile-enhancements)
-      - [🔍 Extended Comment Features](#-extended-comment-features)
-    - [Beta v2.5.0](#beta-v250)
-      - [🌟 Enhanced Interaction Systems](#-enhanced-interaction-systems)
-      - [📌 New Post Management Functions](#-new-post-management-functions)
-      - [🔔 Notification System](#-notification-system)
-      - [📊 Redesigned Statistics](#-redesigned-statistics)
-      - [🖼️ Media Improvements](#️-media-improvements)
-    - [Beta v2.4.0](#beta-v240)
-      - [🌟 New Feature System](#-new-feature-system)
-      - [🏠 Improved Frontend](#-improved-frontend)
-      - [🔗 Optimized Social Sharing](#-optimized-social-sharing)
-      - [🛠️ Technical Improvements](#️-technical-improvements)
-    - [Beta v2.3.0](#beta-v230)
-      - [🔧 Enhanced Moderation](#-enhanced-moderation)
-      - [🏷️ Tag Management](#️-tag-management)
-      - [🐛 Bug Fixes](#-bug-fixes)
-    - [Beta v2.2.0](#beta-v220)
+    - [Beta v2.7.0 (Current)](#beta-v270-current)
+      - [🎮 Enhanced Navigation and User Experience](#-enhanced-navigation-and-user-experience)
       - [🔧 Technical Improvements](#-technical-improvements)
-    - [Beta v2.0.0](#beta-v200)
-      - [🚀 State of the Art Beta Website](#-state-of-the-art-beta-website)
-      - [🖼️ Comprehensive Media System](#️-comprehensive-media-system)
-      - [🏷️ Complete Tag System](#️-complete-tag-system)
-      - [💬 Enhanced Comment Features](#-enhanced-comment-features)
-      - [🔍 Advanced Search Features](#-advanced-search-features)
-    - [Older Versions (click to expand)](#older-versions-click-to-expand)
-      - [👤 Improved User Interface](#-improved-user-interface)
-      - [🚀 New Features](#-new-features)
-      - [🛠️ Bug Fixes](#️-bug-fixes)
-      - [🏷️ Tag System Fully Implemented](#️-tag-system-fully-implemented)
-      - [🔍 Key Functional Improvements](#-key-functional-improvements)
-      - [🎨 UI Refinements](#-ui-refinements)
-      - [🔍 Search Improvements](#-search-improvements)
-      - [📱 Mobile Optimization](#-mobile-optimization)
-      - [🚀 Performance Enhancements](#-performance-enhancements)
-      - [🔄 Updates](#-updates)
-      - [💬 Complete Comment System](#-complete-comment-system)
-      - [🛠️ Fixes](#️-fixes)
+    - [Previous Versions (click to expand)](#previous-versions-click-to-expand)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
 
@@ -177,7 +140,39 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v2.6.0 (Current)
+### Beta v2.7.0 (Current)
+
+#### 🎮 Enhanced Navigation and User Experience
+
+- **Improved User Statistics**:
+  - User statistics on /user/id and /post pages are now clickable and lead to corresponding uploads
+  - Enhanced user interaction through more intuitive navigation elements
+  - Consistent display of statistics across all components
+- **Redesigned Tags Page**:
+  - Complete redesign of the /tags page for better clarity
+  - More compact tag boxes for efficient space usage
+  - Improved visual hierarchy with clear statistics display
+  - Better presentation of tag authors and related information
+- **Optimized User Management**:
+  - User page navigation improved to reach the current page state directly
+  - Enhanced pagination with smarter page numbering
+  - Optimized performance for displaying user directories
+
+#### 🔧 Technical Improvements
+
+- **Database Optimizations**:
+  - Tag system extended: Added author to tags in database for proper filtering
+  - Fixed post counter in MongoDB when deleting images through moderator panel
+  - Improved data integrity and consistency in user interactions
+- **Backend Adjustments**:
+  - Updated contact email: mail[@]f0ck.org instead of support@f0ck.org
+  - Optimized API endpoints for tag-related operations
+  - Enhanced error handling for user filtering
+
+### Previous Versions (click to expand)
+
+<details>
+<summary>Beta v2.6.0</summary>
 
 #### 💎 Redesigned Notification System
 
@@ -211,8 +206,10 @@ NODE_ENV=development
   - Improved threading for better conversation tracking
   - Enhanced comment notifications with clearer context
   - Optimized comment loading performance
+</details>
 
-### Beta v2.5.0
+<details>
+<summary>Beta v2.5.0</summary>
 
 #### 🌟 Enhanced Interaction Systems
 
@@ -250,10 +247,12 @@ NODE_ENV=development
   - Fixed image preview in metadata for better social sharing
   - Improved presentation of images in various contexts
   - Enhanced technical backend for media handling
+</details>
 
-### Beta v2.4.0
+<details>
+<summary>Beta v2.4.0 and Earlier</summary>
 
-#### 🌟 New Feature System
+#### 🌟 New Feature System (v2.4.0)
 
 - **"Featured Post" Option**:
   - Moderators and admins can now highlight posts on the homepage
@@ -261,323 +260,32 @@ NODE_ENV=development
   - ModLog entries for feature/unfeature actions
   - Visual indication of featured posts
 
-#### 🏠 Improved Frontend
+#### 🏠 Improved Frontend (v2.4.0)
 
 - **Complete Redesign of Homepage**:
   - Modern layout with highlighted featured content
   - Enhanced statistics display with more detailed information
   - Responsive UI for all devices
-  - New PostPreview component for unified presentation
+  - New PostPreview component for consistent display
 
-#### 🔗 Optimized Social Sharing
+#### 🔍 Enhanced Moderation (v2.3.0)
 
-- **Improved Social Media Metadata**:
-  - OG titles and images for better previews in social networks
-  - Optimized social sharing previews
-  - Enhanced SEO through structured metadata
+- **Completely Redesigned Moderation Page**:
+  - Improved interface with separate tabs for overview, comments, activity log, and actions
+  - More intuitive navigation between different moderation areas
+  - Optimized display of moderation activities
 
-#### 🛠️ Technical Improvements
-
-- **Extended Data Models**:
-  - New SiteSettings model for global settings
-  - Expanded ModLog system with new action types
-  - Improved WebSocket connections for comments
-
-### Beta v2.3.0
-
-#### 🔧 Enhanced Moderation
-
-- **Redesigned Moderation Dashboard**:
-  - New tab-based navigation system for improved workflow
-  - Consolidated moderation tools in a single, intuitive interface
-  - Improved activity logging with detailed action information
-  - Better visualization of moderation activities
-
-#### 🏷️ Tag Management
-
-- **Tag Moderation**:
-  - New moderation routes for tag management
-  - Delete functionality for problematic tags
-- **User Tag Editing**:
-  - Added tag editing capabilities for regular users
-  - Improved tag validation and error messaging
-
-#### 🐛 Bug Fixes
-
-- Fixed race condition issues in file uploads
-- Corrected tag and NSFW filtering on the posts page
-- Enhanced security through various updates
-- Resolved avatar upload problems
-- Fixed various path issues and security vulnerabilities
-
-### Beta v2.2.0
-
-#### 🔧 Technical Improvements
+#### 🛠️ Technical Improvements (v2.2.0)
 
 - **API Optimizations**:
   - Fixed params.id usage with await: `const id = Number(await params.id)`
-  - Resolved "params should be awaited before using its properties" error
+  - Fixed "params should be awaited before using its properties" error
   - Removed anonymous links from documentation
-  - Extensive security fixes and API optimizations
+  - Extensive security improvements and API optimizations
 
-### Beta v2.0.0
+#### 🚀 State of the Art Beta Website (v2.0.0)
 
-#### 🚀 State of the Art Beta Website
-
-This version marks an important milestone for the f0ck.org project, consolidating all improvements and features from previous beta versions. Version 2.0.0 represents the current state of the art of the beta website with a stable foundation for future development.
-
-#### 🖼️ Comprehensive Media System
-
-- **Fully functional upload system**:
-  - Support for anonymous uploads without account requirement
-  - Optimized image and video processing with automatic thumbnail generation
-  - Advanced file type validation and error handling
-  - Copy & Paste functionality and direct uploading via image grabbing
-  - Reliable processing of thumbnails and original images
-
-#### 🏷️ Complete Tag System
-
-- **Organize and discover content with tags**:
-  - Up to 10 tags per upload for better findability
-  - Simplified tag structure without category distinctions
-  - Powerful tag search with combinable search criteria
-  - Intelligent tag validation for consistent taxonomy
-
-#### 💬 Enhanced Comment Features
-
-- **Comprehensive comment system**:
-  - Live comments with WebSocket integration
-  - GIF and emoji support through GIPHY integration
-  - Extended functions: edit, delete, quote
-  - Reply threading for nested discussions
-  - Support for anonymous commenting
-
-#### 🔍 Advanced Search Features
-
-- **Advanced filter and search options**:
-  - Extensive filtering options (uploader, commenter, likes, date)
-  - Flexible sorting options (newest, oldest, most likes, most comments)
-  - Reverse Image Search for similar image search
-  - Support for registration period filter
-  - Intelligent pagination with page navigator
-
-### Older Versions (click to expand)
-
-<details>
-<summary>Beta v1.7.0</summary>
-
-#### 👤 Improved User Interface
-
-- **New avatar functionality**: Implementation of a redesigned account card with enhanced avatar features
-- **Optimized post navigation**: 
-  - Support for left/right arrows and A/D keys to browse through posts
-  - Fixed post navigator to consider only the current state
-
-#### 🚀 New Features
-
-- **Enhanced upload capabilities**: 
-  - Implemented Copy & Paste functionality
-  - Added direct uploading via image grabbing
-- **Technical improvements**:
-  - Fixed UUID linter error by adding uuid.d.ts
-
-#### 🛠️ Bug Fixes
-
-- **Fixed filters and search**:
-  - Restored registration period filter
-  - Fixed Yandex in reverse image search
-- **Improved image display**:
-  - Fixed thumbnail and image URLs
-  - Fixed "Sketchy"/"Unsafe" posts not loading on first visit
-- **Optimized feeds**:
-  - Fixed activity feed on /users/id and /account that sometimes didn't load
-</details>
-
-<details>
-<summary>Beta v1.6.0</summary>
-
-#### 🏷️ Tag System Fully Implemented
-
-- **Organize and discover content with tags**: The complete tag system is now live, allowing users to add up to 10 tags per upload
-- **Simplified tag structure**: Unified tag system without category distinctions for more intuitive tagging
-- **Powerful tag search**: Find exactly what you're looking for by filtering posts with tags combined with other search criteria
-- **Enhanced user experience** with clear error messaging and improved tag validation
-- **Performance optimizations** for tag-based searches and filtering
-
-#### 🔍 Key Functional Improvements
-
-- **Fixed Reverse Image Search**: The similar image search feature now works reliably
-- **Improved content filtering**: Optimized behavior for Safe/Sketchy/Unsafe content filters
-- **Streamlined anonymous posts**: Removed misleading "Anonymous" links in comments and uploads
-
-#### 🎨 UI Refinements
-
-- Consistent avatar styling in post details view
-- Enhanced visual hierarchy for better usability
-</details>
-
-<details>
-<summary>Beta v1.5.0</summary>
-
-#### 🔍 Search Improvements
-
-- Advanced post filtering with comprehensive search options now live
-- Support for filtering by uploader, commenter, likes, and date
-- Implemented sorting options (newest, oldest, most likes, most comments)
-- Pagination with page navigator adjusted to real pages
-
-#### 📱 Mobile Optimization
-
-- Postgrid optimized for mobile devices
-- Improved responsive layout for various screen sizes
-- Adjustments for better touch interaction
-
-#### 🚀 Performance Enhancements
-
-- Infinite scroll implemented for smoother user experience
-- User settings stored in localStorage for persistent filter preferences
-- Optimized API endpoints with support for offset and limit
-- Improved performance through more efficient database queries
-</details>
-
-<details>
-<summary>Beta v1.4.0</summary>
-
-#### 🔄 Updates
-
-- Moderation page improved with additional features
-- Functioning comment stream implemented
-- Prepared reported content system
-- Added API route for moderator comment deletion
-- Added quote functionality for comments
-- Implemented badges in comments that respect banned users in filter list
-
-#### 💬 Complete Comment System
-
-- Enhanced comment functionality with GIF and emoji integration
-- User comment editing and deletion capabilities
-- Improved reply threading for nested discussions
-- API endpoints for comment management (GET, POST, PATCH, DELETE)
-- Enhanced error handling for comments
-- Support for anonymous commenting without login
-- Extended permission system for comment moderation
-
-#### 🛠️ Fixes
-
-- Fixed routes and hotlinks for comments
-- Corrected meta title for /user/nickname
-- Implemented fix that automatically removes leftover MongoDB object IDs
-</details>
-
-<details>
-<summary>Beta v1.3.0</summary>
-
-- 💬 Comment System Enhancement
-  - Live comment functionality activated
-  - Comment moderation system enabled
-  - Reply threading with nested responses
-  - Editing and deleting capabilities for users
-  - GIF support in comments with GIPHY integration
-  - Anonymous commenting option
-</details>
-
-<details>
-<summary>Beta v1.2.2</summary>
-
-- 👤 User Profile Improvements
-  - Fixed user bio display in posts
-  - Standardized user statistics display across components
-  - Improved user profile information consistency
-  - Better organization of user metadata
-- 🖼️ UI/UX Refinements
-  - Streamlined statistics display on homepage
-  - Removed redundant stats box in post views
-  - Improved overall visual consistency
-</details>
-
-<details>
-<summary>Beta v1.2.0</summary>
-
-- 🛠️ Technical Improvements
-  - Better environment variable management
-  - Optimized file upload system
-  - Improved permissions for uploads
-  - Updated dependencies
-</details>
-
-<details>
-<summary>Beta v1.1.1</summary>
-
-- 🖼️ UI/UX Improvements
-  - Better metadata management across all pages
-  - Fixed issues with user role display
-  - Improved responsive design
-  - Enhanced logo functionality
-  - Better dark mode support
-- 🔒 Security Enhancements
-  - Improved role-based access control
-  - Better error handling
-  - Enhanced user validation
-- 🚀 Performance Optimizations
-  - Faster page loads
-  - Reduced bundle size
-  - Improved image loading
-</details>
-
-<details>
-<summary>Beta v1.1.0</summary>
-
-- 🎨 Upload System!
-  - Anonymous uploads without account requirement
-  - Improved image processing
-  - Better error handling
-  - Progress indicators
-  - File type validation
-  - Automatic image optimization
-- 👤 User System Improvements
-  - Optional account system
-  - Enhanced role badges
-  - Anonymous posting support
-  - Better date formatting
-  - Default avatars for anonymous posts
-- 🖼️ Image Display Enhancements
-  - Improved grid layout
-  - Better image scaling
-  - Enhanced mobile view
-  - Faster loading times
-  - Optimized thumbnails
-</details>
-
-<details>
-<summary>Beta v1.0.7</summary>
-
-- 💬 Enhanced Comment System
-  - WebSocket integration for live updates
-  - Automatic spam detection
-  - Role-based moderation system
-  - Report functionality
-  - Activity feed in user profiles
-  - Comment threading improvements
-- 👤 User System Enhancements
-  - Role badges (Admin, Mod, Premium)
-  - Activity tracking
-  - Profile statistics
-- 🔒 Security Updates
-  - Spam protection
-  - Report handling
-  - Moderation tools
-</details>
-
-<details>
-<summary>Beta v1.0.6</summary>
-
-- 🎨 Enhanced comment system
-  - GIPHY integration with attribution
-  - Improved media display
-  - Premium user badges
-  - Better reply formatting
-- 🚀 Performance optimizations
-- 🎯 UI/UX improvements
+This version marks an important milestone for the f0ck.org project, consolidating all improvements and features from previous beta versions. It provides a stable foundation for future development with comprehensive media system, complete tag system, enhanced comment features, and advanced search capabilities.
 </details>
 
 ## 🌐 Links & Support
@@ -590,5 +298,5 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 
 MIT License - © 2024 f0ck.org Team
 
-> Beta Version 2.6.0 - We build something new...
+> Beta Version 2.7.0 - We build something new...
 

@@ -9,29 +9,29 @@ export type ApiResponse<T = unknown> = {
   error?: string;
 };
 
-export async function withAuth<T>(
-  handler: (session: Awaited<ReturnType<typeof getServerSession>>) => Promise<T>
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
+export async function withAuth(handler) {
+  return async (req) => {
+    try {
+      // Session-Authentifizierung
+      const session = await getServerSession(authOptions);
+      
+      if (!session || !session.user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      // Rufe den Handler mit der Session auf
+      return handler(session);
+    } catch (error) {
+      console.error('Auth error:', error);
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
-    
-    await dbConnect();
-    const result = await handler(session);
-    return NextResponse.json(result);
-    
-  } catch (error) {
-    console.error('API error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'An error occurred' },
-      { status: 500 }
-    );
-  }
+  };
 }
 
 export async function withModeratorAuth<T>(

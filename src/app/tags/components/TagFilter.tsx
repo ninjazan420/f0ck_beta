@@ -4,7 +4,7 @@ interface TagFilterProps {
   filters: {
     search: string;
     sortBy: SortBy;
-    author: string;
+    creator: string;
     usedBy: string;
     timeRange: 'all' | 'day' | 'week' | 'month' | 'year';
   };
@@ -80,13 +80,13 @@ export function TagFilter({ filters, onFilterChange }: TagFilterProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
-                Author
+                Creator
               </label>
               <input
                 type="text"
-                value={filters.author}
-                onChange={(e) => onFilterChange({ ...filters, author: e.target.value })}
-                placeholder="Filter by author"
+                value={filters.creator}
+                onChange={(e) => onFilterChange({ ...filters, creator: e.target.value })}
+                placeholder="Filter by creator"
                 className="w-full px-3 py-1.5 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm"
               />
             </div>

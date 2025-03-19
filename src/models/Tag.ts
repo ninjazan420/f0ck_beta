@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 export interface ITag extends mongoose.Document {
   id: string;
@@ -8,9 +8,12 @@ export interface ITag extends mongoose.Document {
   newPostsThisWeek: number;
   relatedTags: string[];
   aliases: string[];
+  creator: mongoose.Types.ObjectId | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const tagSchema = new mongoose.Schema({
+const TagSchema = new Schema({
   id: {
     type: String,
     unique: true,
@@ -28,6 +31,11 @@ const tagSchema = new mongoose.Schema({
       },
       message: props => `${props.value} is not a valid tag name. Use only lowercase letters, numbers, and German umlauts.`
     }
+  },
+  creator: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'User',
+    default: null
   },
   postsCount: {
     type: Number,
@@ -47,13 +55,15 @@ const tagSchema = new mongoose.Schema({
   }],
   aliases: [{
     type: String
-  }]
+  }],
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 }, {
   timestamps: true
 });
 
 // Middleware to generate ID if not provided
-tagSchema.pre('save', function(next) {
+TagSchema.pre('save', function(next) {
   if (!this.id) {
     // Generate ID based on name
     this.id = this.name.toLowerCase().replace(/[^a-z0-9_]/g, '_');
@@ -62,20 +72,20 @@ tagSchema.pre('save', function(next) {
 });
 
 // Middleware to update post counts
-tagSchema.methods.updateCounts = async function() {
+TagSchema.methods.updateCounts = async function() {
   // This would be implemented to count posts with this tag
   // and update the newPostsToday and newPostsThisWeek fields
 };
 
 // Static method to get popular tags
-tagSchema.statics.getPopularTags = async function(limit = 20) {
+TagSchema.statics.getPopularTags = async function(limit = 20) {
   return this.find()
     .sort({ postsCount: -1 })
     .limit(limit);
 };
 
 // Static method to find or create tag
-tagSchema.statics.findOrCreate = async function(tagName: string) {
+TagSchema.statics.findOrCreate = async function(tagName: string, userId?: string) {
   if (!tagName || typeof tagName !== 'string' || tagName.trim() === '') {
     console.error('Invalid tag name provided:', tagName);
     return null;
@@ -91,11 +101,21 @@ tagSchema.statics.findOrCreate = async function(tagName: string) {
     if (!tag) {
       console.log('Tag not found, creating new tag:', normalized);
       
-      // Create new tag
-      tag = new this({
+      // Create new tag with creator if provided
+      const tagData: any = {
         id: normalized,
         name: normalized
-      });
+      };
+      
+      // Füge den Creator hinzu, wenn eine User-ID vorhanden ist
+      if (userId) {
+        console.log('Setting creator ID for new tag:', userId);
+        tagData.creator = userId;
+      } else {
+        console.log('No creator ID provided for tag');
+      }
+      
+      tag = new this(tagData);
       
       try {
         await tag.save();
@@ -123,7 +143,7 @@ tagSchema.statics.findOrCreate = async function(tagName: string) {
 };
 
 // Neue statische Methode zum Aktualisieren der Tag-Statistiken
-tagSchema.statics.updateStats = async function() {
+TagSchema.statics.updateStats = async function() {
   try {
     const Post = mongoose.model('Post');
     
@@ -171,6 +191,5 @@ tagSchema.statics.updateStats = async function() {
   }
 };
 
-const Tag = mongoose.models.Tag || mongoose.model<ITag>('Tag', tagSchema);
-
-export default Tag; 
+// Stelle sicher, dass wir ein neues Schema erstellen, wenn das Modell nicht existiert
+export default mongoose.models.Tag || mongoose.model<ITag>('Tag', TagSchema); 

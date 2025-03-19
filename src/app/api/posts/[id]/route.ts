@@ -21,8 +21,12 @@ export async function GET(
       );
     }
 
-    // Finde den Post ohne populate
-    const post = await Post.findOne({ id: id });
+    // Post finden und Autor mit notwendigen Feldern laden
+    const post = await Post.findOne({ id: id })
+      .populate({
+        path: 'author',
+        select: 'username avatar bio role premium lastSeen createdAt uploads comments likes favorites tags'
+      });
     
     if (!post) {
       return NextResponse.json(
@@ -83,8 +87,31 @@ export async function GET(
 
     // Wenn ein Autor existiert, populate die Autor-Daten
     if (post.author) {
-      await post.populate('author', 'username avatar bio premium role createdAt stats');
       serializedPost.author = post.author;
+      serializedPost.uploader = {
+        name: post.author.username,
+        avatar: post.author.avatar,
+        bio: post.author.bio,
+        premium: post.author.premium || post.author.role === 'premium',
+        admin: post.author.role === 'admin',
+        moderator: post.author.role === 'moderator',
+        joinDate: post.author.createdAt,
+        // Benutzerstatistiken direkt aus den Arrays berechnen
+        stats: {
+          uploads: post.author.uploads?.length || 0,
+          comments: post.author.comments?.length || 0,
+          likes: post.author.likes?.length || 0,
+          favorites: post.author.favorites?.length || 0,
+          tags: post.author.tags?.length || 0,
+          // Zusätzliche Felder
+          totalPosts: post.author.uploads?.length || 0,
+          totalLikes: post.author.likes?.length || 0,
+          totalViews: 0, // Falls benötigt, aus einer anderen Quelle
+          level: 1, // Beispielwert
+          xp: 0, // Beispielwert
+          xpNeeded: 100 // Beispielwert
+        }
+      };
     } else {
       // Füge Dummy-Autor-Daten für anonyme Posts hinzu
       serializedPost.author = {
@@ -103,6 +130,10 @@ export async function GET(
           xp: 0,
           xpNeeded: 100
         }
+      };
+      serializedPost.uploader = {
+        name: 'Anonymous',
+        stats: {}
       };
     }
 

@@ -864,61 +864,24 @@ export function PostDetails({ postId }: { postId: string }) {
               </div>
             </div>
 
-            {/* User Stats - Compact design wrapped in a link with correct URL */}
-            {post.uploader.name !== 'Anonymous' ? (
-              <Link 
-                href={`/user/${post.uploader.name}`} 
-                className="block mt-4 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors"
-              >
-                <div className="grid grid-cols-5 gap-2 text-center">
-                  <div className="px-2 py-1">
-                    <div className="text-xs text-gray-500 mb-0.5">uploads</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.totalPosts || 0}</div>
-                  </div>
-                  <div className="px-2 py-1">
-                    <div className="text-xs text-gray-500 mb-0.5">favorites</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.favorites || 0}</div>
-                  </div>
-                  <div className="px-2 py-1">
-                    <div className="text-xs text-gray-500 mb-0.5">likes</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.totalLikes || 0}</div>
-                  </div>
-                  <div className="px-2 py-1">
-                    <div className="text-xs text-gray-500 mb-0.5">comments</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.comments || 0}</div>
-                  </div>
-                  <div className="px-2 py-1">
-                    <div className="text-xs text-gray-500 mb-0.5">tags</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.tags || 0}</div>
-                  </div>
-                </div>
+            {/* User Stats - Mit klickbaren Elementen aber ursprünglichem Design */}
+            <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400 space-x-3 border-t pt-2 border-gray-200 dark:border-gray-700">
+              <Link href={`/posts?uploader=${post.uploader.name}`} className="hover:text-purple-600 dark:hover:text-purple-400">
+                <span>{post.uploader.stats?.uploads || 0} uploads</span>
               </Link>
-            ) : (
-              <div className="block mt-4 rounded-lg">
-                <div className="grid grid-cols-5 gap-2 text-center">
-                  <div className="px-2 py-1">
-                    <div className="text-xs text-gray-500 mb-0.5">uploads</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.totalPosts || 0}</div>
-                  </div>
-                  <div className="px-2 py-1">
-                    <div className="text-xs text-gray-500 mb-0.5">favorites</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.favorites || 0}</div>
-                  </div>
-                  <div className="px-2 py-1">
-                    <div className="text-xs text-gray-500 mb-0.5">likes</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.totalLikes || 0}</div>
-                  </div>
-                  <div className="px-2 py-1">
-                    <div className="text-xs text-gray-500 mb-0.5">comments</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.comments || 0}</div>
-                  </div>
-                  <div className="px-2 py-1">
-                    <div className="text-xs text-gray-500 mb-0.5">tags</div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{post.uploader.stats?.tags || 0}</div>
-                  </div>
-                </div>
-              </div>
-            )}
+              <Link href={`/comments?author=${post.uploader.name}`} className="hover:text-purple-600 dark:hover:text-purple-400">
+                <span>{post.uploader.stats?.comments || 0} comments</span>
+              </Link>
+              <Link href={`/posts?liked=${post.uploader.name}`} className="hover:text-purple-600 dark:hover:text-purple-400">
+                <span>{post.uploader.stats?.likes || 0} likes</span>
+              </Link>
+              <Link href={`/posts?favorited=${post.uploader.name}`} className="hover:text-purple-600 dark:hover:text-purple-400">
+                <span>{post.uploader.stats?.favorites || 0} favs</span>
+              </Link>
+              <Link href={`/tags?creator=${post.uploader.name}`} className="hover:text-purple-600 dark:hover:text-purple-400">
+                <span>{post.uploader.stats?.tags || 0} tags</span>
+              </Link>
+            </div>
           </div>
 
           {/* Description */}

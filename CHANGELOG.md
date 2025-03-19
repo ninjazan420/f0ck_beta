@@ -1,8 +1,38 @@
 # Änderungsprotokoll
 
+## [2.7.0]
+
+### 🎮 Verbesserte Navigation und Benutzerfreundlichkeit
+
+- **Optimierte Benutzerstatistiken**:
+  - Statistiken unter /user/id und /post sind nun klickbar und führen zu entsprechenden Uploads
+  - Verbesserte Benutzerinteraktion durch intuitivere Navigationselemente
+  - Konsistente Darstellung von Statistiken über alle Komponenten hinweg
+- **Überarbeitete Tags-Seite**:
+  - Komplette Neugestaltung der /tags-Seite für bessere Übersichtlichkeit
+  - Kompaktere Tag-Boxen für effizientere Raumnutzung
+  - Verbesserte visuelle Hierarchie mit klarer Statistik-Anzeige
+  - Bessere Darstellung von Tag-Autoren und zugehörigen Informationen
+- **Optimierte Benutzerverwaltung**:
+  - Seitenwechsler von /users angepasst, um auf direkten "ist"-Zustand zu kommen
+  - Verbesserte Pagination mit intelligenterer Seitennummerierung
+  - Optimierte Performance bei der Anzeige von Benutzerverzeichnissen
+
+### 🔧 Technische Verbesserungen
+
+- **Datenbank-Optimierungen**:
+  - Tag-System erweitert: Autor zu Tags in der Datenbank hinzugefügt, damit Filter korrekt funktionieren
+  - Korrektur des Post-Counters in MongoDB beim Löschen von Bildern über das Moderator-Panel
+  - Verbesserte Datenintegrität und Konsistenz bei Benutzerinteraktionen
+- **Backend-Anpassungen**:
+  - Aktualisierte Kontakt-Email
+  - Optimierte API-Endpunkte für Tag-bezogene Operationen
+  - Verbesserte Fehlerbehandlung bei Benutzerfilterung
+
 ## [2.6.0]
 
 ### 💎 Komplett überarbeitetes Benachrichtigungssystem
+
 - **Neugestaltung der Notifikationsseite und Benachrichtigungsglocke**:
   - Vollständige Neugestaltung der Notifikationsseite mit verbesserter Organisation und Filterung
   - Neu gestaltete Benachrichtigungsglocke für bessere Sichtbarkeit und Interaktion
@@ -14,6 +44,7 @@
   - Verbesserte Kontextinformationen in Benachrichtigungen
 
 ### 🎨 Integration von Styled Components
+
 - **Erweiterte Styling-Möglichkeiten**:
   - Styled Components als zusätzliche Styling-Lösung implementiert
   - Verbesserte Komponenten-Isolation und Wiederverwendbarkeit
@@ -21,6 +52,7 @@
   - Bessere Trennung von Styling-Belangen in komplexen Komponenten
 
 ### 📱 Mobile Verbesserungen
+
 - **Optimierte mobile Benutzererfahrung**:
   - Notifikationsglocke für mobile Geräte hinzugefügt und optimiert
   - Reihenfolge der Navbar geändert: Benutzername und Avatar stehen jetzt ganz rechts
@@ -28,6 +60,7 @@
   - Responsive Design-Verbesserungen für verschiedene Bildschirmgrößen
 
 ### 🔍 Erweiterte Kommentarfunktionen
+
 - **Verbesserte Kommentarfunktionalität**:
   - Filter in Kommentaren aktiviert für bessere Übersichtlichkeit
   - Verbesserte Darstellung von Kommentar-Threads
@@ -37,6 +70,7 @@
 ## [2.5.0]
 
 ### 🌟 Verbesserte Interaktionssysteme
+
 - **Umfassendes Like- und Dislike-System**:
   - Vollständige Implementierung der Like- und Dislike-Funktionalität
   - Optimistisches UI-Update für unmittelbare Benutzerrückmeldung
@@ -44,6 +78,7 @@
   - ModLog-Einträge für alle Interaktionen zur besseren Nachverfolgung
 
 ### 📌 Neue Post-Management-Funktionen
+
 - **Pinned Posts Feature implementiert**:
   - Möglichkeit, wichtige Beiträge an der Spitze der Seite anzupinnen
   - Verbesserte Sichtbarkeit für wichtige Informationen
@@ -51,23 +86,27 @@
   - "unfeature" Typ-Never-Fehler behoben für zuverlässige Funktionalität
 
 ### 🔔 Benachrichtigungssystem
+
 - **Verbesserte Benachrichtigungen für Benutzerinteraktionen**:
   - Echtzeitbenachrichtigungen für Likes, Dislikes und Favoriten
   - Klare Rückmeldung bei allen Benutzerinteraktionen
   - Optimierte Verarbeitung und Zustellung von Benachrichtigungen
 
 ### 📊 Überarbeitete Statistiken
+
 - **Neu gestalteter Statistikbereich auf der Startseite**:
   - Visuelle Verbesserungen zur besseren Datenvisualisierung
   - Ersetzung von Template-Daten durch Echtzeit-Daten
   - Effizientere Aktualisierung von Beitragsstatistiken
 
 ### 🖼️ Medienverbesserungen
+
 - **Optimierte Bildanzeige**:
   - Korrigierte Bildvorschau in Metadaten für besseres Social Sharing
   - Verbesserte Darstellung von Bildern in verschiedenen Kontexten
 
 ### 🛠️ Technische Verbesserungen
+
 - **Vereinheitlichte API-Endpunkte**:
   - Neue Interactions-API für konsistente Handhabung aller Benutzerinteraktionen
   - Optimierte Datenverarbeitung mit verbesserten Fehlerbehandlungen
@@ -76,6 +115,7 @@
 ## [2.4.0]
 
 ### 🌟 Neues Feature-System
+
 - **"Featured Post" Option hinzugefügt**:
   - Moderatoren und Admins können nun Beiträge auf der Startseite hervorheben
   - Neue API-Endpunkte für die Verwaltung von Featured Posts
@@ -83,6 +123,7 @@
   - Visuelle Kennzeichnung von Featured Posts
 
 ### 🏠 Verbessertes Frontend
+
 - **Komplettes Redesign der Startseite**:
   - Moderneres Layout mit hervorgehobenen Beiträgen
   - Verbesserte Statistikdarstellung mit detaillierteren Informationen
@@ -90,12 +131,14 @@
   - Neue PostPreview-Komponente für einheitliche Darstellung
 
 ### 🔗 Optimiertes Social Sharing
+
 - **Verbesserte Metadaten für Social Media**:
   - OG-Titel und Bilder für bessere Vorschau in sozialen Netzwerken
   - Optimierte Social-Sharing-Previews
   - Verbesserte SEO durch strukturierte Metadaten
 
 ### 🛠️ Technische Verbesserungen
+
 - **Erweiterte Datenmodelle**:
   - Neues SiteSettings-Modell für globale Einstellungen
   - Erweitertes ModLog-System mit neuen Aktionstypen
@@ -104,21 +147,25 @@
 ## [2.3.0]
 
 ### 🔧 Komplett überarbeitete Moderationsseite
+
 - Verbesserte Benutzeroberfläche mit separaten Tabs für Übersicht, Kommentare, Aktivitätslog und Aktionen
 - Intuitivere Navigation zwischen den verschiedenen Moderationsbereichen
 - Optimierte Darstellung der Moderationsaktivitäten
 
 ### 🏷️ Moderationsroute für Tags
+
 - Neue Funktionen zur Verwaltung von Tags für Moderatoren
 - Löschfunktion für problematische oder unerwünschte Tags
 - Verbesserte Übersicht über Tag-Aktivitäten im Aktivitätslog
 
 ### ✏️ Tag-Bearbeitungsfunktion für normale Benutzer
+
 - Benutzer können nun selbst Tags zu ihren Beiträgen hinzufügen und bearbeiten
 - Vereinfachte Benutzeroberfläche für die Tag-Verwaltung
 - Verbesserte Tag-Validierung und Fehlermeldungen
 
 ### 🐛 Fehlerbehebungen
+
 - Behebung eines Race-Condition-Problems beim Hochladen von Dateien
   - Stabilere Verarbeitung von Uploads, insbesondere bei mehreren gleichzeitigen Anfragen
   - Zuverlässigere Thumbnail-Generierung
@@ -250,7 +297,8 @@ Diese Version markiert einen wichtigen Meilenstein für das f0ck.org Projekt und
 
 ### 🖼️ Verbesserte Medienverarbeitung
 
-- **Upload-System optimiert**: 
+- **Upload-System optimiert**:
+
   - Korrektur der Upload-Route für zuverlässige Verarbeitung von Thumbnails und Originalbildern
   - Verbesserte Fehlerbehandlung bei Bildverarbeitung
 

@@ -36,7 +36,7 @@ export default function PremiumClient() {
             Upgrade to Premium 💎
           </h1>
           <p className="text-xl text-gray-700 dark:text-gray-300">
-            Unlock the full potential of f0ck.org (not live yet, do not pay)
+            Unlock the full potential of f0ck.org (not live yet, do not pay or buy)
           </p>
         </div>
 

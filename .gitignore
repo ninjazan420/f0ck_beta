@@ -24,7 +24,7 @@ done.txt
 package-lock.json
 
 # Upload directories
-/public/uploads/*
+public/uploads/*
 !public/uploads/.gitkeep
 !public/uploads/temp/
 !public/uploads/original/

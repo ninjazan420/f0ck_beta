@@ -121,6 +121,38 @@ export async function GET(req: Request) {
       }
     }
 
+    // "Geliked von"-Filter
+    if (url.searchParams.has('liked_by')) {
+      const username = url.searchParams.get('liked_by');
+      const user = await User.findOne({ username });
+      if (user && user.likes && user.likes.length > 0) {
+        // Finde Posts, die vom Benutzer geliked wurden
+        query._id = { $in: user.likes };
+      } else {
+        // Keine Likes oder kein Benutzer gefunden
+        return NextResponse.json({
+          posts: [],
+          pagination: { total: 0, page: 1, perPage: limit, totalPages: 0 }
+        });
+      }
+    }
+
+    // "Favorisiert von"-Filter
+    if (url.searchParams.has('favorited_by')) {
+      const username = url.searchParams.get('favorited_by');
+      const user = await User.findOne({ username });
+      if (user && user.favorites && user.favorites.length > 0) {
+        // Finde Posts, die vom Benutzer favorisiert wurden
+        query._id = { $in: user.favorites };
+      } else {
+        // Keine Favoriten oder kein Benutzer gefunden
+        return NextResponse.json({
+          posts: [],
+          pagination: { total: 0, page: 1, perPage: limit, totalPages: 0 }
+        });
+      }
+    }
+
     // Determine sort order
     let sortOptions: any = { createdAt: -1 }; // Default to newest
     switch(sortBy) {
