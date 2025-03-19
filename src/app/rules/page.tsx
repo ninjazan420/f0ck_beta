@@ -222,7 +222,7 @@ export default function Rules() {
               <h3 className="font-medium text-gray-900 dark:text-gray-100">Appeals</h3>
               <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
                 <li>Appeals against warnings possible</li>
-                <li>Support contact: support@f0ck.org</li>
+                <li>Support contact: mail[@]f0ck.org</li>
                 <li>Review by moderators</li>
                 <li>Case-by-case decisions</li>
               </ul>

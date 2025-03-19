@@ -322,7 +322,7 @@ export function HelpContent() {
               <div>
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Email Support ✉️</h4>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Contact us at <a href="mailto:support@f0ck.org" className="text-blue-600 dark:text-blue-400 hover:underline">support@f0ck.org</a>
+                  Contact us at <a href="mailto:mail@f0ck.org" className="text-blue-600 dark:text-blue-400 hover:underline">mail[@]f0ck.org</a>
                 </p>
               </div>
               <div>
