@@ -42,6 +42,7 @@ package-lock.json
 *.pem
 *.vscode
 _todo.txt
+projekt
 
 
 # debug

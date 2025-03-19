@@ -117,7 +117,7 @@ export function PostsWithTagCheck({ children }: PostsWithTagCheckProps) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-amber-50 dark:bg-amber-900/10 p-6 rounded-xl max-w-md">
           <h2 className="text-xl font-semibold text-amber-700 dark:text-amber-400 mb-2">
-            Keine Ergebnisse gefunden
+            No Posts with this tag
           </h2>
           <p className="text-amber-700 dark:text-amber-300">
             No posts were found with the tag &quot;{tagParam}&quot;.

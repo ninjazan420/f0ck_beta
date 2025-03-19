@@ -3,13 +3,12 @@ const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   reactStrictMode: true,
-//  swcMinify: true,
   env: {
     MONGODB_URI: process.env.MONGODB_URI,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     NEXTAUTH_COOKIE_DOMAIN: process.env.NEXTAUTH_COOKIE_DOMAIN,
-    PUBLIC_URL: process.env.PUBLIC_URL || 'http://localhost:3001',
+    PUBLIC_URL: process.env.PUBLIC_URL || 'http://localhost:3000',
   },
   webpack: (config) => {
     config.module.rules.push({
