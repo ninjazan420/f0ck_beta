@@ -1,6 +1,40 @@
 # Änderungsprotokoll
 
-## 2.5.0
+## [2.6.0]
+
+### 💎 Komplett überarbeitetes Benachrichtigungssystem
+- **Neugestaltung der Notifikationsseite und Benachrichtigungsglocke**:
+  - Vollständige Neugestaltung der Notifikationsseite mit verbesserter Organisation und Filterung
+  - Neu gestaltete Benachrichtigungsglocke für bessere Sichtbarkeit und Interaktion
+  - Verbesserte visuelle Darstellung von Benachrichtigungen mit klarer Prioritisierung
+  - Optimierte Gruppierung verwandter Benachrichtigungen
+- **Neue Benachrichtigungsfunktionen**:
+  - "Hat geantwortet" Status für klarere Konversationsverfolgung hinzugefügt
+  - Erweiterte Benachrichtigungstypen für verschiedene Benutzerinteraktionen
+  - Verbesserte Kontextinformationen in Benachrichtigungen
+
+### 🎨 Integration von Styled Components
+- **Erweiterte Styling-Möglichkeiten**:
+  - Styled Components als zusätzliche Styling-Lösung implementiert
+  - Verbesserte Komponenten-Isolation und Wiederverwendbarkeit
+  - Erweiterte Theming-Funktionen für konsistentes Design
+  - Bessere Trennung von Styling-Belangen in komplexen Komponenten
+
+### 📱 Mobile Verbesserungen
+- **Optimierte mobile Benutzererfahrung**:
+  - Notifikationsglocke für mobile Geräte hinzugefügt und optimiert
+  - Reihenfolge der Navbar geändert: Benutzername und Avatar stehen jetzt ganz rechts
+  - Verbesserte Touch-Schnittstellen für Benachrichtigungsinteraktionen
+  - Responsive Design-Verbesserungen für verschiedene Bildschirmgrößen
+
+### 🔍 Erweiterte Kommentarfunktionen
+- **Verbesserte Kommentarfunktionalität**:
+  - Filter in Kommentaren aktiviert für bessere Übersichtlichkeit
+  - Verbesserte Darstellung von Kommentar-Threads
+  - Optimierte Benachrichtigungen für Kommentare mit klarerem Kontext
+  - Beschleunigte Ladezeiten für Kommentare und Antworten
+
+## [2.5.0]
 
 ### 🌟 Verbesserte Interaktionssysteme
 - **Umfassendes Like- und Dislike-System**:
@@ -39,7 +73,7 @@
   - Optimierte Datenverarbeitung mit verbesserten Fehlerbehandlungen
   - Effizientere Batches für Aktualisierung von Statistiken
 
-## 2.4.0
+## [2.4.0]
 
 ### 🌟 Neues Feature-System
 - **"Featured Post" Option hinzugefügt**:
@@ -67,7 +101,7 @@
   - Erweitertes ModLog-System mit neuen Aktionstypen
   - Verbesserte WebSocket-Verbindungen für Kommentare
 
-## 2.3.0
+## [2.3.0]
 
 ### 🔧 Komplett überarbeitete Moderationsseite
 - Verbesserte Benutzeroberfläche mit separaten Tabs für Übersicht, Kommentare, Aktivitätslog und Aktionen
@@ -248,7 +282,7 @@ Diese Version markiert einen wichtigen Meilenstein für das f0ck.org Projekt und
   - Post-Navigator repariert, sodass nur der aktuelle Zustand berücksichtigt wird
 - **Verbesserte Metadaten**: Hinzufügen von og:title Tags für bessere Darstellung in sozialen Medien und Suchmaschinen
 
-### �� Neue Funktionalitäten
+### 🎨 Neue Funktionalitäten
 
 - **Erweiterte Upload-Möglichkeiten**: 
   - Copy & Paste-Funktion implementiert

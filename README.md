@@ -1,4 +1,4 @@
-# f0ck.org Beta v2.5.0
+# f0ck.org Beta v2.6.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v2.5.0](#f0ckorg-beta-v250)
+- [f0ck.org Beta v2.6.0](#f0ckorg-beta-v260)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,7 +21,12 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v2.5.0 (Current)](#beta-v250-current)
+    - [Beta v2.6.0 (Current)](#beta-v260-current)
+      - [💎 Redesigned Notification System](#-redesigned-notification-system)
+      - [🎨 Styled Components Integration](#-styled-components-integration)
+      - [📱 Mobile Enhancements](#-mobile-enhancements)
+      - [🔍 Extended Comment Features](#-extended-comment-features)
+    - [Beta v2.5.0](#beta-v250)
       - [🌟 Enhanced Interaction Systems](#-enhanced-interaction-systems)
       - [📌 New Post Management Functions](#-new-post-management-functions)
       - [🔔 Notification System](#-notification-system)
@@ -162,7 +167,7 @@ NODE_ENV=development
 ## 🛠️ Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
-- **Styling**: TailwindCSS
+- **Styling**: TailwindCSS, Styled Components
 - **Typography**: Geist Font
 - **Architecture**: React Server Components
 - **Real-time**: WebSocket Integration
@@ -172,7 +177,42 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v2.5.0 (Current)
+### Beta v2.6.0 (Current)
+
+#### 💎 Redesigned Notification System
+
+- **Completely Overhauled Notification Interface**:
+  - Redesigned notification page with improved organization and filtering
+  - Newly styled notification bell for clearer visibility
+  - Enhanced notification functions including "has replied" status
+  - More comprehensive notification types for better user feedback
+  - Optimized notification grouping and prioritization
+
+#### 🎨 Styled Components Integration
+
+- **Advanced Styling Capabilities**:
+  - Added styled-components for more dynamic UI elements
+  - Improved component isolation and reusability
+  - Enhanced theming capabilities across the platform
+  - Better separation of styling concerns in complex components
+
+#### 📱 Mobile Enhancements
+
+- **Improved Mobile Experience**:
+  - Added notification bell functionality for mobile devices
+  - Reorganized navbar with username and avatar positioned at far right
+  - Enhanced touch interfaces for notification interaction
+  - Responsive design improvements for various screen sizes
+
+#### 🔍 Extended Comment Features
+
+- **Enhanced Comment Functionality**:
+  - Activated comment filtering system
+  - Improved threading for better conversation tracking
+  - Enhanced comment notifications with clearer context
+  - Optimized comment loading performance
+
+### Beta v2.5.0
 
 #### 🌟 Enhanced Interaction Systems
 
@@ -550,5 +590,5 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 
 MIT License - © 2024 f0ck.org Team
 
-> Beta Version 2.5.0 - We build something new...
+> Beta Version 2.6.0 - We build something new...
 
