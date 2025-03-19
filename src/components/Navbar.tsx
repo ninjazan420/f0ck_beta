@@ -114,12 +114,23 @@ export const Navbar = () => {
 
   const getAuthMenuItems = (): MenuItem[] => {
     if (isAuthenticated) {
+      // Reihenfolge neu anordnen - Avatar nach ganz rechts
       return [
+        ...(session?.user?.role && ['moderator', 'admin'].includes(session.user.role)) 
+          ? [{ type: 'link' as const, label: 'Mod', href: '/moderation' }] 
+          : [],
+        ...commonMenuItems,
+        {
+          type: 'button',
+          label: 'Logout',
+          onClick: handleLogout
+        },
+        // Avatar ans Ende verschieben
         {
           type: 'avatar',
           label: 'Avatar',
           component: (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-2">
               <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                 {session?.user?.avatar ? (
                   <Image 
@@ -143,15 +154,6 @@ export const Navbar = () => {
               <NotificationBell />
             </div>
           )
-        },
-        ...(session?.user?.role && ['moderator', 'admin'].includes(session.user.role)) 
-          ? [{ type: 'link' as const, label: 'Mod', href: '/moderation' }] 
-          : [],
-        ...commonMenuItems,
-        {
-          type: 'button',
-          label: 'Logout',
-          onClick: handleLogout
         }
       ];
     } else {
@@ -225,7 +227,7 @@ export const Navbar = () => {
         </div>
         
         {/* Mobile Navbar */}
-        <div className={`container mx-auto px-4 h-[50px] ${isMobile ? 'flex' : 'hidden'} items-center justify-between`}>
+        <div className={`container mx-auto px-4 h-14 flex items-center justify-between ${isMobile ? 'flex' : 'hidden'}`}>
           {/* Burger icon */}
           <button 
             onClick={toggleMobileMenu} 
@@ -243,24 +245,28 @@ export const Navbar = () => {
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{description}</p>
           </div>
           
-          {/* User avatar (if logged in) */}
+          {/* User avatar mit NotificationBell (if logged in) */}
           {isAuthenticated && (
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <NotificationBell />
               <Link href="/account">
-                {session?.user?.avatar ? (
-                  <Image 
-                    key={`avatar-${forceUpdate}-${session.user.avatar}`}
-                    src={getImageUrlWithCacheBuster(session.user.avatar)} 
-                    alt="Avatar" 
-                    width={32} 
-                    height={32} 
-                    className="object-cover w-full h-full"
-                  />
-                ) : (
-                  <div className="text-sm text-gray-400">
-                    {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
-                  </div>
-                )}
+                <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
+                  {session?.user?.avatar ? (
+                    <Image 
+                      key={`avatar-${forceUpdate}-${session.user.avatar}`}
+                      src={getImageUrlWithCacheBuster(session.user.avatar)} 
+                      alt="Avatar" 
+                      width={32} 
+                      height={32} 
+                      className="object-cover w-full h-full"
+                      unoptimized={true}
+                    />
+                  ) : (
+                    <div className="text-sm text-gray-400">
+                      {session?.user?.username?.[0]?.toUpperCase() ?? '?'}
+                    </div>
+                  )}
+                </div>
               </Link>
             </div>
           )}

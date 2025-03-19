@@ -245,7 +245,7 @@ export function NotificationBell() {
       >
         <svg 
           className="w-5 h-5" 
-          fill="none" 
+          fill="full" 
           stroke="currentColor" 
           viewBox="0 0 24 24" 
           xmlns="http://www.w3.org/2000/svg"
@@ -259,7 +259,7 @@ export function NotificationBell() {
         </svg>
         
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
+          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
