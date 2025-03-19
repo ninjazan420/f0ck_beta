@@ -13,67 +13,69 @@ import { NotificationService } from '@/lib/services/notificationService';
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const postId = searchParams.get('postId');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
+    const postId = searchParams.get('postId');
     const status = searchParams.get('status') || 'approved';
+    const username = searchParams.get('username');
+    const searchText = searchParams.get('searchText');
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
+    const minLikes = parseInt(searchParams.get('minLikes') || '0');
 
     await dbConnect();
 
     const query: any = {};
     
-    // Prüfen ob postId eine gültige ObjectId ist
+    // Basis-Query für postId
     if (postId) {
       if (!mongoose.Types.ObjectId.isValid(postId)) {
-        // Versuchen, die numerische ID zu konvertieren
         const numericId = Number(postId);
         if (isNaN(numericId)) {
           return NextResponse.json({ 
             comments: [],
-            pagination: {
-              total: 0,
-              pages: 0,
-              current: page,
-              limit
-            }
+            pagination: { total: 0, pages: 0, current: page, limit }
           });
         }
         
-        // Post mit der numerischen ID suchen
-        try {
-          const Post = mongoose.model('Post');
-          const post = await Post.findOne({ id: numericId });
-          if (!post) {
-            console.log(`Post with numeric ID ${numericId} not found`);
-            return NextResponse.json({
-              comments: [],
-              pagination: {
-                total: 0,
-                pages: 0,
-                current: page,
-                limit
-              }
-            });
-          }
-          console.log(`GET: Found post with numeric ID ${numericId}, MongoDB ID: ${post._id}`);
-          query.post = post._id;
-        } catch (error) {
-          console.error('Error finding post by numeric ID:', error);
+        const Post = mongoose.model('Post');
+        const post = await Post.findOne({ id: numericId });
+        if (!post) {
           return NextResponse.json({
             comments: [],
-            pagination: {
-              total: 0,
-              pages: 0,
-              current: page,
-              limit
-            }
+            pagination: { total: 0, pages: 0, current: page, limit }
           });
         }
+        query.post = post._id;
       } else {
         query.post = postId;
       }
     }
-    
+
+    // Filter-Bedingungen hinzufügen
+    if (username) {
+      const users = await User.find({
+        username: { $regex: username, $options: 'i' }
+      });
+      query.author = { $in: users.map(u => u._id) };
+    }
+
+    if (searchText) {
+      query.content = { $regex: searchText, $options: 'i' };
+    }
+
+    if (dateFrom) {
+      query.createdAt = { ...query.createdAt, $gte: new Date(dateFrom) };
+    }
+
+    if (dateTo) {
+      query.createdAt = { ...query.createdAt, $lte: new Date(dateTo) };
+    }
+
+    if (minLikes > 0) {
+      query['stats.likes'] = { $gte: minLikes };
+    }
+
     if (status !== 'all') query.status = status;
     query.isHidden = false;
 
@@ -97,24 +99,19 @@ export async function GET(req: Request) {
       Comment.countDocuments(query)
     ]);
 
-    // Make sure we provide numericId for posts if available
     const processedComments = comments.map(comment => {
       const processedComment = comment.toObject();
       
-      // If the post has a numericId, make sure it's included
       if (processedComment.post && processedComment.post._id) {
-        // If post has an id field but not a numericId field, use that as numericId
         if (!processedComment.post.numericId && processedComment.post.id) {
           processedComment.post.numericId = processedComment.post.id;
         }
       }
       
-      // Stelle sicher, dass die Antworten auf Kommentare korrekte IDs haben
       if (processedComment.replyTo) {
         processedComment.replyTo.id = processedComment.replyTo._id.toString();
       }
       
-      // Stelle sicher, dass der Kommentar eine explizite ID hat
       processedComment.id = processedComment._id.toString();
       
       return processedComment;

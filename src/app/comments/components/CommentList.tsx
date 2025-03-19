@@ -296,7 +296,11 @@ export function CommentList({
         page: pageNum.toString(),
         limit: limit.toString(),
         ...(postId && { postId }),
-        // Moderatoren und Admins können alle Kommentare sehen
+        ...(filters?.username && { username: filters.username }),
+        ...(filters?.searchText && { searchText: filters.searchText }),
+        ...(filters?.dateFrom && { dateFrom: filters.dateFrom }),
+        ...(filters?.dateTo && { dateTo: filters.dateTo }),
+        ...(filters?.minLikes && filters.minLikes > 0 && { minLikes: filters.minLikes.toString() }),
         ...(session?.user?.role && ['moderator', 'admin'].includes(session.user.role) && { status: 'all' })
       });
 
@@ -305,10 +309,9 @@ export function CommentList({
 
       const data = await response.json();
       
-      // Stellen Sie sicher, dass jeder Kommentar eine korrekte ID hat
       const processedComments = data.comments.map((comment: any) => ({
         ...comment,
-        id: comment._id || comment.id // Verwende _id, wenn id nicht definiert ist
+        id: comment._id || comment.id
       }));
       
       if (pageNum === 1) {
@@ -566,6 +569,14 @@ export function CommentList({
       }
     }
   }, [comments, hasMore]);
+
+  // Füge einen useEffect hinzu, der auf Filter-Änderungen reagiert
+  useEffect(() => {
+    // Reset Pagination und lade neue gefilterte Kommentare
+    setPage(1);
+    setComments([]);
+    fetchComments(1);
+  }, [filters]); // Abhängigkeit von filters hinzugefügt
 
   if (error) {
     return (
