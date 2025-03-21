@@ -574,7 +574,7 @@ export function PostDetails({ postId }: { postId: string }) {
             </div>
 
             {/* Action Buttons */}
-            <div className="absolute bottom-4 right-4 flex gap-2 z-10">
+            <div className="absolute top-2 left-4 flex gap-2 z-10">
               <button
                 onClick={() => handleVote('like')}
                 className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
