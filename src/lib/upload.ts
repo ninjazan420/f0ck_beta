@@ -8,6 +8,8 @@ import crypto from 'crypto';
 import User from '@/models/User';
 import fs from 'fs/promises';
 import { ApplicationError } from '@/lib/error-handling';
+import { spawn } from 'child_process';
+import path from 'path';
 
 // Lokale Definition von ContentRating
 export type ContentRating = 'safe' | 'sketchy' | 'unsafe';
@@ -21,6 +23,11 @@ const UPLOAD_DIRS = {
   original: join(process.cwd(), 'public', 'uploads', 'original'),
   thumbnails: join(process.cwd(), 'public', 'uploads', 'thumbnails'),
 } as const;
+
+// Füge Konstanten für Content-Typen hinzu
+const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const VALID_VIDEO_TYPES = ['video/webm', 'video/mp4', 'video/quicktime'];
+const VALID_CONTENT_TYPES = [...VALID_IMAGE_TYPES, ...VALID_VIDEO_TYPES];
 
 // Generiere eine eindeutige Bild-ID
 function generateImageId(): string {
@@ -79,6 +86,38 @@ interface ProcessedUpload {
   contentRating: ContentRating;
   uploadDate: Date;
   userId?: string;
+  isVideo?: boolean;
+}
+
+// Funktion zum Erstellen von Video-Thumbnails mit ffmpeg
+async function generateVideoThumbnail(videoPath: string, outputPath: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    // Extrahiere ein Frame bei 1 Sekunde als Thumbnail
+    const ffmpeg = spawn('ffmpeg', [
+      '-i', videoPath,
+      '-ss', '00:00:01.000',
+      '-vframes', '1',
+      '-vf', 'scale=400:400:force_original_aspect_ratio=decrease,pad=400:400:(ow-iw)/2:(oh-ih)/2',
+      '-y',
+      outputPath
+    ]);
+
+    let errorOutput = '';
+
+    ffmpeg.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+    });
+
+    ffmpeg.on('close', (code) => {
+      if (code === 0) {
+        console.log(`✅ Video thumbnail generated successfully at ${outputPath}`);
+        resolve(true);
+      } else {
+        console.error(`❌ Failed to generate video thumbnail: ${errorOutput}`);
+        reject(new Error(`ffmpeg exited with code ${code}: ${errorOutput}`));
+      }
+    });
+  });
 }
 
 // Neue Validierungsfunktion
@@ -97,9 +136,8 @@ function validateUploadParams(
     throw new ApplicationError('Invalid filename', 'ValidationError', 400);
   }
 
-  const validContentTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  if (!validContentTypes.includes(contentType)) {
-    throw new ApplicationError('Invalid content type', 'ValidationError', 400);
+  if (!VALID_CONTENT_TYPES.includes(contentType)) {
+    throw new ApplicationError(`Invalid content type. Supported types: ${VALID_CONTENT_TYPES.join(', ')}`, 'ValidationError', 400);
   }
 
   if (!CONTENT_RATINGS.includes(contentRating)) {
@@ -112,170 +150,6 @@ function validateUploadParams(
 
   if (tags.length > 30) {
     throw new ApplicationError('Too many tags (max 30)', 'ValidationError', 400);
-  }
-}
-
-export async function processUpload(
-  file: Buffer,
-  filename: string,
-  contentType: string,
-  userId: string | null,
-  contentRating: ContentRating = DEFAULT_CONTENT_RATING,
-  tags: string[] = []
-): Promise<ProcessedUpload> {
-  try {
-    // Validiere Parameter
-    validateUploadParams(file, filename, contentType, contentRating, tags);
-    
-    // Verarbeite das Bild direkt mit Sharp
-    const image = sharp(file);
-    const metadata = await image.metadata();
-
-    // Verbesserte Tag-Verarbeitung
-    const processedTags: string[] = [];
-    if (tags && tags.length > 0) {
-      console.log('🏷️ Processing tags for upload:', tags);
-      
-      for (const tagName of tags) {
-        try {
-          if (!tagName || typeof tagName !== 'string' || tagName.trim() === '') {
-            console.log('⚠️ Skipping empty tag');
-            continue;
-          }
-          
-          console.log('🔄 Processing tag:', tagName);
-          
-          // Find or create the tag - userId übergeben!
-          const tag = await Tag.findOrCreate(tagName, userId);
-          console.log('✅ Tag result:', tag);
-          
-          if (!tag) {
-            console.error('❌ Failed to create tag:', tagName);
-            continue;
-          }
-          
-          // Hier ist der kritische Fix: Tag-Name zur Liste hinzufügen
-          processedTags.push(tag.name);
-          
-          // Increment post count for the tag
-          await Tag.findByIdAndUpdate(tag._id, {
-            $inc: { postsCount: 1, newPostsToday: 1, newPostsThisWeek: 1 }
-          });
-        } catch (error) {
-          console.error('❌ Error processing tag:', tagName, error);
-        }
-      }
-    }
-    console.log('📋 Final processed tags:', processedTags);
-
-    // Erstelle einen neuen Post mit den verarbeiteten Tags
-    const post = new Post({
-      title: filename,
-      author: userId || null,
-      contentRating: contentRating,
-      tags: processedTags, // Diese Liste sollte jetzt korrekt gefüllt sein
-      meta: {
-        width: metadata.width || 0,
-        height: metadata.height || 0,
-        size: file.length,
-        format: metadata.format || 'jpeg',
-        source: null
-      }
-    });
-    
-    // Debug-Ausgabe des Post-Objekts vor dem Speichern
-    console.log('📝 Creating post with tags:', post.tags);
-    
-    // Speichere den Post
-    await post.save();
-    console.log('💾 Post saved with ID:', post._id, 'and numeric ID:', post.id);
-
-    // Wenn ein User vorhanden ist, füge den Post zu seinen Uploads hinzu
-    if (userId) {
-      await User.findByIdAndUpdate(userId, {
-        $push: { uploads: post._id }
-      });
-    }
-    
-    // Generiere eine eindeutige Bild-ID
-    const imageId = generateImageId();
-    const finalFilename = `${imageId}.jpg`; // Wir speichern alles als JPG
-    const thumbnailFilename = `thumb_${finalFilename}`; // Thumbnail mit Präfix
-
-    // Speichere das Originalbild mit expliziten Berechtigungen
-    const originalPath = join(UPLOAD_DIRS.original, finalFilename);
-    await writeFile(originalPath, file, { mode: 0o644 });
-    console.log(`Original image saved to: ${originalPath}`);
-
-    // Erstelle und speichere das Thumbnail mit expliziten Berechtigungen
-    const thumbnailPath = join(UPLOAD_DIRS.thumbnails, thumbnailFilename);
-    try {
-      console.log(`Generating thumbnail for ${thumbnailPath}...`);
-      await image
-        .resize(400, 400, {
-          fit: 'cover',
-          position: 'centre'
-        })
-        .toFile(thumbnailPath);
-      console.log(`Thumbnail successfully saved to ${thumbnailPath}`);
-
-      // Überprüfe, ob die Datei wirklich existiert
-      const exists = await fs.access(thumbnailPath).then(() => true).catch(() => false);
-      if (!exists) {
-        console.error(`Thumbnail file does not exist after creation at: ${thumbnailPath}`);
-      }
-    } catch (thumbError) {
-      console.error('Error generating thumbnail:', thumbError);
-      // Versuche einen alternativen Ansatz
-      try {
-        const thumbBuffer = await image
-          .resize(400, 400, {
-            fit: 'cover',
-            position: 'centre'
-          })
-          .toBuffer();
-        await fs.writeFile(thumbnailPath, thumbBuffer);
-        console.log(`Thumbnail saved using alternative method to ${thumbnailPath}`);
-      } catch (altError) {
-        console.error('Alternative thumbnail creation also failed:', altError);
-      }
-    }
-
-    // Aktualisiere den Post mit den Bildpfaden
-    post.imageUrl = `/uploads/original/${finalFilename}`;
-    post.thumbnailUrl = `/uploads/thumbnails/${thumbnailFilename}`;
-    await post.save();
-    console.log(`Saved image paths to database: ${post.imageUrl}, ${post.thumbnailUrl}`);
-
-    // Stelle sicher, dass contentRating korrekt ist, mit Fallback zur DEFAULT_CONTENT_RATING
-    const validContentRating: ContentRating = 
-      ['safe', 'sketchy', 'unsafe'].includes(contentRating) 
-        ? contentRating as ContentRating 
-        : DEFAULT_CONTENT_RATING;
-
-    return {
-      id: post.id,
-      filename: finalFilename,
-      originalPath: post.imageUrl,
-      thumbnailPath: post.thumbnailUrl,
-      contentType,
-      size: file.length,
-      dimensions: {
-        width: metadata.width || 0,
-        height: metadata.height || 0
-      },
-      tags: processedTags,
-      contentRating: validContentRating,
-      uploadDate: new Date(),
-      userId
-    };
-  } catch (error) {
-    throw new ApplicationError(
-      `Failed to process upload: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      'UploadError',
-      500,
-      error
-    );
   }
 }
 
@@ -384,6 +258,218 @@ export async function downloadImageFromUrl(url: string): Promise<{
     throw new ApplicationError(
       'Failed to download image from URL',
       'NetworkError',
+      500,
+      error
+    );
+  }
+}
+
+// Aktualisiere processUpload Funktion, um Videos zu unterstützen
+export async function processUpload(
+  file: Buffer,
+  filename: string,
+  contentType: string,
+  userId: string | null,
+  contentRating: ContentRating = DEFAULT_CONTENT_RATING,
+  tags: string[] = []
+): Promise<ProcessedUpload> {
+  try {
+    // Initialisiere existingPostId Variable
+    const existingPostId = null;
+    
+    // Stelle sicher, dass contentRating korrekt ist (DIESE ZEILE MUSS FRÜHER DEFINIERT WERDEN)
+    const validContentRating: ContentRating = 
+      ['safe', 'sketchy', 'unsafe'].includes(contentRating) 
+        ? contentRating as ContentRating 
+        : DEFAULT_CONTENT_RATING;
+    
+    // Validiere Parameter
+    validateUploadParams(file, filename, contentType, contentRating, tags);
+    
+    // Bestimme Dateityp
+    const isVideo = VALID_VIDEO_TYPES.includes(contentType);
+    console.log(`Processing ${isVideo ? 'video' : 'image'}: ${filename} (${contentType})`);
+    
+    // Verarbeite Metadaten
+    let metadata: any = {};
+    let width = 0;
+    let height = 0;
+    
+    if (!isVideo) {
+      // Bild-Verarbeitung mit Sharp
+      const image = sharp(file);
+      metadata = await image.metadata();
+      width = metadata.width || 0;
+      height = metadata.height || 0;
+    }
+    
+    // Tags verarbeiten wie bisher
+    const processedTags: string[] = [];
+    if (tags && tags.length > 0) {
+      console.log('🏷️ Processing tags for upload:', tags);
+      
+      for (const tagName of tags) {
+        try {
+          if (!tagName || typeof tagName !== 'string' || tagName.trim() === '') {
+            console.log('⚠️ Skipping empty tag');
+            continue;
+          }
+          
+          console.log('🔄 Processing tag:', tagName);
+          
+          // Find or create the tag - userId übergeben!
+          const tag = await Tag.findOrCreate(tagName, userId);
+          console.log('✅ Tag result:', tag);
+          
+          if (!tag) {
+            console.error('❌ Failed to create tag:', tagName);
+            continue;
+          }
+          
+          processedTags.push(tag.name);
+          
+          // Increment post count for the tag
+          await Tag.findByIdAndUpdate(tag._id, {
+            $inc: { postsCount: 1, newPostsToday: 1, newPostsThisWeek: 1 }
+          });
+        } catch (error) {
+          console.error('❌ Error processing tag:', tagName, error);
+        }
+      }
+    }
+
+    // Post erstellen
+    const post = await Post.findOneAndUpdate(
+      { _id: existingPostId || new Types.ObjectId() },
+      {
+        title: filename,
+        author: userId ? new Types.ObjectId(userId) : null,
+        contentRating: validContentRating,
+        tags: processedTags,
+        meta: {
+          width: width,
+          height: height,
+          size: file.length,
+          format: isVideo ? (
+            contentType === 'video/webm' ? 'webm' : 
+            contentType === 'video/mp4' ? 'mp4' : 'mov'
+          ) : (
+            metadata.format || 'unknown'
+          ),
+          isVideo: isVideo,
+        }
+      },
+      { new: true, upsert: true }
+    );
+
+    console.log(`Post created/updated with isVideo=${isVideo}, meta:`, post.meta);
+
+    // Wenn ein User vorhanden ist, füge den Post zu seinen Uploads hinzu
+    if (userId) {
+      await User.findByIdAndUpdate(userId, {
+        $push: { uploads: post._id }
+      });
+    }
+    
+    // Generiere eine eindeutige Datei-ID
+    const fileId = generateImageId();
+    
+    // Bestimme die Dateiendung basierend auf dem Inhaltstyp
+    let fileExtension = '.jpg'; // Standard für Bilder
+    
+    if (isVideo) {
+      if (contentType === 'video/webm') fileExtension = '.webm';
+      else if (contentType === 'video/mp4') fileExtension = '.mp4';
+      else if (contentType === 'video/quicktime') fileExtension = '.mov';
+    }
+    
+    const finalFilename = `${fileId}${fileExtension}`;
+    const thumbnailFilename = `thumb_${fileId}.jpg`; // Thumbnails sind immer JPG
+    
+    // Pfade festlegen
+    const originalPath = join(UPLOAD_DIRS.original, finalFilename);
+    const thumbnailPath = join(UPLOAD_DIRS.thumbnails, thumbnailFilename);
+    
+    // Speichere die Originaldatei
+    await writeFile(originalPath, file, { mode: 0o644 });
+    console.log(`Original file saved to: ${originalPath}`);
+    
+    // Erstelle Thumbnail
+    if (isVideo) {
+      try {
+        // Für Videos: Verwende ffmpeg, um ein Thumbnail zu erstellen
+        console.log(`Generating thumbnail for video: ${thumbnailPath}`);
+        await generateVideoThumbnail(originalPath, thumbnailPath);
+      } catch (thumbError) {
+        console.error('Error generating video thumbnail:', thumbError);
+        // Versuche einen Fallback mit einem Standard-Video-Thumbnail
+        const fallbackThumbPath = join(process.cwd(), 'public', 'images', 'video-placeholder.jpg');
+        try {
+          const fallbackThumb = await fs.readFile(fallbackThumbPath);
+          await fs.writeFile(thumbnailPath, fallbackThumb);
+          console.log(`Used fallback thumbnail for ${thumbnailPath}`);
+        } catch (fallbackError) {
+          console.error('Fallback thumbnail also failed:', fallbackError);
+        }
+      }
+    } else {
+      // Für Bilder: Verwende sharp wie bisher
+      try {
+        console.log(`Generating thumbnail for image: ${thumbnailPath}`);
+        const image = sharp(file);
+        await image
+          .resize(400, 400, {
+            fit: 'cover',
+            position: 'centre'
+          })
+          .toFile(thumbnailPath);
+        console.log(`Thumbnail successfully saved to ${thumbnailPath}`);
+      } catch (thumbError) {
+        console.error('Error generating thumbnail:', thumbError);
+        // Verwende die alternative Methode wie bisher
+        try {
+          const image = sharp(file);
+          const thumbBuffer = await image
+            .resize(400, 400, {
+              fit: 'cover',
+              position: 'centre'
+            })
+            .toBuffer();
+          await fs.writeFile(thumbnailPath, thumbBuffer);
+          console.log(`Thumbnail saved using alternative method to ${thumbnailPath}`);
+        } catch (altError) {
+          console.error('Alternative thumbnail creation also failed:', altError);
+        }
+      }
+    }
+    
+    // Aktualisiere den Post mit den Dateipfaden
+    post.imageUrl = `/uploads/original/${finalFilename}`;
+    post.thumbnailUrl = `/uploads/thumbnails/${thumbnailFilename}`;
+    await post.save();
+    console.log(`Saved file paths to database: ${post.imageUrl}, ${post.thumbnailUrl}`);
+    
+    return {
+      id: post.id,
+      filename: finalFilename,
+      originalPath: post.imageUrl,
+      thumbnailPath: post.thumbnailUrl,
+      contentType,
+      size: file.length,
+      dimensions: {
+        width: width,
+        height: height
+      },
+      tags: processedTags,
+      contentRating: validContentRating,
+      uploadDate: new Date(),
+      userId,
+      isVideo: isVideo
+    };
+  } catch (error) {
+    throw new ApplicationError(
+      `Failed to process upload: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      'UploadError',
       500,
       error
     );

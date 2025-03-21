@@ -11,6 +11,7 @@ import { PostTagEditor } from '@/app/posts/components/PostTagEditor';
 import { PostModerator } from '@/app/posts/components/PostModerator';
 import { Suspense } from 'react';
 import PostContent from './PostContent';
+import { VideoPlayer } from '@/components/VideoPlayer';
 
 // Mock function to fetch post data (replace with your actual data fetching)
 async function getPost(id: string) {

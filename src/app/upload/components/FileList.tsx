@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useMemo, KeyboardEvent } from 'react'
 import Image from 'next/image';
 import { v4 as uuidv4 } from 'uuid';
 import { PreviewImageUrlData } from './UrlInput'; // Import the type
+import { VideoPlayer } from '@/components/VideoPlayer';
 
 interface FileItem {
   id: string;
@@ -238,10 +239,26 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
       {fileItems.map((item) => (
         <div key={item.id} className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50">
           <div className="flex gap-4">
-            {item.thumbnail && (
+            {item.type === 'file' && item.format?.startsWith('video/') ? (
+              <div className="w-24 h-24 flex-shrink-0 relative">
+                <VideoPlayer
+                  src={URL.createObjectURL(files.find(f => f.name === item.name) || new Blob())}
+                  thumbnailSrc={item.thumbnail || '/images/video-placeholder.jpg'}
+                  width="96px"
+                  height="96px"
+                  controls={false}
+                  autoPlay={false}
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xl">▶</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
               <div className="w-24 h-24 flex-shrink-0 relative">
                 <Image 
-                  src={item.thumbnail} 
+                  src={item.thumbnail || '/images/placeholder.jpg'} 
                   alt={item.name}
                   width={96}
                   height={96}

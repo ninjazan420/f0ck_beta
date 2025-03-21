@@ -107,8 +107,11 @@ export async function POST(request: NextRequest) {
     // Stärkere Validierung der Uploads
     if (files && files.length > 0) {
       // Validiere die Dateitypen und -größen
-      const validFileTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-      const maxFileSize = 20 * 1024 * 1024; // 20MB
+      const validFileTypes = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 
+        'video/webm', 'video/mp4', 'video/quicktime'
+      ];
+      const maxFileSize = 100 * 1024 * 1024; // 100MB für Videos
       
       // Prüfe das Upload-Limit für jede Datei
       for (const file of files) {
@@ -131,7 +134,7 @@ export async function POST(request: NextRequest) {
         
         if (file.size > maxFileSize) {
           return NextResponse.json(
-            { error: 'File size exceeds the maximum limit of 20MB' },
+            { error: 'File size exceeds the maximum limit of 100MB' },
             { status: 400 }
           );
         }

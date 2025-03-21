@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 
-const ALLOWED_EXTENSIONS = ['.jpg', '.png', '.gif', '.webm', '.mp4', '.mov', '.swf', '.avif', '.heif', '.heic', '.webp'];
+const ALLOWED_EXTENSIONS = ['.jpg', '.png', '.gif', '.webm', '.mp4', '.mov', '.heif', '.heic', '.webp'];
 
 export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void }) {
   const dropzoneRef = useRef<HTMLDivElement>(null);
@@ -42,9 +42,8 @@ export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop,
     accept: {
-      'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.avif', '.heif', '.heic', '.webp'],
+      'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.heif', '.heic', '.webp'],
       'video/*': ['.webm', '.mp4', '.mov'],
-      'application/x-shockwave-flash': ['.swf']
     }
   });
 

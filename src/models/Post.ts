@@ -15,6 +15,7 @@ interface IPost extends mongoose.Document {
     size: number;
     format: string;
     source: string | null;
+    isVideo: boolean;
   };
   stats: {
     views: number;
@@ -69,7 +70,8 @@ const postSchema = new mongoose.Schema({
     height: { type: Number, default: 0 },
     size: { type: Number, default: 0 },
     format: { type: String, default: 'jpeg' },
-    source: { type: String, default: null }
+    source: { type: String, default: null },
+    isVideo: { type: Boolean, default: false }
   },
   stats: {
     views: { type: Number, default: 0 },

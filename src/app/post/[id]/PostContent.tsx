@@ -178,24 +178,32 @@ export default function PostContent({ postData, postId }) {
       <h1 className="text-2xl font-bold">{postData.title}</h1>
       
       {/* Interaktionsleiste über dem Bild */}
-      <div className="my-2 flex items-center space-x-4">
+      <div className="my-2 p-3 bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl flex items-center space-x-4">
         <button 
           onClick={handleLike}
           disabled={isProcessing}
-          className={`flex items-center gap-1 ${liked ? 'text-blue-500' : 'text-gray-500'}`}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+            liked 
+              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
+              : 'bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
           aria-label={liked ? "Unlike post" : "Like post"}
         >
-          <span className="text-lg">👍</span>
+          <span className="text-xl">👍</span>
           <span>{likeCount}</span>
         </button>
         
         <button 
           onClick={handleFavorite}
           disabled={isProcessing}
-          className={`flex items-center gap-1 ${favorited ? 'text-yellow-500' : 'text-gray-500'}`}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+            favorited 
+              ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400' 
+              : 'bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
           aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
         >
-          <span className="text-lg">⭐</span>
+          <span className="text-xl">❤️</span>
           <span>{favoriteCount}</span>
         </button>
         
@@ -204,10 +212,10 @@ export default function PostContent({ postData, postId }) {
             navigator.clipboard.writeText(window.location.href);
             toast.success('URL kopiert');
           }}
-          className="text-gray-500 flex items-center gap-1"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           aria-label="Copy link"
         >
-          <span className="text-lg">🔗</span>
+          <span className="text-xl">🔗</span>
           <span>Teilen</span>
         </button>
       </div>

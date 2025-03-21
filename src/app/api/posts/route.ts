@@ -193,8 +193,31 @@ export async function GET(req: Request) {
       .skip(offset)
       .limit(limit);
     
+    // Ergänze die Verarbeitung der Posts, um das isVideo-Flag zu verwenden
+    const processedPosts = posts.map((post) => ({
+      id: post._id || post.id,
+      title: post.title || '',
+      thumbnail: post.thumbnailUrl || '/images/placeholder.jpg',
+      imageUrl: post.imageUrl || '',
+      likes: post.stats?.likes || 0,
+      comments: post.stats?.comments || 0,
+      favorites: post.stats?.favorites || 0,
+      stats: {
+        likes: post.stats?.likes || 0,
+        comments: post.stats?.comments || 0,
+        favorites: post.stats?.favorites || 0
+      },
+      contentRating: post.contentRating || 'safe',
+      isPinned: post.isPinned || false,
+      // Setze den mediaType basierend auf dem post.meta.isVideo Flag
+      mediaType: post.meta?.isVideo ? 'video' : 
+                 (post.meta?.format === 'gif' ? 'gif' : 'image'),
+      // Falls es ein Video ist, setze hasAudio immer auf true (kann später verfeinert werden)
+      hasAudio: post.meta?.isVideo ? true : false,
+    }));
+    
     return NextResponse.json({
-      posts,
+      posts: processedPosts,
       totalPosts,
       currentPage: Math.floor(offset / limit) + 1,
       totalPages: Math.ceil(totalPosts / limit)

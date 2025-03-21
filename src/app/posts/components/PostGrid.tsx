@@ -130,6 +130,8 @@ export function PostGrid({
       
       const data = await response.json();
       
+      console.log("API response for posts:", data); // Debugging log
+      
       // Update total posts count if available in response
       if (data.totalPosts) {
         setTotalPosts(data.totalPosts);
@@ -139,26 +141,31 @@ export function PostGrid({
         setHasMore(data.posts?.length === POSTS_PER_PAGE);
       }
       
-      const formattedPosts = (data.posts || data).map((post: any) => ({
-        id: post.id.toString(),
-        title: post.title,
-        thumbnail: post.thumbnailUrl,
-        url: post.imageUrl,
-        likes: post.stats.likes,
-        comments: post.stats.comments,
-        favorites: post.stats.favorites,
-        contentRating: post.contentRating,
-        mediaType: post.mediaType || 'image',
-        hasAudio: post.hasAudio || false,
-        isPinned: post.isPinned || false,
-        isAd: post.isAd || false,
-        author: post.author
-      }));
+      const formattedPosts = data.posts.map((post: any) => {
+        console.log("Processing post:", post); // Log jeden Post
+        return {
+          id: post.id,
+          title: post.title,
+          thumbnail: post.thumbnail, // Überprüfe diesen Wert
+          url: post.imageUrl,
+          likes: post.stats?.likes || 0,
+          comments: post.stats?.comments || 0,
+          favorites: post.stats?.favorites || 0,
+          contentRating: post.contentRating,
+          mediaType: post.mediaType,
+          hasAudio: post.hasAudio,
+          isPinned: post.isPinned,
+          isAd: post.isAd || false,
+          author: post.author
+        };
+      });
+      
+      console.log("Formatted posts:", formattedPosts); // Check das Ergebnis
       
       return formattedPosts;
     } catch (error) {
-      console.error(`Failed to fetch page ${pageNum}:`, error);
-      return [];
+      console.error("Error fetching posts:", error);
+      throw error;
     }
   };
 
@@ -245,7 +252,7 @@ export function PostGrid({
   // Verbesserte Methode für die Anzeige der Posts mit Unterstützung für gepinnte Posts
   const getVisiblePosts = () => {
     if (infiniteScroll) {
-      // Für Infinite Scroll, alle geladenen Posts zurückgeben (gefiltert nach Content Rating)
+      // Für Infinite Scroll, alle geladenen Posts zurückgeben (gefilteredt nach Content Rating)
       // Aber jetzt mit gepinnten Posts zuerst
       const filteredPosts = posts.filter(post => 
         !filters.contentRating?.length || filters.contentRating.includes(post.contentRating)

@@ -15,6 +15,9 @@ import { PostModerator } from './PostModerator';
 import { PostTagEditor } from '@/app/posts/components/PostTagEditor';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import { VideoPlayer } from '@/components/VideoPlayer';
+import { Switch } from '@/components/ui/Switch';
+import styled from 'styled-components';
 
 interface PostData {
   id: string;
@@ -58,6 +61,7 @@ interface PostData {
     size: number;
     format: string;
     source: string | null;
+    isVideo?: boolean;
   };
   tags: Array<{
     id: string;
@@ -241,130 +245,163 @@ export function PostDetails({ postId }: { postId: string }) {
 
   // Voting Handler
   const handleVote = async (voteType: 'like' | 'dislike') => {
-    if (!session?.user) {
-      router.push(`/login?callbackUrl=/posts/${postId}`);
+    if (!session) {
+      router.push('/login?callbackUrl=' + encodeURIComponent(window.location.pathname));
       return;
     }
-    
-    // Vermeide mehrere Anfragen gleichzeitig
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    
-    try {
-      // Neue, vereinheitlichte API verwenden
-      const endpoint = `/api/posts/${postId}/interactions`;
-      
-      // Bestimme, ob wir hinzufügen oder entfernen
-      const isLike = voteType === 'like';
-      const shouldRemove = isLike ? userVote === 'like' : userVote === 'dislike';
-      
-      console.log(`Sending interaction request with type: ${voteType}, remove: ${shouldRemove}`);
-      
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          type: voteType,
-          remove: shouldRemove
-        })
-      });
-      
-      console.log(`Vote response status: ${response.status}`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to ${shouldRemove ? 'remove' : 'add'} ${voteType}: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log(`Vote response data:`, data);
-      
-      // Update der lokalen Zustände mit den genauen Werten aus der API
-      setPost(prev => {
-        if (!prev) return prev;
-        return {
+
+    // Wenn der User den gleichen Knopf nochmal drückt, entferne das Vote
+    if (userVote === voteType) {
+      setUserVote(null);
+      // Aktualisiere die Statistik entsprechend
+      if (voteType === 'like') {
+        setPost(prev => prev ? {
           ...prev,
           stats: {
             ...prev.stats,
-            likes: data.likeCount,
-            dislikes: data.dislikeCount
+            likes: prev.stats.likes - 1
           }
-        };
-      });
-      
-      // Update des Benutzervotings basierend auf dem API-Ergebnis
-      if (isLike) {
-        setUserVote(data.liked ? 'like' : null);
+        } : null);
       } else {
-        setUserVote(data.disliked ? 'dislike' : null);
+        setPost(prev => prev ? {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            dislikes: prev.stats.dislikes - 1
+          }
+        } : null);
       }
+    } else {
+      // Entferne das vorherige Vote, wenn vorhanden
+      if (userVote === 'like') {
+        setPost(prev => prev ? {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            likes: prev.stats.likes - 1
+          }
+        } : null);
+      } else if (userVote === 'dislike') {
+        setPost(prev => prev ? {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            dislikes: prev.stats.dislikes - 1
+          }
+        } : null);
+      }
+
+      // Setze das neue Vote
+      setUserVote(voteType);
+      // Aktualisiere die Statistik entsprechend
+      if (voteType === 'like') {
+        setPost(prev => prev ? {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            likes: prev.stats.likes + 1
+          }
+        } : null);
+      } else {
+        setPost(prev => prev ? {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            dislikes: prev.stats.dislikes + 1
+          }
+        } : null);
+      }
+    }
+
+    // Sende die Änderung an den Server
+    try {
+      const response = await fetch(`/api/posts/${postId}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          vote: userVote === voteType ? null : voteType,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit vote');
+      }
+
+      const data = await response.json();
+      // Serverstatistiken übernehmen
+      setPost(prev => prev ? {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          likes: data.stats.likes,
+          dislikes: data.stats.dislikes
+        }
+      } : null);
+      setUserVote(data.userVote);
     } catch (error) {
-      console.error(`Error with vote operation:`, error);
-      alert(`Fehler: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error submitting vote:', error);
+      toast.error('Fehler beim Abstimmen');
     }
   };
 
   // Favorite Handler
-  const handleFavorite = async () => {
-    if (!session?.user) {
-      router.push(`/login?callbackUrl=/posts/${postId}`);
+  const toggleFavorite = async () => {
+    if (!session) {
+      router.push('/login?callbackUrl=' + encodeURIComponent(window.location.pathname));
       return;
     }
+
+    // Optimistisches Update
+    const wasFavorited = isFavorited;
+    setIsFavorited(!wasFavorited);
     
-    // Vermeide mehrere Anfragen gleichzeitig
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    
-    try {
-      const method = isFavorited ? 'DELETE' : 'POST';
-      const endpoint = `/api/posts/${postId}/favorite`;
-      
-      console.log(`Sending ${method} request to ${endpoint}`);
-      
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      console.log(`Favorite response status: ${response.status}`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to ${method} favorite: ${response.status}`);
+    // Aktualisiere die Statistik entsprechend
+    setPost(prev => prev ? {
+      ...prev,
+      stats: {
+        ...prev.stats,
+        favorites: prev.stats.favorites + (wasFavorited ? -1 : 1)
       }
-      
+    } : null);
+
+    // Sende die Änderung an den Server
+    try {
+      const response = await fetch(`/api/posts/${postId}/favorite`, {
+        method: wasFavorited ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update favorite status');
+      }
+
       const data = await response.json();
-      console.log(`Favorite response data:`, data);
-      
-      // Update der lokalen Zustände
-      setIsFavorited(!isFavorited);
-      setPost(prev => ({
+      // Serverstatistiken übernehmen
+      setPost(prev => prev ? {
         ...prev,
         stats: {
           ...prev.stats,
           favorites: data.favoriteCount
         }
-      }));
-      
-      // Benachrichtigung anzeigen
-      toast.success(
-        isFavorited 
-          ? 'Aus Favoriten entfernt' 
-          : 'Zu Favoriten hinzugefügt'
-      );
-      
-      // Router aktualisieren, damit alle Komponenten die neue Daten erhalten
-      router.refresh();
-      
+      } : null);
+      setIsFavorited(data.favorited);
     } catch (error) {
-      console.error('Error handling favorite:', error);
+      console.error('Error updating favorite status:', error);
       toast.error('Fehler beim Aktualisieren der Favoriten');
-    } finally {
-      setIsSubmitting(false);
+      
+      // Bei Fehler den ursprünglichen Zustand wiederherstellen
+      setIsFavorited(wasFavorited);
+      setPost(prev => prev ? {
+        ...prev,
+        stats: {
+          ...prev.stats,
+          favorites: prev.stats.favorites + (wasFavorited ? 1 : -1)
+        }
+      } : null);
     }
   };
 
@@ -400,96 +437,28 @@ export function PostDetails({ postId }: { postId: string }) {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchPost = async () => {
-      setLoading(true);
+    async function fetchPostDetails() {
       try {
+        setLoading(true);
         const response = await fetch(`/api/posts/${postId}`);
         if (!response.ok) {
           setPost(null);
           setLoading(false);
           return;
         }
-
-        // Für alle Posts verwenden wir die API-Daten
-        const postData = await response.json();
-        // Detailliertes Debugging für Bio-Daten
-        console.log('API response für Post:', JSON.stringify(postData, null, 2));
-        console.log('API author data:', postData.author);
         
-        // Detailliertes Debugging für Tag-Daten
-        console.log('API tags data:', postData.tags);
-        console.log('Tags type:', typeof postData.tags);
-        console.log('Is tags array?', Array.isArray(postData.tags));
-        if (Array.isArray(postData.tags)) {
-          console.log('Tags length:', postData.tags.length);
-          console.log('First tag (if exists):', postData.tags[0]);
-        }
-        
-        if (postData.author) {
-          console.log('Author bio exists?', postData.author.hasOwnProperty('bio'));
-          console.log('Author bio value:', postData.author.bio);
-          console.log('Author bio type:', typeof postData.author.bio);
-          console.log('Populate fields in author:', Object.keys(postData.author).join(', '));
-        }
-        setPost({
-          id: postId,
-          title: postData.title,
-          description: postData.description || '',
-          imageUrl: postData.imageUrl,
-          thumbnailUrl: postData.thumbnailUrl,
-          uploadDate: new Date(postData.createdAt).toISOString(),
-          uploader: postData.author ? {
-            id: postData.author._id,
-            name: postData.author.username,
-            avatar: postData.author.avatar,
-            bio: postData.author.bio || '',
-            premium: Boolean(postData.author.premium),
-            admin: postData.author.role === 'admin',
-            moderator: postData.author.role === 'moderator',
-            member: postData.author.role === 'member' || !postData.author.role,
-            joinDate: new Date(postData.author.createdAt).toISOString(),
-            stats: postData.author.stats || {
-              totalPosts: 0,
-              totalLikes: 0,
-              totalViews: 0,
-              level: 1,
-              xp: 0,
-              xpNeeded: 100
-            }
-          } : {
-            id: 'anonymous',
-            name: 'Anonymous',
-            avatar: null,
-            bio: '',
-            premium: false,
-            admin: false,
-            moderator: false,
-            member: true,
-            joinDate: new Date(postData.createdAt).toISOString(),
-            stats: {
-              totalPosts: 0,
-              totalLikes: 0,
-              totalViews: 0,
-              level: 1,
-              xp: 0,
-              xpNeeded: 100
-            }
-          },
-          stats: postData.stats,
-          meta: postData.meta,
-          tags: postData.tags || [],
-          contentRating: postData.contentRating,
-          isAnimated: false
-        });
-      } catch (error) {
-        console.error('Failed to fetch post:', error);
+        const data = await response.json();
+        console.log("Fetched post data:", data); // Debugging log
+        setPost(data);
+      } catch (err) {
+        console.error("Error fetching post details:", err);
         setPost(null);
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchPost();
+    }
+    
+    fetchPostDetails();
   }, [postId]);
 
   useEffect(() => {
@@ -564,17 +533,35 @@ export function PostDetails({ postId }: { postId: string }) {
         <div className="space-y-6">
           {/* Image Container */}
           <div className="relative rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
-            <Image
-              src={getImageUrlWithCacheBuster(post.imageUrl)}
-              alt={post.title}
-              width={800}
-              height={600}
-              className="w-full h-auto"
-              unoptimized={true}
-            />
+            {post.meta?.isVideo ? (
+              <div className="video-wrapper" style={{ width: '100%', height: 'auto', maxHeight: '70vh' }}>
+                <VideoPlayer
+                  src={post.imageUrl}
+                  thumbnailSrc={post.thumbnailUrl}
+                  width="100%"
+                  height="auto"
+                  controls={true}
+                  autoPlay={false}
+                  className="w-full"
+                />
+              </div>
+            ) : (
+              <div className="image-wrapper flex justify-center" style={{ width: '100%', maxHeight: '900px', overflow: 'hidden' }}>
+                <Image
+                  src={getImageUrlWithCacheBuster(post.imageUrl)}
+                  width={post.meta.width}
+                  height={post.meta.height}
+                  quality={95}
+                  priority
+                  alt={post.title || 'Post image'}
+                  className="object-contain w-auto h-auto max-h-[900px]"
+                  style={{ maxWidth: '100%', maxHeight: '900px' }}
+                />
+              </div>
+            )}
             
             {/* Content Rating Badge */}
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-4 right-4 z-10">
               <span className={`px-2 py-1 rounded text-xs font-medium ${
                 post.contentRating === 'safe' 
                   ? 'bg-green-500/40 text-white border border-green-500/50'
@@ -587,7 +574,7 @@ export function PostDetails({ postId }: { postId: string }) {
             </div>
 
             {/* Action Buttons */}
-            <div className="absolute bottom-4 right-4 flex gap-2">
+            <div className="absolute bottom-4 right-4 flex gap-2 z-10">
               <button
                 onClick={() => handleVote('like')}
                 className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
@@ -611,7 +598,7 @@ export function PostDetails({ postId }: { postId: string }) {
                 <span>{post.stats.dislikes}</span>
               </button>
               <button
-                onClick={handleFavorite}
+                onClick={toggleFavorite}
                 className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
                   isFavorited
                     ? 'bg-purple-500/80 text-white'
@@ -886,7 +873,7 @@ export function PostDetails({ postId }: { postId: string }) {
 
           {/* Description */}
           {post.description && (
-            <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+            <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 mt-4">
               <p className="text-gray-600 dark:text-gray-400 text-sm">
                 {post.description}
               </p>
