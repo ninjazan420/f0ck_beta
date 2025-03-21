@@ -10,6 +10,8 @@ import fs from 'fs/promises';
 import { ApplicationError } from '@/lib/error-handling';
 import { spawn } from 'child_process';
 import path from 'path';
+import { fileTypeFromBuffer } from 'file-type';
+import { getVideoMetadata } from '@/lib/video-utils';
 
 // Lokale Definition von ContentRating
 export type ContentRating = 'safe' | 'sketchy' | 'unsafe';
@@ -286,6 +288,31 @@ export async function processUpload(
     // Validiere Parameter
     validateUploadParams(file, filename, contentType, contentRating, tags);
     
+    // Überprüfe den tatsächlichen Dateityp mit fileTypeFromBuffer
+    const actualType = await fileTypeFromBuffer(file);
+    if (!actualType) {
+      throw new ApplicationError(
+        `Could not determine file type`,
+        'ValidationError',
+        400
+      );
+    }
+    
+    // Prüfe ob der erkannte Typ mit dem angegebenen Typ übereinstimmt
+    if (actualType.mime !== contentType) {
+      console.warn(`Mismatched content type: declared=${contentType}, actual=${actualType.mime}`);
+      contentType = actualType.mime; // Verwende den tatsächlichen Typ statt dem deklarierten
+    }
+    
+    // Prüfe ob der Dateityp unterstützt wird
+    if (!VALID_CONTENT_TYPES.includes(contentType)) {
+      throw new ApplicationError(
+        `Unsupported file type: ${contentType}`,
+        'ValidationError',
+        400
+      );
+    }
+    
     // Bestimme Dateityp
     const isVideo = VALID_VIDEO_TYPES.includes(contentType);
     console.log(`Processing ${isVideo ? 'video' : 'image'}: ${filename} (${contentType})`);
@@ -301,6 +328,42 @@ export async function processUpload(
       metadata = await image.metadata();
       width = metadata.width || 0;
       height = metadata.height || 0;
+    } else {
+      // Zusätzliche Validierung für Videos
+      try {
+        // Video-Metadaten extrahieren
+        const videoMetadata = await getVideoMetadata(file);
+        
+        // Speichere Dimensionen
+        width = videoMetadata.width;
+        height = videoMetadata.height;
+        
+        // Füge zusätzliche Validierungen hinzu
+        const maxDurationSeconds = 300; // 5 Minuten
+        if (videoMetadata.durationSeconds > maxDurationSeconds) {
+          throw new ApplicationError(
+            `Video duration exceeds the maximum limit of ${maxDurationSeconds} seconds`,
+            'ValidationError',
+            400
+          );
+        }
+        
+        // Füge das Metadata zum Output hinzu
+        metadata = {
+          ...metadata,
+          duration: videoMetadata.durationSeconds,
+          codec: videoMetadata.codec,
+          bitrate: videoMetadata.bitrate
+        };
+      } catch (error) {
+        console.error('Video validation error:', error);
+        throw new ApplicationError(
+          `Failed to validate video: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          'ValidationError',
+          400,
+          error
+        );
+      }
     }
     
     // Tags verarbeiten wie bisher

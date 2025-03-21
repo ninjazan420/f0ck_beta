@@ -1,4 +1,4 @@
-# f0ck.org Beta v2.7.0
+# f0ck.org Beta v
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v2.7.0](#f0ckorg-beta-v270)
+- [f0ck.org Beta v](#f0ckorg-beta-v)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -25,6 +25,20 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
       - [🎮 Enhanced Navigation and User Experience](#-enhanced-navigation-and-user-experience)
       - [🔧 Technical Improvements](#-technical-improvements)
     - [Previous Versions (click to expand)](#previous-versions-click-to-expand)
+      - [💎 Redesigned Notification System](#-redesigned-notification-system)
+      - [🎨 Styled Components Integration](#-styled-components-integration)
+      - [📱 Mobile Enhancements](#-mobile-enhancements)
+      - [🔍 Extended Comment Features](#-extended-comment-features)
+      - [🌟 Enhanced Interaction Systems](#-enhanced-interaction-systems)
+      - [📌 New Post Management Functions](#-new-post-management-functions)
+      - [🔔 Notification System](#-notification-system)
+      - [📊 Redesigned Statistics](#-redesigned-statistics)
+      - [🖼️ Media Improvements](#️-media-improvements)
+      - [🌟 New Feature System (v2.4.0)](#-new-feature-system-v240)
+      - [🏠 Improved Frontend (v2.4.0)](#-improved-frontend-v240)
+      - [🔍 Enhanced Moderation (v2.3.0)](#-enhanced-moderation-v230)
+      - [🛠️ Technical Improvements (v2.2.0)](#️-technical-improvements-v220)
+      - [🚀 State of the Art Beta Website (v2.0.0)](#-state-of-the-art-beta-website-v200)
   - [🌐 Links \& Support](#-links--support)
   - [📜 License](#-license)
 
@@ -298,5 +312,5 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 
 MIT License - © 2024 f0ck.org Team
 
-> Beta Version 2.7.0 - We build something new...
+> Beta Version  - We build something new...
 

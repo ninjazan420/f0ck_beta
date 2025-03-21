@@ -12,6 +12,8 @@ import { createErrorResponse, ApplicationError } from '@/lib/error-handling';
 import fs from 'fs/promises';
 import { join } from 'path';
 import { withAuth } from '@/lib/api-utils';
+import { validateAndSanitizePath, isPathWithinBase } from '@/lib/path-utils';
+import { getVideoMetadata } from '@/lib/video-utils';
 
 // Kommentiere den Rate Limiter aus
 // Initialize rate limiter
@@ -113,11 +115,10 @@ export async function POST(request: NextRequest) {
       ];
       const maxFileSize = 100 * 1024 * 1024; // 100MB für Videos
       
-      // Prüfe das Upload-Limit für jede Datei
       for (const file of files) {
         const limitResult = checkUploadLimit(userId, file.size);
         if (limitResult) {
-          return limitResult; // Dies gibt den NextResponse mit dem Fehler zurück
+          return limitResult;
         }
         
         // Buffer erstellen
@@ -125,9 +126,49 @@ export async function POST(request: NextRequest) {
         
         // Tatsächlichen Dateityp aus dem Inhalt ermitteln
         const detectedType = await fileTypeFromBuffer(buffer);
-        if (!detectedType || !validFileTypes.includes(detectedType.mime)) {
+        if (!detectedType) {
           return NextResponse.json(
-            { error: `Unsupported or manipulated file type: ${file.type}` },
+            { error: `Could not determine file type` },
+            { status: 400 }
+          );
+        }
+        
+        // Zusätzliche Prüfung für Video-Dateien
+        if (detectedType.mime.startsWith('video/')) {
+          try {
+            // Video-Metadaten extrahieren mit ffprobe (erfordert FFmpeg-Installation)
+            const videoMetadata = await getVideoMetadata(buffer);
+            
+            // Maximale Video-Dauer (5 Minuten)
+            const maxDurationSeconds = 300;
+            if (videoMetadata.durationSeconds > maxDurationSeconds) {
+              return NextResponse.json(
+                { error: `Video duration exceeds the maximum limit of ${maxDurationSeconds} seconds` },
+                { status: 400 }
+              );
+            }
+            
+            // Maximale Auflösung (4K)
+            const maxResolution = 3840 * 2160;
+            if (videoMetadata.width * videoMetadata.height > maxResolution) {
+              return NextResponse.json(
+                { error: `Video resolution exceeds the maximum limit of 4K` },
+                { status: 400 }
+              );
+            }
+          } catch (error) {
+            console.error('Error validating video metadata:', error);
+            return NextResponse.json(
+              { error: `Failed to validate video: ${error instanceof Error ? error.message : 'Unknown error'}` },
+              { status: 400 }
+            );
+          }
+        }
+        
+        // MIME-Typ-Überprüfung gegen die Whitelist
+        if (!validFileTypes.includes(detectedType.mime)) {
+          return NextResponse.json(
+            { error: `Unsupported file type: ${detectedType.mime}` },
             { status: 400 }
           );
         }
@@ -194,24 +235,36 @@ export async function POST(request: NextRequest) {
         if (tempFilePath) {
           console.log('Received tempFilePath:', tempFilePath);
           
-          // Pfad normalisieren - wir prüfen, woher der Pfad kommt
+          // Pfad normalisieren und validieren
+          const sanitizedPath = validateAndSanitizePath(tempFilePath);
+          if (!sanitizedPath) {
+            return NextResponse.json(
+              { error: 'Invalid file path' },
+              { status: 400 }
+            );
+          }
+          
+          // Bestimme den vollständigen Pfad basierend auf dem sanitierten Pfad
           let fullPath;
+          const uploadBaseDir = join(process.cwd(), 'public', 'uploads');
           
-          // Absoluter Windows-Pfad (C:\...)
-          if (tempFilePath.match(/^[a-zA-Z]:\\/)) {
-            fullPath = tempFilePath;
-          } 
-          // URL-Pfad (/uploads/...)
-          else if (tempFilePath.startsWith('/uploads/')) {
-            fullPath = join(process.cwd(), 'public', tempFilePath);
-          }
-          // Relativer Pfad im Projektverzeichnis
-          else {
-            fullPath = join(process.cwd(), tempFilePath);
+          // Prüfen, ob der Pfad mit uploads beginnt
+          if (sanitizedPath.startsWith('uploads/')) {
+            fullPath = join(process.cwd(), 'public', sanitizedPath);
+          } else {
+            fullPath = join(uploadBaseDir, sanitizedPath);
           }
           
-          console.log('Resolved temporary file path:', fullPath);
+          // Zusätzlich prüfen, ob der resultierende Pfad innerhalb des Upload-Verzeichnisses bleibt
+          if (!isPathWithinBase(uploadBaseDir, fullPath)) {
+            console.error('Path traversal attempt detected:', { tempFilePath, fullPath });
+            return NextResponse.json(
+              { error: 'Invalid file path (outside upload directory)' },
+              { status: 400 }
+            );
+          }
           
+          // Jetzt ist der Pfad sicher, um damit zu arbeiten
           try {
             // Überprüfen, ob die Datei existiert
             try {

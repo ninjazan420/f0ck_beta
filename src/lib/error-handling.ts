@@ -1,13 +1,13 @@
-type ErrorType = 
-  | 'ValidationError'
-  | 'AuthenticationError'
-  | 'DatabaseError'
-  | 'UploadError'
-  | 'NetworkError'
-  | 'FileSystemError'
-  | 'ImageProcessingError'
-  | 'RateLimitError'
-  | 'UnknownError';
+export enum ErrorType {
+  ValidationError = 'ValidationError', 
+  AuthorizationError = 'AuthorizationError',
+  NotFoundError = 'NotFoundError',
+  DatabaseError = 'DatabaseError',
+  UploadError = 'UploadError',
+  QuotaError = 'QuotaError',
+  ExternalServiceError = 'ExternalServiceError',
+  RateLimitError = 'RateLimitError'
+}
 
 interface AppError extends Error {
   type: ErrorType;
@@ -20,7 +20,12 @@ export class ApplicationError extends Error implements AppError {
   statusCode: number;
   originalError?: unknown;
 
-  constructor(message: string, type: ErrorType, statusCode: number = 500, originalError?: unknown) {
+  constructor(
+    message: string,
+    type: ErrorType = ErrorType.ValidationError,
+    statusCode: number = 400,
+    originalError?: unknown
+  ) {
     super(message);
     this.name = 'ApplicationError';
     this.type = type;
@@ -37,7 +42,7 @@ export function handleError(error: unknown): AppError {
   if (error instanceof Error) {
     return new ApplicationError(
       error.message,
-      'UnknownError',
+      ErrorType.ValidationError,
       500,
       error
     );
@@ -45,7 +50,7 @@ export function handleError(error: unknown): AppError {
 
   return new ApplicationError(
     'An unknown error occurred',
-    'UnknownError',
+    ErrorType.ValidationError,
     500,
     error
   );

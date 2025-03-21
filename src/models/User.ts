@@ -12,6 +12,8 @@ interface IUser extends mongoose.Document {
   lastSeen: Date;
   updatedAt: Date;
   role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
+  storageQuota: number;
+  usedStorage: number;
 }
 
 const userSchema = new mongoose.Schema({
@@ -80,7 +82,17 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Upload',
     index: true,
-  }]
+  }],
+  storageQuota: {
+    type: Number,
+    default: 500 * 1024 * 1024, // 500MB Standardkontingent
+    required: true
+  },
+  usedStorage: {
+    type: Number,
+    default: 0,
+    required: true
+  }
 }, {
   timestamps: true // Dies erstellt automatisch createdAt und updatedAt
 });
