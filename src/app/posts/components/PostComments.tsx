@@ -188,7 +188,7 @@ export function PostComments({ postId }: PostCommentsProps) {
         throw new Error('Original comment not found');
       }
       
-      // Stelle sicher, dass eingeloggte Benutzer nicht unbeabsichtigt als anonym markiert werden
+      // Explizit isAnonymous für nicht-eingeloggte Benutzer setzen
       const effectiveIsAnonymous = !session?.user ? true : isAnonymous;
       
       console.log('Submitting reply:', {

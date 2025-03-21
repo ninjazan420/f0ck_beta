@@ -463,15 +463,18 @@ export function CommentList({
     }
     
     try {
-      console.log('Posting reply with params:', { content, postId, replyTo: parentId, isAnonymous });
+      // Wenn kein Benutzer eingeloggt ist, muss isAnonymous auf true gesetzt sein
+      const effectiveIsAnonymous = !session?.user ? true : isAnonymous;
+      
+      console.log('Posting reply with params:', { content, postId, replyTo: parentId, isAnonymous: effectiveIsAnonymous });
       const response = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content,
           postId, // Dies könnte undefined sein, wenn auf der /comments-Seite
-          replyTo: parentId, // Änderung von parentId zu replyTo, wie die API es erwartet
-          isAnonymous
+          replyTo: parentId,
+          isAnonymous: effectiveIsAnonymous
         })
       });
 

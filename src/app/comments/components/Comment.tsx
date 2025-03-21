@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { GifSelector } from '@/components/GifSelector';
 import { getImageUrlWithCacheBuster } from '@/lib/utils';
+import { toast } from 'react-hot-toast';
 
 const DEFAULT_AVATAR = '/images/defaultavatar.png';
 
@@ -396,6 +397,11 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
     return result;
   };
 
+  const handleStartReply = () => {
+    // Einfach nur Reply-Box anzeigen, ohne zusätzliche Texte
+    setShowReplyBox(true);
+  };
+
   return (
     <div 
       id={`comment-${data.id}`}
@@ -568,22 +574,27 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
           {/* Action buttons */}
           {!isEditing && (
             <div className="mt-2 flex items-center gap-4">
+              {/* Reply-Button für alle Benutzer anzeigen */}
+              <button
+                onClick={handleStartReply}
+                className="text-sm text-gray-500 hover:text-purple-500 transition-colors"
+              >
+                Reply
+              </button>
+              
+              {/* Report-Button für alle Benutzer anzeigen, außer für Autoren des Kommentars */}
+              {!isAuthor && (
+                <button
+                  onClick={() => setShowReportDialog(true)}
+                  className="text-sm text-gray-500 hover:text-red-500 transition-colors"
+                >
+                  Report
+                </button>
+              )}
+              
+              {/* Diese Buttons weiterhin nur für eingeloggte Benutzer anzeigen */}
               {session && (
                 <>
-                  <button
-                    onClick={() => setShowReplyBox(true)}
-                    className="text-sm text-gray-500 hover:text-purple-500 transition-colors"
-                  >
-                    Reply
-                  </button>
-                  {!isAuthor && (
-                    <button
-                      onClick={() => setShowReportDialog(true)}
-                      className="text-sm text-gray-500 hover:text-red-500 transition-colors"
-                    >
-                      Report
-                    </button>
-                  )}
                   {(isAuthor || canModerate) && (
                     <button
                       onClick={handleDelete}
