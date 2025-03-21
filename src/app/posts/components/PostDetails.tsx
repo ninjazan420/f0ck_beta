@@ -16,7 +16,6 @@ import { PostTagEditor } from '@/app/posts/components/PostTagEditor';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { VideoPlayer } from '@/components/VideoPlayer';
-import { Switch } from '@/components/ui/Switch';
 import styled from 'styled-components';
 
 interface PostData {

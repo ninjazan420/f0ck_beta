@@ -55,30 +55,25 @@ export function PostModerator({ postId }: PostModeratorProps) {
     if (confirm('Are you sure you want to delete this post?')) {
       try {
         setIsProcessing(true);
-        const response = await fetch('/api/moderation/actions', {
-          method: 'POST',
+        
+        // Numerische ID in String umwandeln
+        const postIdString = String(postId);
+        
+        const response = await fetch(`/api/moderation/posts/${postIdString}`, {
+          method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'delete',
-            targetType: 'post',
-            targetId: postId,
             reason: 'Moderation - Post deletion'
           })
         });
         
         if (response.ok) {
-          console.log('Post successfully deleted!');
-          // Show status banner
+          toast.success('Post was successfully deleted');
           setStatusMessage('Post was deleted');
           setStatusType('default');
           setShowStatusBanner(true);
           
-          // If toast is available
-          if (typeof toast !== 'undefined') {
-            toast.success('Post was deleted');
-          }
-          
-          // Redirect to posts page instead of homepage
+          // Redirect to posts page
           setTimeout(() => {
             router.push('/posts');
           }, 1500);
@@ -88,11 +83,7 @@ export function PostModerator({ postId }: PostModeratorProps) {
         }
       } catch (error) {
         console.error('Error deleting post:', error);
-        if (typeof toast !== 'undefined') {
-          toast.error('Error deleting post');
-        } else {
-          alert('Error deleting post');
-        }
+        toast.error('Error deleting post');
       } finally {
         setIsProcessing(false);
       }
@@ -105,13 +96,14 @@ export function PostModerator({ postId }: PostModeratorProps) {
       const action = commentsBlocked ? 'enableComments' : 'disableComments';
       const message = commentsBlocked ? 'Comments enabled' : 'Comments disabled';
       
-      const response = await fetch('/api/moderation/actions', {
-        method: 'POST',
+      // Numerische ID in String umwandeln
+      const postIdString = String(postId);
+      
+      const response = await fetch(`/api/posts/${postIdString}/comments-status`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: action,
-          targetType: 'post',
-          targetId: postId,
+          disabled: !commentsBlocked,
           reason: `Moderation - ${message}`
         })
       });
@@ -150,10 +142,13 @@ export function PostModerator({ postId }: PostModeratorProps) {
       const method = isFeatured ? 'DELETE' : 'POST';
       const message = isFeatured ? 'Post removed from homepage' : 'Post featured on homepage';
       
+      // Numerische ID in String umwandeln
+      const postIdString = String(postId);
+      
       const response = await fetch('/api/moderation/feature', {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postId })
+        body: JSON.stringify({ postId: postIdString })
       });
       
       if (response.ok) {
@@ -188,16 +183,16 @@ export function PostModerator({ postId }: PostModeratorProps) {
   const togglePinPost = async () => {
     try {
       setIsProcessing(true);
-      const action = isPinned ? 'unpin' : 'pin';
       const message = isPinned ? 'Post unpinned from posts page' : 'Post pinned to the top of posts page';
       
-      const response = await fetch('/api/moderation/actions', {
-        method: 'POST',
+      // Numerische ID in String umwandeln
+      const postIdString = String(postId);
+      
+      const response = await fetch(`/api/posts/${postIdString}/pin-status`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: action,
-          targetType: 'post',
-          targetId: postId,
+          pinned: !isPinned,
           reason: `Moderation - ${isPinned ? 'Unpin post' : 'Pin post'}`
         })
       });
