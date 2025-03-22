@@ -25,6 +25,14 @@ const MODERATOR_PATHS = [
 ];
 
 export async function middleware(request: NextRequest) {
+  // Blockieren von direkten Subrequest-Anfragen
+  if (request.headers.get('x-middleware-subrequest')) {
+    return NextResponse.json(
+      { error: 'Forbidden' },
+      { status: 403 }
+    );
+  }
+
   const path = request.nextUrl.pathname;
 
   // CORS für API-Routen konfigurieren
