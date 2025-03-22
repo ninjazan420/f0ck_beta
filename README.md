@@ -21,6 +21,13 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
+    - [Beta v3.0.1 (Current)](#beta-v301-current)
+      - [🎬 Video Upload Functionality](#-video-upload-functionality)
+      - [🗳️ Enhanced Voting System](#️-enhanced-voting-system)
+      - [🧹 Optimized Database Management](#-optimized-database-management)
+      - [🛡️ Improved Moderation Tools](#️-improved-moderation-tools)
+      - [🧩 UI/UX Improvements](#-uiux-improvements)
+      - [🔒 Security Enhancements](#-security-enhancements)
     - [Beta v2.7.0 (Current)](#beta-v270-current)
       - [🎮 Enhanced Navigation and User Experience](#-enhanced-navigation-and-user-experience)
       - [🔧 Technical Improvements](#-technical-improvements)
@@ -153,6 +160,57 @@ NODE_ENV=development
 - **Media**: GIPHY API Integration
 
 ## 🔥 Latest Updates
+
+### Beta v3.0.1 (Current)
+
+#### 🎬 Video Upload Functionality
+
+- **Complete Video Upload Support**:
+  - Implementation of robust video upload capabilities
+  - Chunked uploads for efficient large file transmission
+  - Automatic thumbnail generation for videos
+  - Optimized video display with custom player
+  - Enhanced media versatility across the platform
+
+#### 🗳️ Enhanced Voting System
+
+- **Redesigned Voting Mechanism**:
+  - Completely revamped and repositioned voting system
+  - Fixed voting position on the /post/id page for better usability
+  - More efficient processing of user interactions
+  - Improved visual feedback for votes
+
+#### 🧹 Optimized Database Management
+
+- **Enhanced Cleanup Functions**:
+  - Automatic removal of database arrays when posts are deleted
+  - Complete cleanup of associated media files during post deletion
+  - Improved user data integrity after post removal
+  - Optimized storage usage through efficient file deletion
+
+#### 🛡️ Improved Moderation Tools
+
+- **Extended Moderation Capabilities**:
+  - Revamped moderator tools for more efficient content management
+  - Enhanced logging functions for moderation actions
+  - Improved API endpoints for moderation tasks
+  - Security updates for moderator access
+
+#### 🧩 UI/UX Improvements
+
+- **Enhanced User Interface**:
+  - New switch design in settings and notifications
+  - Enabled anonymous replies and reports
+  - Improved visual consistency across all components
+  - Optimized mobile view for better user experience
+
+#### 🔒 Security Enhancements
+
+- **Critical Bug Fixes**:
+  - Fixed CVE-2025-29927 for improved platform security
+  - Strengthened validation of user actions
+  - Enhanced error handling and logging
+  - Increased security for file uploads
 
 ### Beta v2.7.0 (Current)
 

@@ -1,5 +1,56 @@
 # Änderungsprotokoll
 
+## [3.0.1]
+
+### 🎬 Video-Upload-Funktionalität
+
+- **Vollständige Video-Upload-Unterstützung**:
+  - Implementation einer robusten Video-Upload-Funktion
+  - Chunked Uploads für effiziente Übertragung großer Videodateien
+  - Automatische Thumbnail-Generierung für Videos
+  - Optimierte Videodarstellung mit angepasstem Player
+
+### 🗳️ Verbessertes Voting-System
+
+- **Überarbeitetes Abstimmungssystem**:
+  - Voting-System komplett überarbeitet und neu positioniert
+  - Korrigierte Voting-Position auf der /post/id-Seite für bessere Benutzerfreundlichkeit
+  - Effizientere Verarbeitung von Benutzerinteraktionen
+  - Verbesserte visuelle Rückmeldungen bei Abstimmungen
+
+### 🧹 Optimierte Datenbankverwaltung
+
+- **Erweiterte Bereinigungsfunktionen**:
+  - Automatisches Entfernen von Datenbank-Arrays beim Löschen von Posts
+  - Vollständige Bereinigung zugehöriger Mediendateien bei Post-Löschung
+  - Verbesserte Integrität der Benutzerdaten nach Post-Entfernung
+  - Optimierte Speichernutzung durch effiziente Dateilöschung
+
+### 🛡️ Verbesserte Moderatorenwerkzeuge
+
+- **Erweiterte Moderationsfunktionen**:
+  - Überarbeitete Moderator-Tools für effizientere Content-Verwaltung
+  - Erweiterte Logging-Funktionen für Moderationsaktionen
+  - Verbesserte API-Endpunkte für Moderationsaufgaben
+  - Sicherheitsupdates für Moderatorenzugriffe
+
+### 🧩 UI/UX-Verbesserungen
+
+- **Optimierte Benutzeroberfläche**:
+  - Neues Switch-Design in Einstellungen und Benachrichtigungen
+  - Unterstützung für anonyme Antworten und Reports aktiviert
+  - Verbesserte visuelle Konsistenz über alle Komponenten hinweg
+  - Optimierte Mobilansicht für verbesserte Benutzerfreundlichkeit
+
+### 🔒 Sicherheitsverbesserungen
+
+- **Kritische Fehlerbehebungen**:
+  - Behebung von CVE-2025-29927 für verbesserte Plattformsicherheit
+  - Verstärkte Validierung von Benutzeraktionen
+  - Verbesserte Fehlerbehandlung und Logging
+  - Erhöhte Sicherheit bei Dateiuploads
+
+
 ## [2.7.0]
 
 ### 🎮 Verbesserte Navigation und Benutzerfreundlichkeit
