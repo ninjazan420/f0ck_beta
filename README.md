@@ -1,4 +1,4 @@
-# f0ck.org Beta v
+# f0ck.org Beta 3.0.1
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta v](#f0ckorg-beta-v)
+- [f0ck.org Beta 3.0.1](#f0ckorg-beta-301)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -110,9 +110,9 @@ npm run dev
 
 The development server will be available at:
 
-- **URL**: `http://localhost:3000`
-- **API**: `http://localhost:3000/api`
-- **WebSocket**: `ws://localhost:3000` (automatically configured)
+- **URL**: `http://localhost:3001`
+- **API**: `http://localhost:3001/api`
+- **WebSocket**: `ws://localhost:3001` (automatically configured)
 
 ### Production Setup
 
@@ -370,5 +370,5 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 
 MIT License - © 2024 f0ck.org Team
 
-> Beta Version  - We build something new...
+> Beta Version 3.0.1 - We build something new...
 
