@@ -28,7 +28,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
       - [🛡️ Improved Moderation Tools](#️-improved-moderation-tools)
       - [🧩 UI/UX Improvements](#-uiux-improvements)
       - [🔒 Security Enhancements](#-security-enhancements)
-    - [Beta v2.7.0 (Current)](#beta-v270-current)
+    - [Beta v2.7.0](#beta-v270)
       - [🎮 Enhanced Navigation and User Experience](#-enhanced-navigation-and-user-experience)
       - [🔧 Technical Improvements](#-technical-improvements)
     - [Previous Versions (click to expand)](#previous-versions-click-to-expand)
@@ -212,7 +212,7 @@ NODE_ENV=development
   - Enhanced error handling and logging
   - Increased security for file uploads
 
-### Beta v2.7.0 (Current)
+### Beta v2.7.0
 
 #### 🎮 Enhanced Navigation and User Experience
 

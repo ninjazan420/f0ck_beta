@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 // Allgemeine Konfiguration
 export const siteConfig = {
-  name: "f0ck.org",
+  name: "f0ck.org - Anoymous Imageboard",
   description: "Anonymous Imageboard platform for sharing Memes, Cats, and more",
   url: "https://beta.f0ck.org",
   icon: "/favicon.ico",
