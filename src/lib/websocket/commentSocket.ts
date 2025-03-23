@@ -1,5 +1,3 @@
-import { io, Socket } from 'socket.io-client';
-
 interface CommentUpdate {
   type: 'new' | 'update' | 'delete';
   commentId: string;
