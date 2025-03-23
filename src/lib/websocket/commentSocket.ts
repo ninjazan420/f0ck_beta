@@ -42,11 +42,22 @@ class CommentSocketService {
         
         if (res.ok) {
           const data = await res.json();
-          this.listeners.forEach(listener => listener({
-            type: 'update',
-            commentId: 'all',
-            data
-          }));
+          this.listeners.forEach((listener, key) => {
+            if (typeof listener === 'function') {
+              try {
+                listener({
+                  type: 'update',
+                  commentId: 'all',
+                  data
+                });
+              } catch (error) {
+                console.error(`Error calling listener for ${key}:`, error);
+              }
+            } else {
+              console.warn(`Invalid listener found for ${key}, removing it`);
+              this.listeners.delete(key);
+            }
+          });
         }
       }
     } catch (error) {
@@ -54,9 +65,22 @@ class CommentSocketService {
     }
   }
   
-  subscribe(id: string, postId: string, callback: (update: CommentUpdate) => void) {
+  subscribe(id: string, callback: (update: CommentUpdate) => void, postId?: string) {
     this.listeners.set(id, callback);
-    this.startPolling(postId);
+    if (postId) {
+      this.startPolling(postId);
+    } else {
+      // Extrahiere postId aus dem id-Parameter (falls format: comments-{postId})
+      const extractedPostId = id.split('-')[1];
+      if (extractedPostId) {
+        this.activePostIds.add(extractedPostId);
+        if (!this.polling) {
+          this.polling = true;
+          this.pollingInterval = setInterval(() => this.pollUpdates(), 10000);
+          console.log('Comment polling started');
+        }
+      }
+    }
   }
   
   unsubscribe(id: string) {
