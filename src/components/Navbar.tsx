@@ -112,6 +112,19 @@ export const Navbar = () => {
     return username.length > 12 ? username.substring(0, 12) + '...' : username;
   };
 
+  const cleanPageTitle = (title: string | undefined): string => {
+    if (!title) return 'f0ck.org';
+    
+    // Remove complete domain names (e.g. example.com, site.co.uk, etc.)
+    const domainPattern = /\b[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}(\s|\b)/gi;
+    const withoutDomains = title.replace(domainPattern, '');
+    
+    // Clean up multiple spaces and trim the result
+    const cleaned = withoutDomains.replace(/\s+/g, ' ').trim();
+    // Verwende den originalen Titel, wenn nach der Domainentfernung nichts übrig bleibt
+    return cleaned || title;
+  };
+
   const getAuthMenuItems = (): MenuItem[] => {
     if (isAuthenticated) {
       // Reihenfolge neu anordnen - Avatar nach ganz rechts
@@ -227,7 +240,7 @@ export const Navbar = () => {
         </div>
         
         {/* Mobile Navbar */}
-        <div className={`container mx-auto px-4 h-14 flex items-center justify-between ${isMobile ? 'flex' : 'hidden'}`}>
+        <div className={`container mx-auto px-4 h-14 flex items-center ${isMobile ? 'flex' : 'hidden'}`}>
           {/* Burger icon */}
           <button 
             onClick={toggleMobileMenu} 
@@ -240,14 +253,16 @@ export const Navbar = () => {
           </button>
           
           {/* Page title and description (mobile) */}
-          <div className="flex-1 text-center">
-            <h1 className="text-base font-[family-name:var(--font-geist-mono)] truncate">{title}</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{description}</p>
+          <div className="flex-grow flex justify-center overflow-hidden">
+            <div className="max-w-[60%] text-center overflow-hidden">
+              <h1 className="text-base font-[family-name:var(--font-geist-mono)] truncate">f0ck.org - Anonymous Imageboard</h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{cleanPageTitle(title)}</p>
+            </div>
           </div>
           
           {/* User avatar mit NotificationBell (if logged in) */}
           {isAuthenticated && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
               <NotificationBell />
               <Link href="/account">
                 <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
