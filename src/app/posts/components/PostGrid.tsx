@@ -361,7 +361,7 @@ export function PostGrid({
                       {post.mediaType === 'gif' 
                         ? '🎞️ GIF' 
                         : post.mediaType === 'video'
-                          ? '🎬 VIDEO'
+                          ? '🎬 VID'
                           : '🖼️ PIC'}
                       {post.mediaType === 'video' && post.hasAudio && ' 🔊'}
                     </span>
