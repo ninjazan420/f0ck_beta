@@ -1,4 +1,4 @@
-# f0ck.org Beta 3.0.1
+# f0ck.org Beta 3.1.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta 3.0.1](#f0ckorg-beta-301)
+- [f0ck.org Beta 3.1.0](#f0ckorg-beta-310)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,13 +21,11 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v3.0.1 (Current)](#beta-v301-current)
-      - [🎬 Video Upload Functionality](#-video-upload-functionality)
-      - [🗳️ Enhanced Voting System](#️-enhanced-voting-system)
-      - [🧹 Optimized Database Management](#-optimized-database-management)
-      - [🛡️ Improved Moderation Tools](#️-improved-moderation-tools)
-      - [🧩 UI/UX Improvements](#-uiux-improvements)
-      - [🔒 Security Enhancements](#-security-enhancements)
+    - [Beta v3.1.0 (Current)](#beta-v310-current)
+      - [🎨 Enhanced User Experience](#-enhanced-user-experience)
+      - [🎬 Enhanced Media Handling](#-enhanced-media-handling)
+      - [🔒 Privacy & Security](#-privacy--security)
+      - [🛠️ Technical Improvements](#️-technical-improvements)
     - [Beta v2.7.0](#beta-v270)
       - [🎮 Enhanced Navigation and User Experience](#-enhanced-navigation-and-user-experience)
       - [🔧 Technical Improvements](#-technical-improvements)
@@ -161,56 +159,38 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v3.0.1 (Current)
+### Beta v3.1.0 (Current)
 
-#### 🎬 Video Upload Functionality
+#### 🎨 Enhanced User Experience
 
-- **Complete Video Upload Support**:
-  - Implementation of robust video upload capabilities
-  - Chunked uploads for efficient large file transmission
-  - Automatic thumbnail generation for videos
-  - Optimized video display with custom player
-  - Enhanced media versatility across the platform
+- **Improved Light Mode**:
+  - Comprehensive light mode support across all components
+  - Better contrast and readability in light theme
+  - Consistent styling across both themes
 
-#### 🗳️ Enhanced Voting System
+#### 🎬 Enhanced Media Handling
 
-- **Redesigned Voting Mechanism**:
-  - Completely revamped and repositioned voting system
-  - Fixed voting position on the /post/id page for better usability
-  - More efficient processing of user interactions
-  - Improved visual feedback for votes
+- **Improved Video Support**:
+  - Added video preview functionality during upload
+  - Fixed activity feed type handling for both video and image content
+  - Better media type detection and display
 
-#### 🧹 Optimized Database Management
+#### 🔒 Privacy & Security
 
-- **Enhanced Cleanup Functions**:
-  - Automatic removal of database arrays when posts are deleted
-  - Complete cleanup of associated media files during post deletion
-  - Improved user data integrity after post removal
-  - Optimized storage usage through efficient file deletion
+- **Enhanced Content Protection**:
+  - Activated blur effect for NSFW posts based on user settings
+  - Improved content filtering mechanisms
+  - Better user control over sensitive content
 
-#### 🛡️ Improved Moderation Tools
+#### 🛠️ Technical Improvements
 
-- **Extended Moderation Capabilities**:
-  - Revamped moderator tools for more efficient content management
-  - Enhanced logging functions for moderation actions
-  - Improved API endpoints for moderation tasks
-  - Security updates for moderator access
-
-#### 🧩 UI/UX Improvements
-
-- **Enhanced User Interface**:
-  - New switch design in settings and notifications
-  - Enabled anonymous replies and reports
-  - Improved visual consistency across all components
-  - Optimized mobile view for better user experience
-
-#### 🔒 Security Enhancements
-
-- **Critical Bug Fixes**:
-  - Fixed CVE-2025-29927 for improved platform security
-  - Strengthened validation of user actions
-  - Enhanced error handling and logging
-  - Increased security for file uploads
+- **System Optimizations**:
+  - Fixed boolean handling in switch component
+  - Optimized middleware for localhost development
+  - Improved WebSocket implementation with removed domain dependencies
+  - Fixed comment listener error for better stability
+  - Enhanced filename handling by removing domain names
+  - Updated favicon for better brand recognition
 
 ### Beta v2.7.0
 
@@ -370,5 +350,5 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 
 MIT License - © 2024 f0ck.org Team
 
-> Beta Version 3.0.1 - We build something new...
+> Beta Version 3.1.0 - We build something new...
 

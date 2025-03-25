@@ -1,5 +1,38 @@
 # Änderungsprotokoll
 
+## [3.1.0]
+
+### 🎨 Verbesserte Benutzeroberfläche
+
+- **Optimierter Light Mode**:
+  - Umfassende Unterstützung des Light Mode über alle Komponenten
+  - Verbesserte Kontraste und Lesbarkeit im hellen Design
+  - Konsistente Darstellung in beiden Themes
+
+### 🎬 Erweiterte Medienunterstützung
+
+- **Verbesserte Videointegration**:
+  - Video-Vorschau während des Upload-Prozesses implementiert
+  - Korrektur der Aktivitäts-Feed-Typen für Video- und Bildinhalte
+  - Optimierte Erkennung und Anzeige von Medientypen
+
+### 🔒 Datenschutz & Sicherheit
+
+- **Erweiterte Inhaltsfilterung**:
+  - Aktivierung von Unschärfe-Effekten für NSFW-Inhalte basierend auf Benutzereinstellungen
+  - Verbesserte Filtermechanismen für sensible Inhalte
+  - Erweiterte Benutzerkontrolle über Inhaltssichtbarkeit
+
+### 🛠️ Technische Verbesserungen
+
+- **Systemoptimierungen**:
+  - Korrektur der Boolean-Verarbeitung in der Switch-Komponente
+  - Optimierte Middleware für lokale Entwicklungsumgebungen
+  - Verbesserte WebSocket-Implementation ohne Domain-Abhängigkeiten
+  - Behebung von Kommentar-Listener-Fehlern
+  - Optimierte Dateinamenverarbeitung durch Entfernung von Domainnamen
+  - Aktualisiertes Favicon für bessere Markenerkennung
+
 ## [3.0.1]
 
 ### 🎬 Video-Upload-Funktionalität
