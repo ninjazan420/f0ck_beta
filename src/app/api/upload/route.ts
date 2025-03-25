@@ -55,11 +55,13 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
+      console.log('Anonymous upload request received');
+    } else {
+      console.log('User ID from session:', session.user.id);
     }
+    
+    // Der userId wird weiterhin aus der Session genommen, falls vorhanden
+    const userId = session?.user?.id || null;
     
     console.log('Starting upload process...');
     
@@ -77,10 +79,6 @@ export async function POST(request: NextRequest) {
     //   );
     // }
 
-    // Get user session (if authenticated)
-    const userId = session.user.id;
-    console.log('User ID from session:', userId);
-    
     // Parse form data
     const formData = await request.formData();
     const files = formData.getAll('file') as File[];

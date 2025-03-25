@@ -25,12 +25,23 @@ const MODERATOR_PATHS = [
 ];
 
 export async function middleware(request: NextRequest) {
-  // Blockieren von direkten Subrequest-Anfragen
+  // Blockieren von direkten Subrequest-Anfragen nur in Produktion
+  // oder mit Ausnahmen für bestimmte Entwicklungsumgebungen
   if (request.headers.get('x-middleware-subrequest')) {
-    return NextResponse.json(
-      { error: 'Forbidden' },
-      { status: 403 }
-    );
+    // Erlaube Subrequests in der Entwicklungsumgebung
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Allowing middleware subrequest in development mode');
+      const path = request.nextUrl.pathname;
+      
+      // Optional: Prüfe, ob der Pfad für bestimmte kritische Routen ist
+      if (path.startsWith('/api/auth') || path.includes('/admin')) {
+        console.warn('Blocking sensitive subrequest even in development:', path);
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    } else {
+      // In der Produktion alle Subrequests blockieren
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
   }
 
   const path = request.nextUrl.pathname;
