@@ -5,13 +5,23 @@
 :root {
   --background: #ffffff; /* Reines Weiß als Hintergrund */
   --foreground: #171717;
+  --card-bg: #f9f9f9;
+  --card-border: #e5e7eb;
+  --text-primary: #171717;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
+  --hover-bg: #f3f4f6;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card-bg: rgba(17, 24, 39, 0.5);
+  --card-border: #1f2937;
+  --text-primary: #f9fafb;
+  --text-secondary: #e5e7eb;
+  --text-tertiary: #9ca3af;
+  --hover-bg: rgba(31, 41, 55, 0.5);
 }
 
 body {
@@ -45,9 +55,9 @@ body {
 @layer components {
   .stat-card {
     @apply p-5 rounded-xl 
-           bg-gray-50/80 dark:bg-gray-900/50 
+           bg-[var(--card-bg)]
            backdrop-blur-sm
-           border border-gray-100 dark:border-gray-800
+           border border-[var(--card-border)]
            text-center 
            transition-all duration-300
            hover:scale-[1.02] hover:shadow-sm
@@ -100,9 +110,9 @@ body {
 
   .settings-card {
     @apply p-4 rounded-lg
-           bg-gray-50/80 dark:bg-gray-900/50 
+           bg-[var(--card-bg)]
            backdrop-blur-sm
-           border border-gray-100 dark:border-gray-800
+           border border-[var(--card-border)]
            transition-all duration-300
            space-y-3;
   }

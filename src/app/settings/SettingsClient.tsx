@@ -111,7 +111,7 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
       </div>
 
       <div className="container mx-auto px-4 py-4 max-w-4xl flex-grow">
-        <h1 className="text-3xl font-[family-name:var(--font-geist-mono)] mb-8 text-center text-black dark:text-gray-400">
+        <h1 className="text-3xl font-[family-name:var(--font-geist-mono)] mb-8 text-center text-[var(--text-primary)]">
           Settings (not all settings functional yet)
         </h1>
 
@@ -129,12 +129,12 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
 
           {/* General Settings */}
           <section className="settings-card">
-            <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
+            <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-[var(--text-primary)]">
               General Settings
             </h2>
 
             <div className="settings-row">
-              <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
+              <span className="font-[family-name:var(--font-geist-sans)] text-[var(--text-primary)]">
                 Dark Mode
               </span>
               <Switch
@@ -144,7 +144,7 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
             </div>
 
             <div className="settings-row">
-              <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
+              <span className="font-[family-name:var(--font-geist-sans)] text-[var(--text-primary)]">
                 Blur NSFW Content
               </span>
               <Switch
@@ -154,7 +154,7 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
             </div>
 
             <div className="settings-row">
-              <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
+              <span className="font-[family-name:var(--font-geist-sans)] text-[var(--text-primary)]">
                 Auto-play GIFs
               </span>
               <Switch
@@ -164,7 +164,7 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
             </div>
 
             <div className="settings-row">
-              <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
+              <span className="font-[family-name:var(--font-geist-sans)] text-[var(--text-primary)]">
                 Autoplay Videos
               </span>
               <Switch
@@ -179,7 +179,7 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
             </div>
 
             <div className="settings-row">
-              <span className="font-[family-name:var(--font-geist-sans)] text-gray-900 dark:text-gray-400">
+              <span className="font-[family-name:var(--font-geist-sans)] text-[var(--text-primary)]">
                 Mute Autoplay Videos
               </span>
               <Switch

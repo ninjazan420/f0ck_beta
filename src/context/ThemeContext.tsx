@@ -42,7 +42,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       darkTheme: newTheme === 'dark'
     }));
 
-    document.documentElement.classList.toggle('dark');
+    // Ensure correct class application
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   return (
