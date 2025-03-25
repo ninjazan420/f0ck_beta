@@ -50,7 +50,11 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
 
       // For new files, create thumbnail
       const url = URL.createObjectURL(file);
-
+      
+      // Detect file format
+      const format = file.type || '';
+      const isVideo = format.startsWith('video/');
+      
       return {
         id: uuidv4(),
         name: file.name,
@@ -59,6 +63,7 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
         tags: [],
         index,
         thumbnail: url,
+        format: format,
         contentRating: 'safe' as const,
       };
     });
@@ -248,12 +253,10 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
                   height="96px"
                   controls={false}
                   autoPlay={false}
+                  muted={true}
+                  poster={item.thumbnail || '/images/video-placeholder.jpg'}
                 />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xl">▶</span>
-                  </div>
-                </div>
+
               </div>
             ) : (
               <div className="w-24 h-24 flex-shrink-0 relative">
