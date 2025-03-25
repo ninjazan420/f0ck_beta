@@ -135,7 +135,7 @@ export async function GET(
       activities = activities.concat(posts.map(post => ({
         id: post._id.toString(),
         type: 'post',
-        text: `Uploaded an image`,
+        text: post.type === 'video' ? `Uploaded a video` : `Uploaded an image`,
         date: post.createdAt,
         emoji: '🖼️',
         post: {
@@ -153,7 +153,7 @@ export async function GET(
       activities = activities.concat(userWithLikes.likes.map((post: any) => ({
         id: `like-${post._id}`,
         type: 'like',
-        text: `Liked an image`,
+        text: post.type === 'video' ? `Liked a video` : `Liked an image`,
         date: post.createdAt,
         emoji: '❤️',
         post: {
@@ -180,4 +180,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}
