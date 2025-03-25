@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ContentRating } from './PostsPage';
 import { getImageUrlWithCacheBuster } from '@/lib/utils';
+import { useSettings } from '@/hooks/useSettings';
 
 interface Post {
   id: string;
@@ -57,6 +58,8 @@ export function PostGrid({
   infiniteScroll = false,
   onTotalPagesChange 
 }: PostGridProps) {
+  // Get settings to check if NSFW blur is enabled
+  const { settings } = useSettings();
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(loading);
   const [loadedPages, setLoadedPages] = useState<number[]>([1]); // Track which pages are loaded
@@ -304,9 +307,16 @@ export function PostGrid({
                     alt={post.title}
                     width={200}
                     height={200}
-                    className="object-contain w-full h-full group-hover:opacity-75 transition-opacity"
+                    className={`object-contain w-full h-full group-hover:opacity-75 transition-opacity ${settings.blurNsfw && (post.contentRating === 'unsafe' || post.contentRating === 'sketchy') ? 'blur-md' : ''}`}
                     unoptimized={true}
                   />
+                  {settings.blurNsfw && (post.contentRating === 'unsafe' || post.contentRating === 'sketchy') && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className={`px-2 py-1 rounded text-sm font-bold ${post.contentRating === 'unsafe' ? 'bg-red-500/70' : 'bg-yellow-500/70'} text-white`}>
+                        {post.contentRating.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             

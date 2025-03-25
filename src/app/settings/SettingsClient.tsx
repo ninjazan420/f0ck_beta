@@ -2,9 +2,10 @@
 import { Footer } from "@/components/Footer";
 import { useTheme } from "@/context/ThemeContext";
 import { RandomLogo } from "@/components/RandomLogo";
-import { useState, ChangeEvent } from 'react';
+import { useState, ChangeEvent, useEffect } from 'react';
 import { SettingsPremium } from './SettingsPremium';
 import Switch from '@/components/ui/Switch';
+import { useSettings } from '@/hooks/useSettings';
 
 interface SettingsClientProps {
   userRole: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
@@ -12,6 +13,7 @@ interface SettingsClientProps {
 
 export default function SettingsClient({ userRole = 'user' }: SettingsClientProps) {
   const { theme, toggleTheme } = useTheme();
+  const { settings: userSettings, updateSetting } = useSettings();
   const [settings, setSettings] = useState({
     blurNsfw: true,
     autoplayGifs: false,
@@ -63,11 +65,43 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
     }
   });
 
+  // Load initial settings from localStorage on component mount
+  useEffect(() => {
+    const storedSettings = localStorage.getItem('settings');
+    if (storedSettings) {
+      try {
+        const parsedSettings = JSON.parse(storedSettings);
+        if (parsedSettings.blurNsfw !== undefined) {
+          setSettings(prev => ({
+            ...prev,
+            blurNsfw: parsedSettings.blurNsfw
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to parse settings from localStorage:', error);
+      }
+    }
+  }, []);
+
   const handleSettingChange = (setting: keyof typeof settings) => (e: ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.checked;
     setSettings(prev => ({
       ...prev,
-      [setting]: e.target.checked
+      [setting]: newValue
     }));
+    
+    // Update localStorage
+    const storedSettings = localStorage.getItem('settings');
+    const parsedSettings = storedSettings ? JSON.parse(storedSettings) : {};
+    localStorage.setItem('settings', JSON.stringify({
+      ...parsedSettings,
+      [setting]: newValue
+    }));
+    
+    // Update global settings state
+    if (setting === 'blurNsfw') {
+      updateSetting('blurNsfw', newValue);
+    }
   };
 
   return (
