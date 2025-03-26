@@ -1,10 +1,12 @@
 'use client';
-import { useState, useEffect, ReactElement } from 'react';
+import { useState, useEffect, ReactElement, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { GifSelector } from '@/components/GifSelector';
 import { useSession } from 'next-auth/react';
+import { MentionService } from '@/lib/services/mentionService';
+import { MentionSelector } from '@/app/comments/components/MentionSelector';
 
 const DEFAULT_AVATAR = '/images/defaultavatar.png';
 
@@ -61,6 +63,13 @@ export function PostComments({ postId }: PostCommentsProps) {
   const [showEditPreview, setShowEditPreview] = useState(false);
   const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
   const [commentsDisabled, setCommentsDisabled] = useState(false);
+  const [mentionSearch, setMentionSearch] = useState<string | null>(null);
+  const [mentionUsers, setMentionUsers] = useState<any[]>([]);
+  const [mentionPosition, setMentionPosition] = useState<{ top: number, left: number } | null>(null);
+  const [highlightedMentionIndex, setHighlightedMentionIndex] = useState(0);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const [mentionSearchDebug, setMentionSearchDebug] = useState<string>("Kein @-Text erkannt");
+  const [mentionError, setMentionError] = useState<string | null>(null);
 
   // Aktualisiere den isAnonymous-Status, wenn sich der Session-Status ändert
   useEffect(() => {
@@ -352,6 +361,195 @@ export function PostComments({ postId }: PostCommentsProps) {
     }
   };
 
+  // Verbessere die handleInputChange Funktion
+  const handleInputChange = useCallback(async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
+    const isReplyMode = !!replyToId;
+    
+    if (isReplyMode) {
+      setReplyText(text);
+    } else {
+      setNewComment(text);
+    }
+    
+    // Debug-Ausgabe zurücksetzen
+    setMentionError(null);
+    
+    // @-Erwähnungen verarbeiten
+    const cursorPosition = e.target.selectionStart || 0;
+    const textUpToCursor = text.substring(0, cursorPosition);
+    
+    // Finde den letzten @-Erwähnungs-Anfang vor dem Cursor
+    const lastAtSymbol = textUpToCursor.lastIndexOf('@');
+    
+    if (lastAtSymbol >= 0) {
+      console.log("@ Symbol gefunden an Position:", lastAtSymbol);
+      
+      // Prüfen, ob vor dem @ ein Leerzeichen oder der Textanfang ist
+      const isValidMentionStart = lastAtSymbol === 0 || 
+                               /\s/.test(textUpToCursor[lastAtSymbol - 1]) || 
+                               textUpToCursor[lastAtSymbol - 1] === '\n';
+      
+      const textBetweenAtAndCursor = textUpToCursor.substring(lastAtSymbol + 1);
+      const hasSpace = /\s/.test(textBetweenAtAndCursor);
+      
+      setMentionSearchDebug(`@-Text: "${textBetweenAtAndCursor}", Valid: ${isValidMentionStart}, HasSpace: ${hasSpace}`);
+      
+      if (isValidMentionStart && !hasSpace) {
+        setMentionSearch(textBetweenAtAndCursor);
+        console.log("Suche nach:", textBetweenAtAndCursor);
+        
+        // Position für den Vorschlagsblock berechnen
+        if (commentInputRef.current) {
+          const textarea = commentInputRef.current;
+          const textareaRect = textarea.getBoundingClientRect();
+          
+          // Einfachere Positionierung - direkt unter dem Cursor
+          const cursorCoords = getCaretCoordinates(textarea, textarea.selectionStart || 0);
+          
+          setMentionPosition({
+            top: cursorCoords.top + cursorCoords.height,
+            left: cursorCoords.left
+          });
+        }
+        
+        try {
+          // Benutzer suchen
+          if (textBetweenAtAndCursor.length > 0) {
+            console.log("API-Aufruf mit:", textBetweenAtAndCursor);
+            const users = await MentionService.searchUsers(textBetweenAtAndCursor);
+            console.log("Gefundene Benutzer:", users);
+            setMentionUsers(users);
+            setHighlightedMentionIndex(0);
+          } else {
+            // Bei leerem Suchtext zeigen wir beliebte/aktuelle Benutzer an
+            console.log("Zeige aktive Benutzer an");
+            const recentUsers = await MentionService.searchUsers('', 5);
+            console.log("Aktive Benutzer:", recentUsers);
+            setMentionUsers(recentUsers);
+            setHighlightedMentionIndex(0);
+          }
+        } catch (error) {
+          console.error("Fehler bei der Benutzersuche:", error);
+          setMentionError(`Fehler bei der Suche: ${error}`);
+          setMentionUsers([]);
+        }
+        return;
+      }
+    }
+    
+    // Wenn kein gültiges @-Muster gefunden wurde, Mentions-UI zurücksetzen
+    setMentionSearch(null);
+    setMentionUsers([]);
+  }, [replyToId]);
+
+  // Funktion zur Berechnung der Cursor-Position hinzufügen
+  function getCaretCoordinates(element: HTMLTextAreaElement, position: number) {
+    const { offsetLeft: elementX, offsetTop: elementY } = element;
+    const div = document.createElement('div');
+    const style = div.style;
+    const computed = getComputedStyle(element);
+
+    style.whiteSpace = 'pre-wrap';
+    style.wordWrap = 'break-word';
+    style.position = 'absolute';
+    style.visibility = 'hidden';
+    style.overflow = 'hidden';
+    
+    // Kopiere relevante Styles
+    const properties = [
+      'direction', 'boxSizing', 'width', 'height', 'overflowX', 'overflowY',
+      'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
+      'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+      'fontStyle', 'fontVariant', 'fontWeight', 'fontStretch', 'fontSize',
+      'fontSizeAdjust', 'lineHeight', 'fontFamily', 'textAlign', 'textTransform',
+      'textIndent', 'textDecoration', 'letterSpacing', 'wordSpacing'
+    ];
+
+    properties.forEach(prop => {
+      style[prop as any] = computed[prop as any];
+    });
+
+    document.body.appendChild(div);
+    
+    const text = element.value.substring(0, position);
+    const textNode = document.createTextNode(text);
+    const span = document.createElement('span');
+    span.appendChild(document.createTextNode(element.value.substring(position) || '.'));
+    
+    div.appendChild(textNode);
+    div.appendChild(span);
+    
+    const coordinates = {
+      top: span.offsetTop + elementY,
+      left: span.offsetLeft + elementX,
+      height: parseInt(computed.lineHeight)
+    };
+    
+    document.body.removeChild(div);
+    
+    return coordinates;
+  }
+
+  // Benutzer aus Vorschlagsliste auswählen
+  const handleMentionSelect = (user: any) => {
+    const isReplyMode = !!replyToId;
+    const currentText = isReplyMode ? replyText : newComment;
+    const cursorPosition = commentInputRef.current?.selectionStart || 0;
+    
+    // Finde den @-Text und ersetze ihn durch den vollständigen Benutzernamen
+    const textUpToCursor = currentText.substring(0, cursorPosition);
+    const lastAtSymbol = textUpToCursor.lastIndexOf('@');
+    
+    if (lastAtSymbol >= 0) {
+      const newText = 
+        currentText.substring(0, lastAtSymbol) + 
+        `@${user.username} ` + 
+        currentText.substring(cursorPosition);
+      
+      if (isReplyMode) {
+        setReplyText(newText);
+      } else {
+        setNewComment(newText);
+      }
+      
+      // Setze den Cursor nach dem eingefügten Benutzernamen
+      setTimeout(() => {
+        if (commentInputRef.current) {
+          const newPosition = lastAtSymbol + user.username.length + 2; // +2 für @ und Leerzeichen
+          commentInputRef.current.focus();
+          commentInputRef.current.setSelectionRange(newPosition, newPosition);
+        }
+      }, 0);
+    }
+    
+    setMentionSearch(null);
+    setMentionUsers([]);
+  };
+  
+  // Taste für Erwähnungsauswahl
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Wenn Mentions-Vorschläge angezeigt werden
+    if (mentionUsers.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setHighlightedMentionIndex(prev => 
+          prev < mentionUsers.length - 1 ? prev + 1 : prev
+        );
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setHighlightedMentionIndex(prev => prev > 0 ? prev - 1 : 0);
+      } else if (e.key === 'Enter' && mentionUsers.length > 0) {
+        e.preventDefault();
+        handleMentionSelect(mentionUsers[highlightedMentionIndex]);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setMentionSearch(null);
+        setMentionUsers([]);
+      }
+    }
+  };
+
   const handleSubmitComment = async () => {
     if (!newComment.trim()) return;
     setIsSubmitting(true);
@@ -575,6 +773,54 @@ export function PostComments({ postId }: PostCommentsProps) {
     }
   };
 
+  // Füge diese Funktion zur Klasse hinzu
+  useEffect(() => {
+    // Wenn die Komponente gemountet wird, initialisiere das leere Suchfeld
+    if (commentInputRef.current && session?.user) {
+      const fetchInitialUsers = async () => {
+        try {
+          const recentUsers = await MentionService.searchUsers('', 5);
+          setMentionUsers(recentUsers);
+        } catch (error) {
+          console.error("Failed to fetch initial users:", error);
+        }
+      };
+      
+      // Initialisierung nur bei Bedarf ausführen
+      commentInputRef.current.addEventListener('focus', () => {
+        if (mentionUsers.length === 0) {
+          fetchInitialUsers();
+        }
+      });
+    }
+  }, [session, mentionUsers.length]);
+
+  // Für das visuelle Feedback in Echtzeit
+  const formatTextWithMentions = (text: string) => {
+    if (!text) return null;
+    
+    // Ersetze @username mit einer hervorgehobenen Version
+    const mentionRegex = /@([a-zA-Z0-9_]+)/g;
+    const parts = text.split(mentionRegex);
+    
+    if (parts.length <= 1) return text;
+    
+    // Erstelle formatierte Vorschau
+    const formattedPreview = [];
+    for (let i = 0; i < parts.length; i++) {
+      if (i % 2 === 0) {
+        // Normaler Text
+        formattedPreview.push(parts[i]);
+      } else {
+        // Benutzername (Teil der einem @ folgte)
+        const username = parts[i];
+        formattedPreview.push(`<span class="mention">@${username}</span>`);
+      }
+    }
+    
+    return formattedPreview.join('');
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -634,6 +880,78 @@ export function PostComments({ postId }: PostCommentsProps) {
         showModActions={true}
         infiniteScroll={true}
       />
+      
+      <div className="mt-4 relative">
+        <textarea
+          ref={commentInputRef}
+          placeholder={replyToId ? "Verfasse eine Antwort..." : "Hinterlasse einen Kommentar..."}
+          value={replyToId ? replyText : newComment}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
+          rows={4}
+        />
+        
+        {/* Debug-Anzeige (nur während der Entwicklung) */}
+        {process.env.NODE_ENV !== 'production' && (
+          <div className="text-xs text-gray-500 mt-1">
+            <div>{mentionSearchDebug}</div>
+            {mentionError && <div className="text-red-500">{mentionError}</div>}
+            <div>Vorschläge: {mentionUsers.length}</div>
+          </div>
+        )}
+        
+        {/* Erwähnung wird eingegeben - zeige Vorschläge */}
+        {mentionSearch !== null && mentionUsers.length > 0 && (
+          <div
+            style={{
+              position: 'absolute',
+              top: (mentionPosition?.top || 40) + 'px',
+              left: (mentionPosition?.left || 10) + 'px',
+              zIndex: 50
+            }}
+            className="mention-selector-container"
+          >
+            <MentionSelector
+              users={mentionUsers}
+              onSelect={handleMentionSelect}
+              onClose={() => {
+                setMentionSearch(null);
+                setMentionUsers([]);
+              }}
+              highlightedIndex={highlightedMentionIndex}
+            />
+          </div>
+        )}
+        
+        {/* Keine Ergebnisse gefunden */}
+        {mentionSearch !== null && mentionUsers.length === 0 && mentionSearch.length > 0 && (
+          <div 
+            style={{
+              position: 'absolute',
+              top: (mentionPosition?.top || 40) + 'px',
+              left: (mentionPosition?.left || 10) + 'px',
+              zIndex: 50
+            }}
+            className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 p-2 text-sm"
+          >
+            Keine Benutzer gefunden für "@{mentionSearch}"
+          </div>
+        )}
+      </div>
+      
+      {/* Füge diese JSX-Elemente unter der Textarea hinzu */}
+      {showPreview && (
+        <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Vorschau:</div>
+          <div
+            className="prose prose-sm dark:prose-dark max-w-none"
+            dangerouslySetInnerHTML={{
+              __html: formatTextWithMentions(replyToId ? replyText : newComment)
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

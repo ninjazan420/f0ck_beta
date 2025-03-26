@@ -276,125 +276,106 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
   if (isRejected && !canModerate) return null;
 
   // Rendering-Funktion für den Kommentarinhalt
-  const renderCommentContent = (text: string) => {
+  const renderContent = (text: string) => {
     if (!text) return null;
     
-    // Einfacherer GIF-Platzhalter: [GIF:url]
+    // GIF und Medien-Erkennung (bestehender Code)
     const gifRegex = /\[GIF:(https?:\/\/[^\]]+)\]/gi;
-    
-    // Verbesserte Regex für URL-Erkennung - erfasst mehr Bildformate und URLs
     const urlRegex = /(https?:\/\/[^\s]+\.(gif|png|jpg|jpeg|webp|bmp))(?:\?[^\s]*)?/gi;
     
-    // Suche nach GIF-Platzhaltern und Standard-URLs
+    // Neue Regex für @-Erwähnungen
+    const mentionRegex = /@([a-zA-Z0-9_]+)/g;
+    
+    // Wenn weder GIFs, Bilder noch Erwähnungen gefunden wurden, gib den Text zurück
     const gifMatches = Array.from(text.matchAll(gifRegex) || []);
     const urlMatches = text.match(urlRegex) || [];
+    const mentionMatches = Array.from(text.matchAll(mentionRegex) || []);
     
-    // Wenn weder GIFs noch Bilder gefunden wurden, gib den Text zurück
-    if (gifMatches.length === 0 && urlMatches.length === 0) {
+    if (gifMatches.length === 0 && urlMatches.length === 0 && mentionMatches.length === 0) {
       return <span className="whitespace-pre-wrap">{text}</span>;
     }
     
-    // Ersetze GIF-Platzhalter und URLs mit Markierungen und teile den Text
+    // Verarbeite den Text mit Platzhaltern für alle speziellen Elemente
     let processedText = text;
     
     // Ersetze zuerst GIF-Platzhalter
     processedText = processedText.replace(gifRegex, '\n[gif-media]\n');
     
-    // Dann ersetze URL-Medien, aber nicht die, die bereits als GIF markiert sind
+    // Dann ersetze URL-Medien
     const tempProcessedText = processedText;
     urlMatches.forEach(url => {
-      // Prüfe, ob die URL bereits als GIF verarbeitet wurde
       if (!gifMatches.some(match => match[1] === url) && tempProcessedText.includes(url)) {
         processedText = processedText.replace(url, '\n[url-media]\n');
       }
     });
     
+    // Dann ersetze Erwähnungen mit Platzhaltern
+    mentionMatches.forEach(match => {
+      const fullMatch = match[0]; // @username
+      processedText = processedText.replace(fullMatch, '\n[mention:' + match[1] + ']\n');
+    });
+    
+    // Teile den Text und erstelle die Elemente
     const textParts = processedText.split('\n');
     const result: ReactElement[] = [];
     let gifIndex = 0;
     let urlIndex = 0;
+    let mentionIndex = 0;
     
     textParts.forEach((part, index) => {
-      if (part === '[gif-media]') {
-        if (gifIndex < gifMatches.length) {
-          const match = gifMatches[gifIndex];
-          const url = match[1];
-          const isGiphy = url.includes('giphy.com');
-          
-          console.log(`Rendering GIF from placeholder: ${url}`);
-          
-          result.push(
-            <div key={`gif-${index}`} className="my-2">
-              <Image
+      if (part === '[gif-media]' && gifIndex < gifMatches.length) {
+        // GIF-Darstellung (bestehender Code)
+        const gifUrl = gifMatches[gifIndex][1];
+        result.push(
+          <div key={`gif-${index}`} className="my-2 max-w-full overflow-hidden rounded-lg">
+            <img
+              src={gifUrl}
+              alt="GIF"
+              className="max-h-80 max-w-full object-contain"
+              loading="lazy"
+            />
+          </div>
+        );
+        gifIndex++;
+      } else if (part === '[url-media]' && urlIndex < urlMatches.length) {
+        // URL-Darstellung (bestehender Code)
+        const url = urlMatches[urlIndex];
+        result.push(
+          <div key={`url-${index}`} className="my-2 max-w-full overflow-hidden rounded-lg">
+            <a href={url} target="_blank" rel="noopener noreferrer">
+              <img
                 src={url}
-                alt="GIF"
-                width={400}
-                height={300}
-                className=""
-                unoptimized
+                alt="Media"
+                className="max-h-80 max-w-full object-contain"
+                loading="lazy"
               />
-              {isGiphy && (
-                <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-1 pl-1">
-                  <Image
-                    src="/powered_by_giphy.png"
-                    alt="Powered by GIPHY"
-                    width={150}
-                    height={22}
-                    unoptimized
-                  />
-                </div>
-              )}
-            </div>
-          );
-          gifIndex++;
-        }
-      } else if (part === '[url-media]') {
-        if (urlIndex < urlMatches.length) {
-          // Überspringe URLs, die bereits als GIFs verarbeitet wurden
-          while (urlIndex < urlMatches.length && 
-                 gifMatches.some(match => match[1] === urlMatches[urlIndex])) {
-            urlIndex++;
-          }
-          
-          if (urlIndex < urlMatches.length) {
-            const url = urlMatches[urlIndex];
-            const cleanUrl = url.split('?')[0];
-            const isGiphy = cleanUrl.includes('giphy.com');
-            
-            console.log(`Rendering URL media: ${cleanUrl}`);
-            
-            result.push(
-              <div key={`media-${index}`} className="my-2">
-                <Image
-                  src={cleanUrl}
-                  alt="Embedded media"
-                  width={400}
-                  height={300}
-                  className=""
-                  unoptimized
-                />
-                {isGiphy && (
-                  <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                    <Image 
-                      src="/powered_by_giphy.png" 
-                      alt="Powered by GIPHY" 
-                      width={70} 
-                      height={20}
-                      unoptimized
-                    />
-                  </div>
-                )}
-              </div>
-            );
-            urlIndex++;
-          }
-        }
-      } else if (part.trim()) {
+            </a>
+          </div>
+        );
+        urlIndex++;
+      } else if (part.startsWith('[mention:') && part.endsWith(']')) {
+        // Erwähnungs-Darstellung (neu)
+        const username = part.substring(9, part.length - 1);
+        result.push(
+          <a 
+            key={`mention-${index}`}
+            href={`/user/${username}`}
+            className="text-purple-600 dark:text-purple-400 font-medium hover:underline"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            @{username}
+          </a>
+        );
+        mentionIndex++;
+      } else if (part.trim() !== '') {
+        // Normaler Text
         result.push(<span key={`text-${index}`} className="whitespace-pre-wrap">{part}</span>);
       }
     });
     
-    return result;
+    return <>{result}</>;
   };
 
   const handleStartReply = () => {
@@ -516,7 +497,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
               {showEditPreview ? (
                 <div className="min-h-[100px] p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50">
                   <div className="text-sm text-gray-800 dark:text-gray-200">
-                    {editText ? renderCommentContent(editText) : <span className="text-gray-400 dark:text-gray-500">Nothing to preview</span>}
+                    {editText ? renderContent(editText) : <span className="text-gray-400 dark:text-gray-500">Nothing to preview</span>}
                   </div>
                 </div>
               ) : (
@@ -567,7 +548,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
             </div>
           ) : (
             <div className="prose dark:prose-invert max-w-none text-sm">
-              {renderCommentContent(data.content)}
+              {renderContent(data.content)}
             </div>
           )}
 

@@ -129,3 +129,17 @@ body {
            text-sm;
   }
 }
+
+/* Styles für @-Erwähnungen */
+.mention {
+  color: #8b5cf6;
+  font-weight: 500;
+  background-color: rgba(139, 92, 246, 0.1);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+/* Styles für den Mention-Selector */
+.mention-selector-container {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}

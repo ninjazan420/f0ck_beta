@@ -259,7 +259,7 @@ export async function POST(req: Request) {
       await comment.save();
       console.log('Comment saved successfully:', comment._id);
 
-      // Benachrichtigung senden
+      // Benachrichtigungen senden
       try {
         if (replyTo) {
           // Für Antworten auf Kommentare
@@ -267,6 +267,24 @@ export async function POST(req: Request) {
         } else {
           // Für neue Kommentare unter Posts
           await NotificationService.notifyNewComment(comment._id.toString());
+        }
+        
+        // Neue Funktion: Benutzererwähnungen verarbeiten und Benachrichtigungen senden
+        if (session?.user?.id) {
+          const authorId = session.user.id;
+          const postIdForMention = postObjectId.toString();
+          const commentId = comment._id.toString();
+          
+          // Importieren Sie den MentionService an der Spitze der Datei
+          const { MentionService } = await import('@/lib/services/mentionService');
+          
+          // Erwähnungen extrahieren und verarbeiten
+          await MentionService.extractAndProcessMentions(
+            sanitizedContent,
+            authorId,
+            postIdForMention,
+            commentId
+          );
         }
       } catch (notifyError) {
         console.error('Error sending notification:', notifyError);

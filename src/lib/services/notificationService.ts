@@ -3,6 +3,7 @@ import Notification from '@/models/Notification';
 import Post from '@/models/Post';
 import Comment from '@/models/Comment';
 import mongoose from 'mongoose';
+import User from '@/models/User';
 
 type NotificationType = 'comment' | 'reply' | 'like' | 'favorite' | 'mention' | 'system';
 
@@ -229,6 +230,47 @@ export class NotificationService {
       }
     } catch (error) {
       console.error('Error creating favorite notification:', error);
+    }
+  }
+
+  static async notifyMention(recipientId: string, mentionerId: string, postId: string, commentId: string) {
+    try {
+      await dbConnect();
+      
+      const [mentioner, post, comment] = await Promise.all([
+        User.findById(mentionerId).select('username name'),
+        Post.findById(postId).select('title thumbnailUrl imageUrl numericId id'),
+        Comment.findById(commentId)
+      ]);
+      
+      if (!post) return;
+      
+      const postNumericId = post.numericId || post.id || post._id;
+      
+      // Aktoreninformationen vorbereiten
+      const actorName = mentioner ? (mentioner.name || mentioner.username) : "Anonymous";
+      const actorUsername = mentioner ? mentioner.username : null;
+      const actorAnonymous = !mentioner;
+      
+      await this.createNotification({
+        recipientId,
+        type: 'mention',
+        content: 'Someone mentioned you in a comment',
+        relatedId: commentId,
+        relatedModel: 'Comment',
+        data: {
+          postId: postNumericId.toString(),
+          postTitle: post.title || 'Untitled post',
+          commentId,
+          commentContent: comment?.content?.substring(0, 100) || '',
+          postThumbnail: post.thumbnailUrl || post.imageUrl || null,
+          actorName,
+          actorUsername,
+          actorAnonymous
+        }
+      });
+    } catch (error) {
+      console.error('Error creating mention notification:', error);
     }
   }
 } 
