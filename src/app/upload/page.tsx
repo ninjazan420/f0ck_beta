@@ -197,18 +197,36 @@ export default function UploadPage() {
 
   // Process files and URLs
   const handleUpload = useCallback(async () => {
-    if (files.length === 0 && urlData.length === 0) {
-      setError('Please choose a file to upload or add an image URL.');
-      return;
-    }
-
-    setIsUploading(true);
-    setError(null);
-
-    // Sammle alle erfolgreichen Uploads für die Weiterleitung
-    const successfulUploads: { id: string, type: 'file' | 'url' }[] = [];
-
     try {
+      setIsUploading(true);
+      setError(null);
+      
+      // --- 0. Tag-Validierung für alle Uploads ---
+      // Prüfe für jede Datei, ob sie die erforderliche Anzahl an Tags hat
+      for (const file of files) {
+        const fileTags = getItemTags(file.name, 'file');
+        if (fileTags.length < 3) {
+          throw new Error(`Insert at least 3 tags for "${file.name}"`);
+        }
+        if (fileTags.length > 15) {
+          throw new Error(`Maximum of 15 tags allowed for "${file.name}"`);
+        }
+      }
+      
+      // Prüfe für jede URL, ob sie die erforderliche Anzahl an Tags hat
+      for (const item of urlData) {
+        const urlTags = getItemTags(item.url, 'url');
+        if (urlTags.length < 3) {
+          throw new Error(`Insert at least 3 tags for URL "${item.url}"`);
+        }
+        if (urlTags.length > 15) {
+          throw new Error(`Maximum of 15 tags allowed for URL "${item.url}"`);
+        }
+      }
+      
+      // Sammle alle erfolgreichen Uploads für die Weiterleitung
+      const successfulUploads: { id: string, type: 'file' | 'url' }[] = [];
+
       // --- 1. Verarbeitung von Datei-Uploads ---
       for (const file of files) {
         console.log(`Verarbeite Datei: ${file.name}`);

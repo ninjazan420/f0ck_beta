@@ -151,8 +151,8 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
     setFileItems(prev => {
       const newItems = prev.map(item => {
         if (item.id === id) {
-          if (item.tags.length >= 10) {
-            return { ...item, error: 'Maximal 10 Tags erlaubt' };
+          if (item.tags.length >= 15) {
+            return { ...item, error: 'Maximal 15 Tags erlaubt' };
           }
           
           if (item.tags.includes(cleanTag)) {
@@ -351,11 +351,17 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
                   ))}
                   <input
                     type="text"
-                    placeholder={item.tags.length >= 10 ? "Maximum of 10 tags reached" : "Add tag (e.g. artwork, anime)"}
+                    placeholder={item.tags.length >= 15 ? "Maximum of 15 tags reached" : "Add tag (e.g. artwork, anime)"}
                     className="px-2 py-1 text-sm border rounded bg-transparent text-gray-700 dark:text-gray-300 disabled:opacity-50"
                     onKeyDown={e => handleTagInput(item.id, e)}
-                    disabled={item.tags.length >= 10}
+                    disabled={item.tags.length >= 15}
                   />
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  {item.tags.length < 3 ? 
+                    <span className="text-yellow-500">At least 3 tags required ({item.tags.length}/3)</span> : 
+                    `${item.tags.length}/15 tags used`
+                  }
                 </div>
               </div>
             </div>
