@@ -1,21 +1,51 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RandomLogo } from "@/components/RandomLogo";
 import { CommentModeration } from './CommentModeration';
 import { Footer } from "@/components/Footer";
 import { RecentActivity } from './RecentActivity';
 import { ModActionsPanel } from './ModActionsPanel';
+import { ReportedComments } from './ReportedComments';
 
 // Tabs für verschiedene Bereiche
-type ModTab = 'overview' | 'comments' | 'activity' | 'actions';
+type ModTab = 'overview' | 'reports' | 'comments' | 'activity' | 'actions';
 
 export default function ModerationDashboard() {
   const [activeTab, setActiveTab] = useState<ModTab>('overview');
+  const [reportCount, setReportCount] = useState(0);
+  
+  // Neue Funktion zum Abrufen der Report-Anzahl
+  useEffect(() => {
+    const fetchReportCount = async () => {
+      try {
+        const response = await fetch(`/api/moderation/stats?_cache=${Date.now()}`);
+        if (response.ok) {
+          const data = await response.json();
+          setReportCount(data.reportedComments || 0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch report count:', error);
+      }
+    };
+    
+    fetchReportCount();
+    const intervalId = setInterval(fetchReportCount, 60000);
+    return () => clearInterval(intervalId);
+  }, []);
   
   // Tab-Wechsel-Funktionalität
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'reports':
+        return (
+          <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700/30 p-6">
+            <h2 className="text-xl font-[family-name:var(--font-geist-mono)] mb-4 text-center py-2 rounded-lg bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30">
+              Reported Comments
+            </h2>
+            <ReportedComments />
+          </div>
+        );
       case 'comments':
         return (
           <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700/30 p-6">
@@ -87,6 +117,21 @@ export default function ModerationDashboard() {
               }`}
             >
               Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('reports')}
+              className={`px-4 py-2 text-sm font-medium border-l border-gray-300 dark:border-gray-700 relative ${
+                activeTab === 'reports' 
+                  ? 'bg-red-600 text-white' 
+                  : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+              }`}
+            >
+              Reports
+              {reportCount > 0 && (
+                <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-xs font-medium rounded-full bg-red-500 text-white">
+                  {reportCount}
+                </span>
+              )}
             </button>
             <button
               onClick={() => setActiveTab('comments')}

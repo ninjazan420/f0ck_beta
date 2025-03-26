@@ -17,20 +17,22 @@ export async function GET() {
     await dbConnect();
 
     // Parallele Abfragen für bessere Performance
-    const [pendingComments, reportedPosts, activeUsers] = await Promise.all([
+    const [pendingComments, reportedPosts, activeUsers, reportedComments] = await Promise.all([
       Comment.countDocuments({ status: 'pending' }),
       Post.countDocuments({ reported: true }),
       User.countDocuments({ 
         lastSeen: { 
           $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Letzte 24 Stunden
         }
-      })
+      }),
+      Comment.countDocuments({ 'reports.0': { $exists: true }, isHidden: { $ne: true } })
     ]);
 
     return NextResponse.json({
       pendingComments,
       reportedPosts,
-      activeUsers
+      activeUsers,
+      reportedComments
     });
   } catch (error) {
     console.error('Error fetching moderation stats:', error);

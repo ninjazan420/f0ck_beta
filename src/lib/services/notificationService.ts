@@ -273,4 +273,40 @@ export class NotificationService {
       console.error('Error creating mention notification:', error);
     }
   }
+
+  static async notifyCommentReport(commentId: string, reporterId: string, reason: string) {
+    try {
+      await dbConnect();
+      
+      const comment = await Comment.findById(commentId)
+        .populate('post', 'title author numericId id thumbnailUrl imageUrl')
+        .populate('author', 'username name id numericId');
+      
+      if (!comment) return;
+      
+      const postId = comment.post?.numericId || comment.post?.id || comment.post?._id;
+      
+      const reporter = await User.findById(reporterId).select('username name');
+      const reporterName = reporter ? (reporter.name || reporter.username) : "Anonymous";
+      
+      await this.createNotification({
+        recipientId: process.env.SYSTEM_NOTIFICATION_RECIPIENT || 'system',
+        type: 'system',
+        content: 'A comment has been reported',
+        relatedId: comment._id.toString(),
+        relatedModel: 'Comment',
+        data: {
+          postId: postId?.toString(),
+          postTitle: comment.post?.title || 'Unknown post',
+          commentId: comment._id,
+          commentContent: comment.content?.substring(0, 100) || '',
+          postThumbnail: comment.post?.thumbnailUrl || comment.post?.imageUrl,
+          reportReason: reason,
+          reporterName
+        }
+      });
+    } catch (error) {
+      console.error('Error creating report notification:', error);
+    }
+  }
 } 
