@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import styled from 'styled-components';
+import { StatusBanner } from '@/components/StatusBanner';
 
 interface PostData {
   id: string;
@@ -139,6 +140,8 @@ export function PostDetails({ postId }: { postId: string }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [refreshComments, setRefreshComments] = useState(0); // State für Kommentar-Aktualisierung
   const [commentsDisabled, setCommentsDisabled] = useState(false);
+  const [showStatusBanner, setShowStatusBanner] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   // Aktualisiere den isAnonymous-Status, wenn sich der Session-Status ändert
   useEffect(() => {
@@ -249,51 +252,39 @@ export function PostDetails({ postId }: { postId: string }) {
       return;
     }
 
-    // Wenn der User den gleichen Knopf nochmal drückt, entferne das Vote
-    if (userVote === voteType) {
-      setUserVote(null);
-      // Aktualisiere die Statistik entsprechend
-      if (voteType === 'like') {
-        setPost(prev => prev ? {
-          ...prev,
-          stats: {
-            ...prev.stats,
-            likes: prev.stats.likes - 1
-          }
-        } : null);
-      } else {
-        setPost(prev => prev ? {
-          ...prev,
-          stats: {
-            ...prev.stats,
-            dislikes: prev.stats.dislikes - 1
-          }
-        } : null);
-      }
-    } else {
-      // Entferne das vorherige Vote, wenn vorhanden
-      if (userVote === 'like') {
-        setPost(prev => prev ? {
-          ...prev,
-          stats: {
-            ...prev.stats,
-            likes: prev.stats.likes - 1
-          }
-        } : null);
-      } else if (userVote === 'dislike') {
-        setPost(prev => prev ? {
-          ...prev,
-          stats: {
-            ...prev.stats,
-            dislikes: prev.stats.dislikes - 1
-          }
-        } : null);
-      }
+    try {
+      // Save current state to restore if API call fails
+      const previousVote = userVote;
+      const previousLikes = post?.stats.likes || 0;
+      const previousDislikes = post?.stats.dislikes || 0;
 
-      // Setze das neue Vote
-      setUserVote(voteType);
-      // Aktualisiere die Statistik entsprechend
-      if (voteType === 'like') {
+      // Determine the new vote state
+      const newVoteState = userVote === voteType ? null : voteType;
+      
+      // Update UI optimistically
+      setUserVote(newVoteState);
+      
+      // Update stats based on what changed
+      if (previousVote === 'like' && newVoteState === null) {
+        // Removing a like
+        setPost(prev => prev ? {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            likes: prev.stats.likes - 1
+          }
+        } : null);
+      } else if (previousVote === 'dislike' && newVoteState === null) {
+        // Removing a dislike
+        setPost(prev => prev ? {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            dislikes: prev.stats.dislikes - 1
+          }
+        } : null);
+      } else if (previousVote === null && newVoteState === 'like') {
+        // Adding a like
         setPost(prev => prev ? {
           ...prev,
           stats: {
@@ -301,7 +292,8 @@ export function PostDetails({ postId }: { postId: string }) {
             likes: prev.stats.likes + 1
           }
         } : null);
-      } else {
+      } else if (previousVote === null && newVoteState === 'dislike') {
+        // Adding a dislike
         setPost(prev => prev ? {
           ...prev,
           stats: {
@@ -309,18 +301,36 @@ export function PostDetails({ postId }: { postId: string }) {
             dislikes: prev.stats.dislikes + 1
           }
         } : null);
+      } else if (previousVote === 'like' && newVoteState === 'dislike') {
+        // Changing from like to dislike
+        setPost(prev => prev ? {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            likes: prev.stats.likes - 1,
+            dislikes: prev.stats.dislikes + 1
+          }
+        } : null);
+      } else if (previousVote === 'dislike' && newVoteState === 'like') {
+        // Changing from dislike to like
+        setPost(prev => prev ? {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            dislikes: prev.stats.dislikes - 1,
+            likes: prev.stats.likes + 1
+          }
+        } : null);
       }
-    }
 
-    // Sende die Änderung an den Server
-    try {
+      // Send the vote to the server
       const response = await fetch(`/api/posts/${postId}/vote`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          vote: userVote === voteType ? null : voteType,
+          vote: newVoteState,
         }),
       });
 
@@ -329,7 +339,8 @@ export function PostDetails({ postId }: { postId: string }) {
       }
 
       const data = await response.json();
-      // Serverstatistiken übernehmen
+      
+      // Update with server data
       setPost(prev => prev ? {
         ...prev,
         stats: {
@@ -339,9 +350,14 @@ export function PostDetails({ postId }: { postId: string }) {
         }
       } : null);
       setUserVote(data.userVote);
+      
     } catch (error) {
       console.error('Error submitting vote:', error);
-      toast.error('Fehler beim Abstimmen');
+      toast.error('Error updating vote');
+      
+      // Restore previous state on error
+      setUserVote(userVote);
+      setPost(post);
     }
   };
 
@@ -496,6 +512,14 @@ export function PostDetails({ postId }: { postId: string }) {
     }
   }, [session, postId, post]);
 
+  // Eine Share-Funktion hinzufügen
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setStatusMessage('Link copied');
+    setShowStatusBanner(true);
+    // Der StatusBanner versteckt sich automatisch nach 2 Sekunden
+  };
+
   if (loading) {
     return (
       <div className="animate-pulse space-y-4">
@@ -526,6 +550,13 @@ export function PostDetails({ postId }: { postId: string }) {
 
   return (
     <div className="space-y-6">
+      {/* StatusBanner einbinden */}
+      <StatusBanner 
+        show={showStatusBanner}
+        message={statusMessage}
+        type="success" 
+      />
+      
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr,300px] gap-6">
         {/* Left Column - Image and Comments */}
@@ -570,43 +601,6 @@ export function PostDetails({ postId }: { postId: string }) {
               }`}>
                 {post.contentRating.toUpperCase()}
               </span>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="absolute top-2 left-4 flex gap-2 z-10">
-              <button
-                onClick={() => handleVote('like')}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
-                  userVote === 'like'
-                    ? 'bg-green-500/80 text-white'
-                    : 'bg-gray-900/50 hover:bg-gray-900/60 text-white backdrop-blur-sm'
-                }`}
-              >
-                <span className="text-base">👍</span>
-                <span>{post.stats.likes}</span>
-              </button>
-              <button
-                onClick={() => handleVote('dislike')}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
-                  userVote === 'dislike'
-                    ? 'bg-red-500/80 text-white'
-                    : 'bg-gray-900/50 hover:bg-gray-900/60 text-white backdrop-blur-sm'
-                }`}
-              >
-                <span className="text-base">👎</span>
-                <span>{post.stats.dislikes}</span>
-              </button>
-              <button
-                onClick={toggleFavorite}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors ${
-                  isFavorited
-                    ? 'bg-purple-500/80 text-white'
-                    : 'bg-gray-900/50 hover:bg-gray-900/60 text-white backdrop-blur-sm'
-                }`}
-              >
-                <span className="text-base">{isFavorited ? '❤️' : '🤍'}</span>
-                <span>{post.stats.favorites}</span>
-              </button>
             </div>
           </div>
 
@@ -881,6 +875,65 @@ export function PostDetails({ postId }: { postId: string }) {
 
           {/* Tags - mit postId übergeben */}
           <PostTags tags={post.tags} postId={post.id} />
+
+          {/* Neue Platzierung für Post-Actions (Voting & Favorites) */}
+          <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+            <h3 className="text-sm font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400 mb-3">
+              Post Actions
+            </h3>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                {/* Like Button */}
+                <button
+                  onClick={() => handleVote('like')}
+                  className={`flex-1 px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${
+                    userVote === 'like'
+                      ? 'bg-green-100 dark:bg-green-800/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-700/50'
+                      : 'bg-white/80 dark:bg-gray-800/50 hover:bg-green-50 dark:hover:bg-green-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                  }`}
+                >
+                  <span className="text-base">👍</span>
+                  <span>{post.stats.likes}</span>
+                </button>
+                
+                {/* Dislike Button */}
+                <button
+                  onClick={() => handleVote('dislike')}
+                  className={`flex-1 px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${
+                    userVote === 'dislike'
+                      ? 'bg-red-100 dark:bg-red-800/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-700/50'
+                      : 'bg-white/80 dark:bg-gray-800/50 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                  }`}
+                >
+                  <span className="text-base">👎</span>
+                  <span>{post.stats.dislikes}</span>
+                </button>
+                
+                {/* Favorite Button - jetzt kleiner und neben den Voting-Buttons */}
+                <button
+                  onClick={toggleFavorite}
+                  className={`px-2 py-2 rounded-lg flex items-center justify-center transition-colors ${
+                    isFavorited
+                      ? 'bg-purple-100 dark:bg-purple-800/30 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-700/50'
+                      : 'bg-white/80 dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                  }`}
+                  title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <span className="text-base">{isFavorited ? '❤️' : '🤍'}</span>
+                  <span className="ml-1 text-sm">({post.stats.favorites})</span>
+                </button>
+              </div>
+              
+              {/* Share Button */}
+              <button
+                onClick={handleShare}
+                className="px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors bg-white/80 dark:bg-gray-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
+              >
+                <span className="text-base">🔗</span>
+                <span>Share</span>
+              </button>
+            </div>
+          </div>
 
           {/* Moderator Actions */}
           <PostModerator postId={post.id} />
