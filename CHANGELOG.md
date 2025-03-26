@@ -1,5 +1,47 @@
 # Änderungsprotokoll
 
+## [3.2.0]
+
+### 💬 Erweiterte Kommentarfunktionen
+
+- **@-Erwähnungen in Kommentaren**:
+  - Benutzer können nun mit @username in Kommentaren erwähnt werden
+  - Automatische Benachrichtigungen bei Erwähnungen
+  - Intelligente Username-Vorschläge während der Eingabe
+  - Benutzerfreundliche Autofill-Funktion für schnelleres Erwähnen
+
+### 🏷️ Verbessertes Tag-System
+
+- **Optimierte Tag-Anforderungen**:
+  - Mindestanzahl von 3 Tags für jeden Upload eingeführt
+  - Maximale Tag-Anzahl auf 15 erhöht für bessere Inhaltsorganisation
+  - Verbesserte Validierung der Tag-Eingaben
+
+### 🔔 Verbesserte Moderationswerkzeuge
+
+- **Echtzeitberichte für Kommentare**:
+  - Live-Verfolgung von gemeldeten Kommentaren für Moderatoren
+  - Schnellere Reaktionszeiten bei problematischen Inhalten
+  - Verbesserte Übersicht über gemeldete Inhalte
+
+### 📊 Angepasste Benutzeroberfläche
+
+- **Überarbeitetes Voting-System**:
+  - Voting-Elemente von Overlay in die Seitenleiste verschoben
+  - Intuitiveres Voting-Verhalten mit besserer Sichtbarkeit
+  - Konsistente Positionierung über alle Ansichten
+  
+- **Verbesserte Datenschutzeinstellungen**:
+  - Post-Statistiken für anonyme Benutzer ausgeblendet
+  - Klarere Unterscheidung zwischen anonymen und angemeldeten Benutzern
+
+### 🔄 Interaktionserweiterungen
+
+- **Neue Benachrichtigungsfunktionen**:
+  - Teilen-Banner hinzugefügt für einfacheres Verbreiten von Inhalten
+  - Feedback-Banner für verbesserte Benutzerinteraktion
+  - Intuitivere Benutzerführung für soziale Funktionen
+
 ## [3.1.0]
 
 ### 🎨 Verbesserte Benutzeroberfläche

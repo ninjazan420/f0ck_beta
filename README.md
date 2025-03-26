@@ -1,4 +1,4 @@
-# f0ck.org Beta 3.1.0
+# f0ck.org Beta 3.2.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta 3.1.0](#f0ckorg-beta-310)
+- [f0ck.org Beta 3.2.0](#f0ckorg-beta-320)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,14 +21,16 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v3.1.0 (Current)](#beta-v310-current)
+    - [Beta v3.2.0 (Current)](#beta-v320-current)
+      - [💬 Enhanced Comment Functionality](#-enhanced-comment-functionality)
+      - [🏷️ Improved Tag System](#️-improved-tag-system)
+      - [📊 UI Refinements](#-ui-refinements)
+      - [🔄 Interaction Enhancements](#-interaction-enhancements)
+    - [Beta v3.1.0](#beta-v310)
       - [🎨 Enhanced User Experience](#-enhanced-user-experience)
       - [🎬 Enhanced Media Handling](#-enhanced-media-handling)
       - [🔒 Privacy & Security](#-privacy--security)
       - [🛠️ Technical Improvements](#️-technical-improvements)
-    - [Beta v2.7.0](#beta-v270)
-      - [🎮 Enhanced Navigation and User Experience](#-enhanced-navigation-and-user-experience)
-      - [🔧 Technical Improvements](#-technical-improvements)
     - [Previous Versions (click to expand)](#previous-versions-click-to-expand)
       - [💎 Redesigned Notification System](#-redesigned-notification-system)
       - [🎨 Styled Components Integration](#-styled-components-integration)
@@ -66,6 +68,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
   - GIF and emoji support
   - Reply threading
   - WebSocket live updates
+  - User mentions with notifications
   - Automatic spam detection
   - Role-based moderation
   - Report & live moderation system
@@ -159,7 +162,37 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v3.1.0 (Current)
+### Beta v3.2.0 (Current)
+
+#### 💬 Enhanced Comment Functionality
+- **@-Mentions in Comments**:
+  - Users can now mention others with @username in comments
+  - Automatic notifications when mentioned
+  - Smart username suggestions while typing
+  - User-friendly autofill for faster mentions
+  
+#### 🏷️ Improved Tag System
+- **Optimized Tag Requirements**:
+  - Introduced minimum of 3 tags for each upload
+  - Increased maximum tags to 15 for better content organization
+  - Enhanced tag validation and input requirements
+
+#### 📊 UI Refinements
+- **Redesigned Voting System**:
+  - Moved voting elements from overlay to sidebar
+  - More intuitive voting behavior with better visibility
+  - Post statistics hidden for anonymous users
+- **Live Comment Reporting**:
+  - Real-time tracking of reported comments for moderators
+  - Faster response times for problematic content
+
+#### 🔄 Interaction Enhancements
+- **New Notification Features**:
+  - Added share banner for easier content distribution
+  - Integrated feedback banner for improved user interaction
+  - More intuitive social features guidance
+
+### Beta v3.1.0
 
 #### 🎨 Enhanced User Experience
 
@@ -191,35 +224,6 @@ NODE_ENV=development
   - Fixed comment listener error for better stability
   - Enhanced filename handling by removing domain names
   - Updated favicon for better brand recognition
-
-### Beta v2.7.0
-
-#### 🎮 Enhanced Navigation and User Experience
-
-- **Improved User Statistics**:
-  - User statistics on /user/id and /post pages are now clickable and lead to corresponding uploads
-  - Enhanced user interaction through more intuitive navigation elements
-  - Consistent display of statistics across all components
-- **Redesigned Tags Page**:
-  - Complete redesign of the /tags page for better clarity
-  - More compact tag boxes for efficient space usage
-  - Improved visual hierarchy with clear statistics display
-  - Better presentation of tag authors and related information
-- **Optimized User Management**:
-  - User page navigation improved to reach the current page state directly
-  - Enhanced pagination with smarter page numbering
-  - Optimized performance for displaying user directories
-
-#### 🔧 Technical Improvements
-
-- **Database Optimizations**:
-  - Tag system extended: Added author to tags in database for proper filtering
-  - Fixed post counter in MongoDB when deleting images through moderator panel
-  - Improved data integrity and consistency in user interactions
-- **Backend Adjustments**:
-  - Updated contact email: mail[@]f0ck.org instead of support@f0ck.org
-  - Optimized API endpoints for tag-related operations
-  - Enhanced error handling for user filtering
 
 ### Previous Versions (click to expand)
 
@@ -350,5 +354,5 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 
 MIT License - © 2024 f0ck.org Team
 
-> Beta Version 3.1.0 - We build something new...
+> Beta Version 3.2.0 - We build something new...
 
