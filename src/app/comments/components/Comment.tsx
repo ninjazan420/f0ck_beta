@@ -286,12 +286,16 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
     // Neue Regex für @-Erwähnungen
     const mentionRegex = /@([a-zA-Z0-9_]+)/g;
     
-    // Wenn weder GIFs, Bilder noch Erwähnungen gefunden wurden, gib den Text zurück
+    // Neue Regex für normale URLs
+    const normalUrlRegex = /(https?:\/\/[^\s]+)(?!\.(gif|png|jpg|jpeg|webp|bmp))/gi;
+    
+    // Wenn weder GIFs, Bilder, Erwähnungen noch normale URLs gefunden wurden, gib den Text zurück
     const gifMatches = Array.from(text.matchAll(gifRegex) || []);
     const urlMatches = text.match(urlRegex) || [];
     const mentionMatches = Array.from(text.matchAll(mentionRegex) || []);
+    const normalUrlMatches = Array.from(text.matchAll(normalUrlRegex) || []);
     
-    if (gifMatches.length === 0 && urlMatches.length === 0 && mentionMatches.length === 0) {
+    if (gifMatches.length === 0 && urlMatches.length === 0 && mentionMatches.length === 0 && normalUrlMatches.length === 0) {
       return <span className="whitespace-pre-wrap">{text}</span>;
     }
     
@@ -312,7 +316,16 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
     // Dann ersetze Erwähnungen mit Platzhaltern
     mentionMatches.forEach(match => {
       const fullMatch = match[0]; // @username
-      processedText = processedText.replace(fullMatch, '\n[mention:' + match[1] + ']\n');
+      processedText = processedText.replace(fullMatch, `\n[mention:${match[1]}]\n`);
+    });
+    
+    // Dann ersetze normale URLs mit Platzhaltern
+    normalUrlMatches.forEach(match => {
+      const url = match[0];
+      // Überprüfe, ob die URL nicht bereits als GIF oder Bild verarbeitet wurde
+      if (!gifMatches.some(m => m[1] === url) && !urlMatches.includes(url)) {
+        processedText = processedText.replace(url, `\n[normal-url:${url}]\n`);
+      }
     });
     
     // Teile den Text und erstelle die Elemente
@@ -354,7 +367,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
         );
         urlIndex++;
       } else if (part.startsWith('[mention:') && part.endsWith(']')) {
-        // Erwähnungs-Darstellung (neu)
+        // Erwähnungs-Darstellung
         const username = part.substring(9, part.length - 1);
         result.push(
           <a 
@@ -369,6 +382,20 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
           </a>
         );
         mentionIndex++;
+      } else if (part.startsWith('[normal-url:') && part.endsWith(']')) {
+        // Normale URL-Darstellung (neu)
+        const url = part.substring(12, part.length - 1);
+        result.push(
+          <a 
+            key={`normal-url-${index}`}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+          >
+            {url}
+          </a>
+        );
       } else if (part.trim() !== '') {
         // Normaler Text
         result.push(<span key={`text-${index}`} className="whitespace-pre-wrap">{part}</span>);

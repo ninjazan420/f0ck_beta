@@ -12,6 +12,7 @@ import { spawn } from 'child_process';
 import path from 'path';
 import { fileTypeFromBuffer } from 'file-type';
 import { getVideoMetadata } from '@/lib/video-utils';
+import { Nickname } from './../app/settings/Nickname';
 
 // Lokale Definition von ContentRating
 export type ContentRating = 'safe' | 'sketchy' | 'unsafe';
@@ -231,38 +232,23 @@ export async function downloadImageFromUrl(url: string): Promise<{
       console.error('Error creating temp directory:', err);
     }
     
-    // Save the temporary thumbnail
-    const thumbnail = await image
-      .resize(400, 400, {
-        fit: 'cover',
-        position: 'centre'
-      })
-      .toBuffer();
-    
-    // Speichere die temporäre Datei
-    await writeFile(tempFilePath, thumbnail);
-    
-    // Cleanup alte temporäre Dateien
-    await cleanupTempFiles().catch(console.error);
+    // Speichere die verarbeitete Datei
+    await writeFile(tempFilePath, processedBuffer);
     
     return {
-      file: buffer,
-      filename: safeFilename,
-      contentType,
-      tempFilePath, // Lokaler Dateipfad (für Backend)
-      previewUrl: publicTempUrl, // URL-Pfad (für Frontend)
+      file: processedBuffer,
+      filename: finalFilename,
+      contentType: finalContentType,
+      tempFilePath,
+      previewUrl: publicTempUrl,
       dimensions: {
         width: metadata.width || 0,
         height: metadata.height || 0
       }
     };
   } catch (error) {
-    throw new ApplicationError(
-      'Failed to download image from URL',
-      'NetworkError',
-      500,
-      error
-    );
+    console.error('Error downloading image:', error);
+    throw error;
   }
 }
 
@@ -526,13 +512,13 @@ export async function processUpload(
       tags: processedTags,
       contentRating: validContentRating,
       uploadDate: new Date(),
-      userId,
+      userId: userId ?? undefined,
       isVideo: isVideo
     };
   } catch (error) {
     throw new ApplicationError(
       `Failed to process upload: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      'UploadError',
+      'ProcessUploadError',
       500,
       error
     );
