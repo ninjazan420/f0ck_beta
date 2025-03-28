@@ -7,7 +7,7 @@ export function ReverseSearch({ imageUrl }: { imageUrl: string }) {
     
     // Immer die Produktions-URL verwenden für Reverse Search
     // So wird verhindert, dass localhost-URLs an externe Dienste gesendet werden
-    const baseUrl = 'https://beta.f0ck.org';
+    const baseUrl = 'https://f0ck.org';
     const sanitizedImageUrl = url.startsWith('/') ? url : `/${url}`;
     
     return `${baseUrl}${sanitizedImageUrl}`;

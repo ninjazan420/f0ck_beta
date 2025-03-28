@@ -84,7 +84,7 @@ export async function generateMetadata({ params }: { params: { name: string } })
   
   // Wähle ein Bild für die Vorschau - entweder ein Beispielbild oder ein Fallback
   const imageUrl = tagData.samplePostImage || 
-    `${process.env.NEXT_PUBLIC_BASE_URL || 'https://beta.f0ck.org'}/api/tag-image/${encodeURIComponent(tagData.name)}`;
+    `${process.env.NEXT_PUBLIC_BASE_URL || 'https://f0ck.org'}/api/tag-image/${encodeURIComponent(tagData.name)}`;
   
   return {
     title,
@@ -93,7 +93,7 @@ export async function generateMetadata({ params }: { params: { name: string } })
       title,
       description,
       type: 'website',
-      url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://beta.f0ck.org'}/tag/${tagData.name}`,
+      url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://f0ck.org'}/tag/${tagData.name}`,
       images: tagData.samplePostImage ? [
         {
           url: imageUrl,

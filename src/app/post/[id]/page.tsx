@@ -289,7 +289,7 @@ function getAbsoluteImageUrl(relativeUrl: string): string {
   
   // Verwende immer die Produktions-URL für Vorschaubilder, nie localhost
   // Das löst das Problem mit fehlenden Vorschaubildern beim lokalen Entwickeln
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://beta.f0ck.org';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://f0ck.org';
   
   // Stelle sicher, dass die URL mit einem Slash beginnt
   const formattedRelativeUrl = relativeUrl.startsWith('/') ? relativeUrl : `/${relativeUrl}`;
@@ -357,10 +357,10 @@ export async function generateMetadata({ params, searchParams }: { params: { id:
   
   // Erstelle die volle URL mit Kommentar-Fragment, falls vorhanden
   const fullUrl = commentFragment
-    ? `${process.env.NEXT_PUBLIC_BASE_URL || "https://beta.f0ck.org"}/post/${
+    ? `${process.env.NEXT_PUBLIC_BASE_URL || "https://0ck.org"}/post/${
         postData.numericId || postData.id
       }${commentFragment}`
-    : `${process.env.NEXT_PUBLIC_BASE_URL || "https://beta.f0ck.org"}/post/${
+    : `${process.env.NEXT_PUBLIC_BASE_URL || "https://f0ck.org"}/post/${
         postData.numericId || postData.id
       }`;
   
