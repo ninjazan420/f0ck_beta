@@ -80,7 +80,7 @@ export const Navbar = () => {
     { type: 'link', label: 'Upload', href: '/upload' },
     { type: 'link', label: 'Comments', href: '/comments' },
     { type: 'link', label: 'Tags', href: '/tags' },
-    { type: 'link', label: 'Pools', href: '/pools' },
+    // { type: 'link', label: 'Pools', href: '/pools' },
     { type: 'link', label: 'Users', href: '/users' },
   ];
 
