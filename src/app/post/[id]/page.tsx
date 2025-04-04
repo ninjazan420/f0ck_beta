@@ -87,11 +87,19 @@ async function getPostData(id: string) {
       ? { id: id } 
       : { $or: [{ id: id }, { numericId: numericId }] };
     
-    const post = await Post.findOne(query).populate('author', 'username avatar bio premium role');
+    const post = await Post.findOne(query)
+      .populate('author', 'username avatar bio premium role')
+      .populate('tags');
     
     if (!post) {
       return null;
     }
+    
+    // Hole die tatsächliche Anzahl der Kommentare
+    const commentCount = await Comment.countDocuments({ post: post._id });
+    
+    // Hole die tatsächliche Anzahl der Tags
+    const tagCount = post.tags?.length || 0;
     
     // Tag-Informationen anreichern, falls noch nicht geschehen
     let tagData = [];
@@ -128,6 +136,34 @@ async function getPostData(id: string) {
         tagData = post.tags;
       }
     }
+
+    // Bereite die Autor-Informationen vor
+    let authorData = null;
+    if (post.author) {
+      // Hole die tatsächlichen Benutzerstatistiken
+      const [userComments, userUploads, userLikes, userFavorites, userTags] = await Promise.all([
+        Comment.countDocuments({ author: post.author._id }),
+        Post.countDocuments({ author: post.author._id }),
+        Post.countDocuments({ likedBy: post.author._id }),
+        Post.countDocuments({ favoritedBy: post.author._id }),
+        Tag.countDocuments({ creator: post.author._id })
+      ]);
+
+      authorData = {
+        username: post.author.username || 'anonymous',
+        avatar: post.author.avatar,
+        bio: post.author.bio || '',
+        premium: !!post.author.premium,
+        role: post.author.role || 'user',
+        stats: {
+          uploads: userUploads,
+          comments: userComments,
+          likes: userLikes,
+          favorites: userFavorites,
+          tags: userTags
+        }
+      };
+    }
     
     return {
       id: post.id || post._id.toString(),
@@ -137,16 +173,14 @@ async function getPostData(id: string) {
       imageUrl: post.imageUrl || '',
       thumbnailUrl: post.thumbnailUrl || post.imageUrl || '',
       contentRating: post.contentRating || 'safe',
-      author: post.author ? {
-        username: post.author.username || 'anonymous',
-        avatar: post.author.avatar,
-        bio: post.author.bio || '',
-        premium: !!post.author.premium,
-        role: post.author.role || 'user'
-      } : null,
+      author: authorData,
       tags: tagData,
       createdAt: post.createdAt || new Date(),
-      stats: post.stats || { likes: 0, favorites: 0, comments: 0, views: 0 }
+      stats: {
+        ...post.stats,
+        comments: commentCount,
+        tags: tagCount
+      }
     };
   } catch (error) {
     console.error('Error fetching post:', error);

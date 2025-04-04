@@ -184,7 +184,10 @@ export function AccountCard() {
 
       const response = await fetch('/api/user', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
         body: JSON.stringify(updateData),
       });
 
@@ -196,25 +199,33 @@ export function AccountCard() {
       const updatedData = await response.json();
       console.log('Received update response:', updatedData);
 
+      // Aktualisiere den lokalen Zustand
       setProfile(prev => ({
         ...prev,
-        nickname: updatedData.username,
-        email: updatedData.email,
-        bio: updatedData.bio || ''
+        nickname: updatedData.username || prev.nickname,
+        email: updatedData.email || prev.email,
+        bio: updatedData.bio || prev.bio
       }));
 
+      // Aktualisiere die Session
       await updateSession({
         ...session,
         user: {
           ...session.user,
-          name: updatedData.username,
-          email: updatedData.email
+          name: updatedData.username || session.user.name,
+          email: updatedData.email || session.user.email,
+          bio: updatedData.bio || session.user.bio
         }
       });
 
+      // Zeige Erfolgsmeldung
+      toast.success('Profile updated successfully');
+      
+      // Beende den Bearbeitungsmodus
       setIsEditing(false);
     } catch (error) {
       console.error('Error saving profile:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save profile');
     }
   };
 

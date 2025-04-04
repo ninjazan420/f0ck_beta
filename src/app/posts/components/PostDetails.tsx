@@ -37,12 +37,11 @@ interface PostData {
     member: boolean;
     joinDate: string;
     stats: {
-      totalPosts: number;
-      totalLikes: number;
-      totalViews: number;
-      favorites?: number;
-      comments?: number;
-      tags?: number;
+      uploads: number;
+      comments: number;
+      likes: number;
+      favorites: number;
+      tags: number;
       level: number;
       xp: number;
       xpNeeded: number;
@@ -91,9 +90,11 @@ const MOCK_POST: PostData = {
     member: true,
     joinDate: "2023-01-15T08:30:00Z",
     stats: {
-      totalPosts: 342,
-      totalLikes: 15678,
-      totalViews: 89432,
+      uploads: 342,
+      comments: 89,
+      likes: 15678,
+      favorites: 123,
+      tags: 456,
       level: 42,
       xp: 8234,
       xpNeeded: 10000
@@ -794,25 +795,13 @@ export function PostDetails({ postId }: { postId: string }) {
               ) : (
                 <div className="flex-shrink-0">
                   <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                    {post.uploader.avatar ? (
-                      <Image 
-                        src={getImageUrlWithCacheBuster(post.uploader.avatar)} 
-                        alt={post.uploader.name} 
-                        width={64} 
-                        height={64} 
-                        className="object-cover w-full h-full"
-                      />
-                    ) : (
-                      <div className="text-2xl text-gray-400">
-                        {post.uploader.name[0]?.toUpperCase() ?? '?'}
-                      </div>
-                    )}
+                    <div className="text-2xl text-gray-400">?</div>
                   </div>
                 </div>
               )}
               
               {/* User info column */}
-              <div className="flex-grow">
+              <div className="flex-1">
                 <div className="flex items-center gap-2">
                   {post.uploader.name !== 'Anonymous' ? (
                     <Link href={`/user/${post.uploader.name}`} className="text-lg font-medium hover:underline">
@@ -823,24 +812,26 @@ export function PostDetails({ postId }: { postId: string }) {
                       {post.uploader.name}
                     </span>
                   )}
-                  {getRoleBadge(post.uploader.admin, post.uploader.moderator, post.uploader.premium)}
+                  {post.uploader.name !== 'Anonymous' && getRoleBadge(post.uploader.admin, post.uploader.moderator, post.uploader.premium)}
                 </div>
                 
-                {/* Bio line if exists */}
-                {post.uploader.bio && (
+                {/* Bio line if exists and not anonymous */}
+                {post.uploader.name !== 'Anonymous' && post.uploader.bio && (
                   <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                     {post.uploader.bio}
                   </p>
                 )}
                 
-                {/* Member since line */}
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Member since {new Date(post.uploader.joinDate).toLocaleDateString('de-DE', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </div>
+                {/* Member since line - nur anzeigen, wenn nicht anonym */}
+                {post.uploader.name !== 'Anonymous' && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Member since {new Date(post.uploader.joinDate).toLocaleDateString('de-DE', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 

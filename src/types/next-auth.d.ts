@@ -1,4 +1,5 @@
 import type { DefaultSession } from "next-auth"
+import NextAuth from "next-auth"
 
 declare module "next-auth" {
   interface User {
@@ -16,6 +17,9 @@ declare module "next-auth" {
       email?: string
       role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned'
       avatar?: string | null
+      name?: string | null
+      image?: string | null
+      bio?: string | null
     } & DefaultSession["user"]
   }
 }

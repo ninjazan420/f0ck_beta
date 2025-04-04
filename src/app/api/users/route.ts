@@ -104,6 +104,14 @@ export async function GET(request: Request) {
       User.aggregate([
         { $match: query },
         {
+          $lookup: {
+            from: 'comments',
+            localField: '_id',
+            foreignField: 'author',
+            as: 'userComments'
+          }
+        },
+        {
           $project: {
             username: 1,
             bio: 1,
@@ -115,7 +123,7 @@ export async function GET(request: Request) {
             stats: {
               $mergeObjects: {
                 uploads: { $size: { $ifNull: ["$uploads", []] } },
-                comments: { $size: { $ifNull: ["$comments", []] } },
+                comments: { $size: { $ifNull: ["$userComments", []] } },
                 favorites: { $size: { $ifNull: ["$favorites", []] } },
                 likes: { $size: { $ifNull: ["$likes", []] } },
                 tags: { $size: { $ifNull: ["$tags", []] } }

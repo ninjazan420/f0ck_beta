@@ -11,6 +11,14 @@ export async function GET() {
     const users = await User.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(session.user.id) } },
       {
+        $lookup: {
+          from: 'comments',
+          localField: '_id',
+          foreignField: 'author',
+          as: 'userComments'
+        }
+      },
+      {
         $project: {
           username: 1,
           email: 1,
@@ -23,7 +31,7 @@ export async function GET() {
           avatar: 1,
           stats: {
             uploads: { $size: { $ifNull: ["$uploads", []] } },
-            comments: { $size: { $ifNull: ["$comments", []] } },
+            comments: { $size: { $ifNull: ["$userComments", []] } },
             favorites: { $size: { $ifNull: ["$favorites", []] } },
             likes: { $size: { $ifNull: ["$likes", []] } },
             dislikes: { $size: { $ifNull: ["$dislikes", []] } },
