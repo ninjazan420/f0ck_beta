@@ -217,11 +217,35 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
     if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
       e.preventDefault();
       const input = e.currentTarget;
-      if (input.value.trim()) {
-        addTag(id, input.value);
+      const value = input.value.trim();
+      
+      if (value) {
+        // Teile den Text in einzelne Tags auf
+        const tags = value.split(/\s+/).filter(tag => tag.trim());
+        
+        // Füge jeden Tag einzeln hinzu
+        tags.forEach(tag => {
+          addTag(id, tag);
+        });
+        
         input.value = '';
         setCurrentTag('');
       }
+    }
+  }, [addTag]);
+
+  const handlePaste = useCallback((id: string, e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text').trim();
+    
+    if (pastedText) {
+      // Teile den eingefügten Text in einzelne Tags auf
+      const tags = pastedText.split(/\s+/).filter(tag => tag.trim());
+      
+      // Füge jeden Tag einzeln hinzu
+      tags.forEach(tag => {
+        addTag(id, tag);
+      });
     }
   }, [addTag]);
 
@@ -354,6 +378,8 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
                     placeholder={item.tags.length >= 15 ? "Maximum of 15 tags reached" : "Add tag (e.g. artwork, anime)"}
                     className="px-2 py-1 text-sm border rounded bg-transparent text-gray-700 dark:text-gray-300 disabled:opacity-50"
                     onKeyDown={e => handleTagInput(item.id, e)}
+                    onPaste={(e) => handlePaste(item.id, e)}
+                    onChange={(e) => setCurrentTag(e.target.value)}
                     disabled={item.tags.length >= 15}
                   />
                 </div>

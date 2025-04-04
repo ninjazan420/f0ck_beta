@@ -8,9 +8,9 @@ import { UploadBox } from './components/UploadBox';
 import { UploadOptions } from './components/UploadOptions';
 import { FileList } from './components/FileList';
 import { UrlInput, PreviewImageUrlData } from './components/UrlInput';
+import { BatchTagging } from './components/BatchTagging';
 
-// Define the FileItem interface to match the one in FileList.tsx
-interface FileItem {
+export interface FileItem {
   id: string;
   name: string;
   type: 'file' | 'url';
@@ -32,12 +32,9 @@ export default function UploadPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessingUrls, setIsProcessingUrls] = useState(false);
   const [fileRatings, setFileRatings] = useState<{[key: string]: 'safe' | 'sketchy' | 'unsafe'}>({});
-  // Add state to store file items with their tags
   const [fileItems, setFileItems] = useState<FileItem[]>([]);
-  // Füge einen neuen State hinzu, um zu verfolgen, ob ein Paste-Event verarbeitet wurde
   const [processingPaste, setProcessingPaste] = useState(false);
 
-  // Erstelle itemMap als separaten Hook auf Komponentenebene
   const itemMap = useMemo(() => {
     const map = new Map<string, FileItem>();
     fileItems.forEach(item => {
@@ -47,13 +44,10 @@ export default function UploadPage() {
     return map;
   }, [fileItems]);
 
-  // Verwende die vorberechnete Map in getItemTags
   const getItemTags = useCallback((name: string, type: 'file' | 'url'): string[] => {
-    // Lookup ist jetzt O(1) statt O(n)
     const exactMatch = itemMap.get(`${type}:${name}`);
     if (exactMatch) return exactMatch.tags;
     
-    // Fallback: Versuche, unabhängig vom Pfad oder exaktem Namen zu finden
     const baseFilename = name.split('/').pop()?.split('\\').pop();
     if (baseFilename) {
       const partialMatch = fileItems.find(item => 
@@ -68,7 +62,6 @@ export default function UploadPage() {
     return [];
   }, [fileItems, itemMap]);
 
-  // File handling functions mit useCallback
   const handleFileDrop = useCallback((newFiles: File[]) => {
     const validFiles = newFiles.filter(file => {
       const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB limit
@@ -103,7 +96,6 @@ export default function UploadPage() {
     }
   }, []);
 
-  // Handle URL add
   const handleUrlAdd = useCallback((newUrlData: PreviewImageUrlData) => {
     try {
       new URL(newUrlData.url); // URL validation
@@ -114,7 +106,6 @@ export default function UploadPage() {
     }
   }, []);
 
-  // Handle file and URL removals
   const handleRemoveFile = useCallback((index: number) => {
     setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   }, []);
@@ -130,7 +121,6 @@ export default function UploadPage() {
     setFileItems([]);
   }, []);
 
-  // Update ratings 
   const updateFileRating = useCallback((fileName: string, rating: 'safe' | 'sketchy' | 'unsafe') => {
     setFileRatings(prev => ({
       ...prev,
@@ -138,55 +128,44 @@ export default function UploadPage() {
     }));
   }, []);
 
-  // Update fileItems
   const handleFileItemsUpdate = useCallback((items: FileItem[]) => {
     setFileItems(items);
   }, []);
 
-  // Updated to check both files and urlData
   const hasFiles = files.length > 0 || urlData.length > 0;
 
-  // Listen for paste events that might contain multiple files or URLs
   useEffect(() => {
-    // Zentrale Paste-Behandlungsfunktion mit Koordination
     const handleGlobalPaste = (e: ClipboardEvent) => {
-      // Vermeide doppelte Verarbeitung und setze Status
       if (processingPaste) return;
       
       try {
         setProcessingPaste(true);
         
-        // Skip wenn das aktive Element ein Input oder Textarea ist, AUSSER wenn das Input leer ist
         const activeEl = document.activeElement;
         const isInputEmpty = activeEl instanceof HTMLInputElement && !activeEl.value;
         
         if (activeEl instanceof HTMLInputElement || activeEl instanceof HTMLTextAreaElement) {
           if (!isInputEmpty) {
-            return; // Lass das Input-Element selbst den Paste verarbeiten
+            return;
           }
         }
         
-        // Verarbeite Dateien aus dem Clipboard
         if (e.clipboardData && e.clipboardData.files.length > 0) {
-          e.preventDefault(); // Vermeide Standard-Einfügen
+          e.preventDefault();
           const filesArray = Array.from(e.clipboardData.files);
           handleFileDrop(filesArray);
-          return; // Nachdem wir Dateien verarbeitet haben, beenden wir die Funktion
+          return;
         }
         
-        // Versuche Text als URL zu verarbeiten, wenn keine Dateien gefunden wurden
         if (e.clipboardData && e.clipboardData.getData('text')) {
           const text = e.clipboardData.getData('text');
           try {
-            new URL(text); // Validieren als URL
-            // Hier könnten wir die URL automatisch zum URL-Input-Feld hinzufügen
-            // aber es ist besser, die Benutzer entscheiden zu lassen
+            new URL(text);
           } catch (e) {
             // Keine gültige URL, ignorieren
           }
         }
       } finally {
-        // Verzögere das Zurücksetzen des Status, um mehrfache Verarbeitung während eines Ereignisses zu verhindern
         setTimeout(() => setProcessingPaste(false), 100);
       }
     };
@@ -195,14 +174,11 @@ export default function UploadPage() {
     return () => window.removeEventListener('paste', handleGlobalPaste);
   }, [handleFileDrop, processingPaste]);
 
-  // Process files and URLs
   const handleUpload = useCallback(async () => {
     try {
       setIsUploading(true);
       setError(null);
       
-      // --- 0. Tag-Validierung für alle Uploads ---
-      // Prüfe für jede Datei, ob sie die erforderliche Anzahl an Tags hat
       for (const file of files) {
         const fileTags = getItemTags(file.name, 'file');
         if (fileTags.length < 3) {
@@ -213,7 +189,6 @@ export default function UploadPage() {
         }
       }
       
-      // Prüfe für jede URL, ob sie die erforderliche Anzahl an Tags hat
       for (const item of urlData) {
         const urlTags = getItemTags(item.url, 'url');
         if (urlTags.length < 3) {
@@ -224,10 +199,8 @@ export default function UploadPage() {
         }
       }
       
-      // Sammle alle erfolgreichen Uploads für die Weiterleitung
       const successfulUploads: { id: string, type: 'file' | 'url' }[] = [];
 
-      // --- 1. Verarbeitung von Datei-Uploads ---
       for (const file of files) {
         console.log(`Verarbeite Datei: ${file.name}`);
         console.log(`FileItems Stand:`, fileItems.map(i => ({name: i.name, type: i.type, tags: i.tags})));
@@ -237,35 +210,28 @@ export default function UploadPage() {
           formData.append('file', file);
           formData.append('rating', fileRatings[file.name] || 'safe');
           
-          // Verbesserte Tag-Erfassung für Dateien
           const fileTags = getItemTags(file.name, 'file');
           if (fileTags.length > 0) {
             formData.append('tags', JSON.stringify(fileTags));
             console.log(`Uploading file ${file.name} with tags:`, fileTags);
           }
 
-          // API-URL bestimmen (mit Fallback)
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api/upload';
           
-          // Anfrage mit Credentials senden
           const response = await fetch(apiUrl, {
             method: 'POST',
             credentials: 'include',
             body: formData,
           });
 
-          // Antwort des Servers verarbeiten
           const data = await response.json();
           
-          // Debugging: Antwort des Servers
           console.log(`[DEBUG] Server-Antwort für File "${file.name}":`, data);
 
-          // Fehlerbehandlung
           if (!response.ok) {
             throw new Error(data.error || `Upload von "${file.name}" fehlgeschlagen`);
           }
 
-          // Erfolgreichen Upload speichern
           if (data.file && data.file.id) {
             successfulUploads.push({
               id: String(data.file.id),
@@ -273,66 +239,51 @@ export default function UploadPage() {
             });
           }
         } catch (fileError) {
-          // Einzelfehler beim File-Upload abfangen ohne den gesamten Prozess zu stoppen
           console.error(`[ERROR] Fehler beim Upload von Datei "${file.name}":`, fileError);
           setError(prev => prev ? `${prev}; ${(fileError as Error).message}` : (fileError as Error).message);
         }
       }
 
-      // --- 2. Verarbeitung von URL-Uploads mit vorhandenen temporären Dateien ---
       for (const item of urlData) {
         try {
           const formData = new FormData();
           
-          // Gemeinsame Felder für alle URL-Uploads
           formData.append('imageUrl', item.url);
           
-          // Content Rating (immer 'safe' für URLs)
           formData.append('rating', 'safe');
           
-          // Tags extrahieren
           const urlTags = getItemTags(item.url, 'url');
           
-          // Debugging: Ausgabe der Tags vor dem Upload
           console.log(`[DEBUG] Tags für URL "${item.url}":`, urlTags);
           
-          // Tags nur hinzufügen, wenn vorhanden
           if (urlTags.length > 0) {
             formData.append('tags', JSON.stringify(urlTags));
           }
           
-          // Für URLs mit temporären Dateien
           if (item.tempFilePath) {
             formData.append('tempFilePath', item.tempFilePath);
             
-            // Dimensionen hinzufügen, falls vorhanden
             if (item.dimensions) {
               formData.append('dimensions', JSON.stringify(item.dimensions));
             }
           }
 
-          // API-URL bestimmen
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api/upload';
           
-          // Anfrage mit Credentials senden
           const response = await fetch(apiUrl, {
             method: 'POST',
             credentials: 'include',
             body: formData,
           });
 
-          // Antwort des Servers verarbeiten
           const data = await response.json();
           
-          // Debugging: Antwort des Servers
           console.log(`[DEBUG] Server-Antwort für URL "${item.url}":`, data);
 
-          // Fehlerbehandlung
           if (!response.ok) {
             throw new Error(data.error || `Upload von URL "${item.url}" fehlgeschlagen`);
           }
 
-          // Erfolgreichen Upload speichern
           if (data.file && data.file.id) {
             successfulUploads.push({
               id: String(data.file.id),
@@ -340,39 +291,41 @@ export default function UploadPage() {
             });
           }
         } catch (urlError) {
-          // Einzelfehler beim URL-Upload abfangen
           console.error(`[ERROR] Fehler beim Upload von URL "${item.url}":`, urlError);
           setError(prev => prev ? `${prev}; ${(urlError as Error).message}` : (urlError as Error).message);
         }
       }
 
-      // --- 3. Navigation nach erfolgreichen Uploads ---
-      
-      // Wenn wir erfolgreiche Uploads haben, entscheiden wir, wohin wir navigieren
       if (successfulUploads.length > 0) {
-        // Bei genau einem Upload direkt zum Post navigieren
         if (successfulUploads.length === 1) {
           const postId = successfulUploads[0].id;
           console.log(`[INFO] Weiterleitung zu Post ID: ${postId}`);
           router.push(`/post/${postId}`);
         } 
-        // Bei mehreren Uploads zur Übersichtsseite
         else {
           console.log(`[INFO] ${successfulUploads.length} Uploads erfolgreich, Weiterleitung zur Übersicht`);
           router.push('/posts');
         }
       } else if (error) {
-        // Wenn wir nur Fehler hatten, bleiben wir auf der Upload-Seite (Fehler werden angezeigt)
         console.warn('[WARNING] Keine erfolgreichen Uploads');
       }
     } catch (err) {
-      // Allgemeine Fehlerbehandlung für unerwartete Probleme
       console.error('[ERROR] Unerwarteter Fehler beim Upload-Prozess:', err);
       setError(err instanceof Error ? err.message : 'Upload fehlgeschlagen');
     } finally {
       setIsUploading(false);
     }
   }, [files, urlData, fileRatings, fileItems, getItemTags, router, error]);
+
+  const handleBatchTagging = useCallback((selectedFiles: string[], tags: string[]) => {
+    setFileItems(prevItems => 
+      prevItems.map(item => 
+        selectedFiles.includes(item.id)
+          ? { ...item, tags: [...new Set([...item.tags, ...tags])] }
+          : item
+      )
+    );
+  }, []);
 
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
@@ -418,6 +371,12 @@ export default function UploadPage() {
                     </button>
                   </div>
                 </div>
+                {fileItems.length > 1 && (
+                  <BatchTagging 
+                    fileItems={fileItems}
+                    onApplyTags={handleBatchTagging}
+                  />
+                )}
                 <FileList 
                   files={files} 
                   urls={urlData.map(item => item.url)}
