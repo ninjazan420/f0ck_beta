@@ -1,14 +1,8 @@
-import { SortBy } from './TagsPage';
+import { SortBy, Filters } from './TagsPage';
 
 interface TagFilterProps {
-  filters: {
-    search: string;
-    sortBy: SortBy;
-    creator: string;
-    usedBy: string;
-    timeRange: 'all' | 'day' | 'week' | 'month' | 'year';
-  };
-  onFilterChange: (filters: TagFilterProps['filters']) => void;
+  filters: Filters;
+  onFilterChange: (filters: Filters) => void;
 }
 
 export function TagFilter({ filters, onFilterChange }: TagFilterProps) {

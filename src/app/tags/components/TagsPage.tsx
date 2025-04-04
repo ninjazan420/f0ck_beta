@@ -1,16 +1,16 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TagList } from './TagList';
 import { TagFilter } from './TagFilter';
 import { Footer } from "@/components/Footer";
 
 export type SortBy = 'most_used' | 'newest' | 'alphabetical' | 'trending';
 
-interface Filters {
+export interface Filters {
   search: string;
   minPosts: number;
   sortBy: SortBy;
-  author: string;
+  creator: string;
   usedBy: string;
   timeRange: 'all' | 'day' | 'week' | 'month' | 'year';
 }
@@ -25,12 +25,14 @@ interface Tag {
   updatedAt: string;
 }
 
+const ITEMS_PER_PAGE = 20;
+
 export function TagsPage() {
   const [filters, setFilters] = useState<Filters>({
     search: '',
     minPosts: 0,
     sortBy: 'most_used',
-    author: '',
+    creator: '',
     usedBy: '',
     timeRange: 'all'
   });
@@ -39,46 +41,55 @@ export function TagsPage() {
   const [loading, setLoading] = useState(true);
   const [tags, setTags] = useState<Tag[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
 
-  // Zurücksetzen der Seite bei Filteränderungen
-  useEffect(() => {
-    setCurrentPage(1);
+  const fetchTags = useCallback(async (page: number, reset: boolean = false) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filters.search) params.append('search', filters.search);
+      params.append('page', page.toString());
+      params.append('limit', ITEMS_PER_PAGE.toString());
+      params.append('sortBy', filters.sortBy);
+      
+      if (filters.creator) params.append('creator', filters.creator);
+      if (filters.usedBy) params.append('usedBy', filters.usedBy);
+      if (filters.timeRange !== 'all') params.append('timeRange', filters.timeRange);
+      if (filters.minPosts > 0) params.append('minPosts', filters.minPosts.toString());
+      
+      const response = await fetch(`/api/tags?${params.toString()}`);
+      const data = await response.json();
+      
+      if (data.tags) {
+        setTags(prev => reset ? data.tags : [...prev, ...data.tags]);
+        setTotalPages(data.pagination.totalPages || 1);
+        setHasMore(page < (data.pagination.totalPages || 1));
+      }
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      setError('An error occurred while fetching tags.');
+      setTags([]);
+    } finally {
+      setLoading(false);
+    }
   }, [filters]);
 
-  // Fetch live data
   useEffect(() => {
-    async function fetchTags() {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (filters.search) params.append('search', filters.search);
-        params.append('page', currentPage.toString());
-        params.append('sortBy', filters.sortBy);
-        
-        // Weitere Filter hinzufügen
-        if (filters.author) params.append('author', filters.author);
-        if (filters.usedBy) params.append('usedBy', filters.usedBy);
-        if (filters.timeRange !== 'all') params.append('timeRange', filters.timeRange);
-        if (filters.minPosts > 0) params.append('minPosts', filters.minPosts.toString());
-        
-        const response = await fetch(`/api/tags?${params.toString()}`);
-        const data = await response.json();
-        
-        if (data.tags) {
-          setTags(data.tags);
-          setTotalPages(data.pagination.totalPages || 1);
-        }
-      } catch (error) {
-        console.error('Error fetching tags:', error);
-        setError('An error occurred while fetching tags.');
-        setTags([]);
-      } finally {
-        setLoading(false);
-      }
+    setCurrentPage(1);
+    fetchTags(1, true);
+  }, [filters, fetchTags]);
+
+  useEffect(() => {
+    if (currentPage > 1) {
+      fetchTags(currentPage);
     }
-    
-    fetchTags();
-  }, [filters, currentPage]);
+  }, [currentPage, fetchTags]);
+
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
@@ -88,10 +99,10 @@ export function TagsPage() {
       />
       
       <div className="mt-6">
-        {loading ? (
+        {loading && tags.length === 0 ? (
           <div className="animate-pulse">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {[...Array(20)].map((_, i) => (
+              {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
                 <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
               ))}
             </div>
@@ -108,38 +119,21 @@ export function TagsPage() {
           <>
             <TagList tags={tags} filters={filters} page={currentPage} />
             
-            {/* Pagination */}
-            <div className="mt-6 flex justify-center">
-              <nav className="flex space-x-2" aria-label="Pagination">
+            {hasMore && (
+              <div className="mt-6 flex justify-center">
                 <button
-                  onClick={() => setCurrentPage(currentPage > 1 ? currentPage - 1 : 1)}
-                  disabled={currentPage === 1}
+                  onClick={handleLoadMore}
+                  disabled={loading}
                   className={`px-4 py-2 rounded-md ${
-                    currentPage === 1
+                    loading
                       ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-700'
                       : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
                   }`}
                 >
-                  Previous
+                  {loading ? 'Loading...' : 'Load More'}
                 </button>
-                
-                <span className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-md">
-                  {currentPage}
-                </span>
-                
-                <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-md ${
-                    currentPage === totalPages
-                      ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-700'
-                      : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  Next
-                </button>
-              </nav>
-            </div>
+              </div>
+            )}
           </>
         )}
       </div>
