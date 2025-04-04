@@ -1,4 +1,4 @@
-# f0ck.org Beta 3.2.0
+# f0ck.org Beta 3.3.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta 3.2.0](#f0ckorg-beta-320)
+- [f0ck.org Beta 3.3.0](#f0ckorg-beta-330)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,6 +21,10 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
+    - [Beta v3.3.0 (Current)](#beta-v330-current)
+      - [🏷️ Enhanced Tag Functionality](#️-enhanced-tag-functionality)
+      - [👤 Anonymous Uploads](#-anonymous-uploads)
+      - [📌 Fixes](#-fixes)
     - [Beta v3.2.0 (Current)](#beta-v320-current)
       - [💬 Enhanced Comment Functionality](#-enhanced-comment-functionality)
       - [🏷️ Improved Tag System](#️-improved-tag-system)
@@ -29,7 +33,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Beta v3.1.0](#beta-v310)
       - [🎨 Enhanced User Experience](#-enhanced-user-experience)
       - [🎬 Enhanced Media Handling](#-enhanced-media-handling)
-      - [🔒 Privacy & Security](#-privacy--security)
+      - [🔒 Privacy \& Security](#-privacy--security)
       - [🛠️ Technical Improvements](#️-technical-improvements)
     - [Previous Versions (click to expand)](#previous-versions-click-to-expand)
       - [💎 Redesigned Notification System](#-redesigned-notification-system)
@@ -161,6 +165,27 @@ NODE_ENV=development
 - **Media**: GIPHY API Integration
 
 ## 🔥 Latest Updates
+
+### Beta v3.3.0 (Current)
+
+#### 🏷️ Enhanced Tag Functionality
+- **Improved Tag Management**:
+  - Support for copying and pasting multiple tags at once
+  - Automatic separation of multiple words into individual tags
+  - Batch tagging for multiple uploads simultaneously
+  - Optimized tag processing for more efficient tagging
+
+#### 👤 Anonymous Uploads
+- **Enhanced Privacy**:
+  - Removal of statistics and avatars for anonymous uploads
+  - Optimized display for non-logged-in users
+  - Improved user experience for anonymous uploads
+
+#### 📌 Fixes
+- **Pin Function Correction**:
+  - Pinned posts now display correctly on the first page
+  - Fixed pagination for pinned posts
+  - Improved consistency in post display
 
 ### Beta v3.2.0 (Current)
 

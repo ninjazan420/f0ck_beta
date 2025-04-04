@@ -1,5 +1,30 @@
 # Änderungsprotokoll
 
+## [3.3.0]
+
+### 🏷️ Erweiterte Tag-Funktionalität
+
+- **Verbesserte Tag-Verwaltung**:
+  - Unterstützung für Copy & Paste mehrerer Tags gleichzeitig
+  - Automatische Trennung von mehreren Wörtern in einzelne Tags
+  - Batch-Tagging für mehrere Uploads auf einmal
+  - Optimierte Tag-Verarbeitung für effizienteres Tagging
+
+### 👤 Anonyme Uploads
+
+- **Verbesserte Privatsphäre**:
+  - Entfernung von Statistiken und Avataren für anonyme Uploads
+  - Optimierte Darstellung für nicht angemeldete Benutzer
+  - Verbesserte Benutzerfreundlichkeit für anonyme Uploads
+
+### 📌 Fixes
+
+- **Korrektur der Pin-Funktion**:
+  - Angepinnte Beiträge werden nun korrekt auf der ersten Seite angezeigt
+  - Behebung der Paginierung für angepinnte Beiträge
+  - Verbesserte Konsistenz der Beitragsanzeige
+  - Statistiken sind gefixt
+
 ## [3.2.0]
 
 ### 💬 Erweiterte Kommentarfunktionen
