@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (timeRange !== 'all') {
-      let dateFilter = new Date();
+      const dateFilter = new Date();
       switch (timeRange) {
         case 'day':
           dateFilter.setDate(dateFilter.getDate() - 1);
@@ -156,25 +156,31 @@ async function getTagsWithPostsInTimeRange(startDate: Date) {
   
   return [...new Set(posts.flatMap(post => post.tags))];
 }
+interface SessionWithUser {
+  user: {
+    id: string
+    isAdmin: boolean
+  }
+}
 
 export async function POST(request: NextRequest) {
-  return withAuth(request, async (session) => {
+  return withAuth(async (request: NextRequest, session: SessionWithUser) => {
     if (!session?.user?.isAdmin) {
-      return createErrorResponse('Unauthorized', 403);
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     try {
-      const { name } = await request.json();
+      const { name } = await request.json()
       
       if (!name || typeof name !== 'string') {
-        return createErrorResponse('Invalid tag name', 400);
+        return NextResponse.json({ error: 'Invalid tag name' }, { status: 400 })
       }
 
-      await dbConnect();
+      await dbConnect()
       
-      const existingTag = await Tag.findOne({ name });
+      const existingTag = await Tag.findOne({ name })
       if (existingTag) {
-        return createErrorResponse('Tag already exists', 400);
+        return NextResponse.json({ error: 'Tag already exists' }, { status: 400 })
       }
       
       const newTag = await Tag.create({
@@ -183,12 +189,12 @@ export async function POST(request: NextRequest) {
         postsCount: 0,
         newPostsToday: 0,
         newPostsThisWeek: 0
-      });
+      })
 
-      return NextResponse.json(newTag);
+      return NextResponse.json(newTag)
     } catch (error) {
-      console.error('Error creating tag:', error);
-      return createErrorResponse('Internal server error', 500);
+      console.error('Error creating tag:', error)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
-  });
-} 
+  })
+}
