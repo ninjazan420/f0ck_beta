@@ -51,10 +51,10 @@ export function TagFilter({ filters, onFilterChange }: TagFilterProps) {
           {/* Sort Options */}
           <div className="flex flex-wrap gap-2">
             {([
+              { value: 'trending', label: '📈 Trending' },
               { value: 'most_used', label: '🔥 Most Used' },
               { value: 'newest', label: '✨ Newest' },
-              { value: 'alphabetical', label: '📝 A-Z' },
-              { value: 'trending', label: '📈 Trending' }
+              { value: 'alphabetical', label: '📝 A-Z' }
             ] as const).map(option => (
               <button
                 key={option.value}

@@ -31,7 +31,7 @@ export function TagsPage() {
   const [filters, setFilters] = useState<Filters>({
     search: '',
     minPosts: 0,
-    sortBy: 'most_used',
+    sortBy: 'trending',
     creator: '',
     usedBy: '',
     timeRange: 'all'
@@ -41,9 +41,8 @@ export function TagsPage() {
   const [loading, setLoading] = useState(true);
   const [tags, setTags] = useState<Tag[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
 
-  const fetchTags = useCallback(async (page: number, reset: boolean = false) => {
+  const fetchTags = useCallback(async (page: number) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -61,9 +60,8 @@ export function TagsPage() {
       const data = await response.json();
       
       if (data.tags) {
-        setTags(prev => reset ? data.tags : [...prev, ...data.tags]);
+        setTags(data.tags);
         setTotalPages(data.pagination.totalPages || 1);
-        setHasMore(page < (data.pagination.totalPages || 1));
       }
     } catch (error) {
       console.error('Error fetching tags:', error);
@@ -76,7 +74,7 @@ export function TagsPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-    fetchTags(1, true);
+    fetchTags(1);
   }, [filters, fetchTags]);
 
   useEffect(() => {
@@ -84,12 +82,6 @@ export function TagsPage() {
       fetchTags(currentPage);
     }
   }, [currentPage, fetchTags]);
-
-  const handleLoadMore = () => {
-    if (!loading && hasMore) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
@@ -99,7 +91,7 @@ export function TagsPage() {
       />
       
       <div className="mt-6">
-        {loading && tags.length === 0 ? (
+        {loading ? (
           <div className="animate-pulse">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {[...Array(ITEMS_PER_PAGE)].map((_, i) => (
@@ -119,21 +111,37 @@ export function TagsPage() {
           <>
             <TagList tags={tags} filters={filters} page={currentPage} />
             
-            {hasMore && (
-              <div className="mt-6 flex justify-center">
+            <div className="mt-6 flex justify-center">
+              <nav className="flex space-x-2" aria-label="Pagination">
                 <button
-                  onClick={handleLoadMore}
-                  disabled={loading}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1 || loading}
                   className={`px-4 py-2 rounded-md ${
-                    loading
+                    currentPage === 1 || loading
                       ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-700'
                       : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
                   }`}
                 >
-                  {loading ? 'Loading...' : 'Load More'}
+                  Previous
                 </button>
-              </div>
-            )}
+                
+                <span className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-md">
+                  {currentPage}
+                </span>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages || loading}
+                  className={`px-4 py-2 rounded-md ${
+                    currentPage === totalPages || loading
+                      ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-700'
+                      : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Next
+                </button>
+              </nav>
+            </div>
           </>
         )}
       </div>

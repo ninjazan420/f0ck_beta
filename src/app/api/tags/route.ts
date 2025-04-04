@@ -19,11 +19,7 @@ export async function GET(request: NextRequest) {
     const creator = searchParams.get('creator') || '';
     
     await dbConnect();
-
-    // Aktualisiere die Tag-Statistiken
-    await updateTagStats();
     
-    // Such- und Sortierparameter
     const query: any = {};
     if (search) {
       query.name = { $regex: search, $options: 'i' };
@@ -33,16 +29,13 @@ export async function GET(request: NextRequest) {
       query.postsCount = { $gte: minPosts };
     }
     
-    // Filter nach Autor
     if (author) {
       const authorUser = await User.findOne({ username: { $regex: author, $options: 'i' } });
       if (authorUser) {
-        // Finde Posts des Autors
         const authorPosts = await Post.find({ author: authorUser._id });
         const authorTagNames = authorPosts.flatMap(post => post.tags);
         query.name = { ...(query.name || {}), $in: [...new Set(authorTagNames)] };
       } else {
-        // Wenn Autor nicht gefunden, leere Ergebnisse zurückgeben
         return NextResponse.json({
           tags: [],
           pagination: { total: 0, page, limit, totalPages: 0 }
@@ -50,18 +43,15 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Filter nach Tags, die von bestimmtem User verwendet werden
     if (usedBy) {
       const user = await User.findOne({ username: { $regex: usedBy, $options: 'i' } });
       if (user) {
-        // Suche nach favorisierten Tags oder Tags in Likes
         const userPosts = await Post.find({ 
           _id: { $in: [...(user.favorites || []), ...(user.likes || [])] } 
         });
         const userTagNames = userPosts.flatMap(post => post.tags);
         query.name = { ...(query.name || {}), $in: [...new Set(userTagNames)] };
       } else {
-        // Wenn User nicht gefunden, leere Ergebnisse zurückgeben
         return NextResponse.json({
           tags: [],
           pagination: { total: 0, page, limit, totalPages: 0 }
@@ -69,14 +59,11 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Filter für den Ersteller
     if (creator) {
-      // Finde zuerst den Benutzer anhand des Benutzernamens
       const creatorUser = await User.findOne({ username: creator }).select('_id');
       if (creatorUser) {
         query.creator = creatorUser._id;
       } else {
-        // Wenn kein Benutzer gefunden wurde, gib leere Ergebnisse zurück
         return NextResponse.json({
           tags: [],
           totalTags: 0,
@@ -86,7 +73,6 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Zeitraum-Filter hinzufügen
     if (timeRange !== 'all') {
       let dateFilter = new Date();
       switch (timeRange) {
@@ -100,8 +86,6 @@ export async function GET(request: NextRequest) {
           break;
         case 'month':
           dateFilter.setMonth(dateFilter.getMonth() - 1);
-          // Hier müssten wir ein neues Feld 'newPostsThisMonth' im Schema haben
-          // Für jetzt verwenden wir eine Alternative
           const monthTagNames = await getTagsWithPostsInTimeRange(dateFilter);
           query.name = { ...(query.name || {}), $in: monthTagNames };
           break;
@@ -113,7 +97,6 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Sortieroptionen
     let sortOptions: any = {};
     switch (sortBy) {
       case 'most_used':
@@ -132,10 +115,8 @@ export async function GET(request: NextRequest) {
         sortOptions = { postsCount: -1 };
     }
     
-    // Tags mit Pagination abrufen
     const skip = (page - 1) * limit;
 
-    // Erste Option: strictPopulate auf false setzen
     const [tags, totalCount] = await Promise.all([
       Tag.find(query)
         .sort(sortOptions)
@@ -144,50 +125,11 @@ export async function GET(request: NextRequest) {
         .populate({ 
           path: 'creator', 
           select: 'username', 
-          strictPopulate: false  // Diese Option erlaubt das Populieren von nicht im Schema definierten Pfaden
+          strictPopulate: false
         })
         .lean(),
       Tag.countDocuments(query)
     ]);
-
-    // Alternative, falls obige Lösung nicht funktioniert:
-    // Tags ohne populate abrufen und dann manuell anreichern
-    /*
-    const [tags, totalCount] = await Promise.all([
-      Tag.find(query)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Tag.countDocuments(query)
-    ]);
-
-    // Ersteller-IDs sammeln und in einem separaten Schritt abfragen
-    const creatorIds = tags
-      .filter(tag => tag.creator)
-      .map(tag => tag.creator);
-
-    if (creatorIds.length > 0) {
-      const creators = await User.find({ _id: { $in: creatorIds } })
-        .select('_id username')
-        .lean();
-      
-      // Ersteller-Map erstellen
-      const creatorMap = {};
-      creators.forEach(creator => {
-        creatorMap[creator._id.toString()] = creator.username;
-      });
-      
-      // Tags mit Erstellernamen anreichern
-      tags.forEach(tag => {
-        if (tag.creator && creatorMap[tag.creator.toString()]) {
-          tag.creatorUsername = creatorMap[tag.creator.toString()];
-        } else {
-          tag.creatorUsername = null;
-        }
-      });
-    }
-    */
     
     return NextResponse.json({
       tags: tags,
@@ -207,134 +149,46 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Funktion zum Aktualisieren der Tag-Statistiken
-async function updateTagStats() {
-  try {
-    // Heute, diese Woche und diesen Monat berechnen
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const weekStart = new Date();
-    weekStart.setDate(weekStart.getDate() - 7);
-    weekStart.setHours(0, 0, 0, 0);
-    
-    // Alle Tags abrufen
-    const tags = await Tag.find({});
-    
-    for (const tag of tags) {
-      // Posts heute zählen
-      const postsToday = await Post.countDocuments({
-        tags: tag.name,
-        createdAt: { $gte: today }
-      });
-      
-      // Posts diese Woche zählen
-      const postsThisWeek = await Post.countDocuments({
-        tags: tag.name,
-        createdAt: { $gte: weekStart }
-      });
-      
-      // Gesamtanzahl der Posts
-      const totalPosts = await Post.countDocuments({
-        tags: tag.name
-      });
-      
-      // Tag aktualisieren
-      await Tag.findByIdAndUpdate(tag._id, {
-        newPostsToday: postsToday,
-        newPostsThisWeek: postsThisWeek,
-        postsCount: totalPosts
-      });
-    }
-    
-    console.log('Tag statistics updated successfully');
-  } catch (error) {
-    console.error('Error updating tag statistics:', error);
-  }
-}
-
-// Hilfsfunktion, um Tags zu finden, die Posts in einem bestimmten Zeitraum haben
 async function getTagsWithPostsInTimeRange(startDate: Date) {
-  // Finde Posts im gegebenen Zeitraum
   const posts = await Post.find({
     createdAt: { $gte: startDate }
-  });
+  }).select('tags');
   
-  // Extrahiere alle Tags aus diesen Posts
-  const tagNames = posts.flatMap(post => post.tags);
-  
-  // Entferne Duplikate und gib die Liste zurück
-  return [...new Set(tagNames)];
+  return [...new Set(posts.flatMap(post => post.tags))];
 }
 
 export async function POST(request: NextRequest) {
-  console.log("POST /api/tags - Anfrage erhalten");
-  
-  return withAuth(async (request, session) => {
-    console.log("withAuth erfolgreich, User-ID:", session.user.id);
+  return withAuth(request, async (session) => {
+    if (!session?.user?.isAdmin) {
+      return createErrorResponse('Unauthorized', 403);
+    }
+
     try {
-      await dbConnect();
-      
-      // Hier den Request-Body loggen
-      const requestBody = await request.json();
-      console.log("Request body:", requestBody);
-      
-      const { name, aliases } = requestBody;
+      const { name } = await request.json();
       
       if (!name || typeof name !== 'string') {
-        return createErrorResponse('Valid tag name is required');
+        return createErrorResponse('Invalid tag name', 400);
       }
+
+      await dbConnect();
       
-      // Überprüfen, ob das Tag bereits existiert
-      const existingTag = await Tag.findOne({ 
-        $or: [
-          { name: name.toLowerCase() },
-          { aliases: name.toLowerCase() }
-        ]
-      });
-      
+      const existingTag = await Tag.findOne({ name });
       if (existingTag) {
-        return createErrorResponse('Tag already exists');
+        return createErrorResponse('Tag already exists', 400);
       }
       
-      // Den aktuellen Benutzer als Ersteller hinzufügen
-      const user = await User.findById(session.user.id);
-      
-      console.log("Creating tag with creator:", session.user.id, "User found:", !!user);
-      
-      if (!user) {
-        return createErrorResponse('User not found');
-      }
-      
-      // Tag erstellen
-      const newTag = new Tag({
-        id: name.toLowerCase(),
-        name: name.toLowerCase(),
-        creator: user._id, // Benutzer als Ersteller speichern
-        aliases: aliases || []
+      const newTag = await Tag.create({
+        name,
+        creator: session.user.id,
+        postsCount: 0,
+        newPostsToday: 0,
+        newPostsThisWeek: 0
       });
-      
-      await newTag.save();
-      
-      // Tag-ID zum Benutzer hinzufügen
-      user.tags = user.tags || [];
-      user.tags.push(newTag._id);
-      await user.save();
-      
-      return NextResponse.json({
-        success: true,
-        tag: {
-          id: newTag.id,
-          name: newTag.name,
-          creator: user.username,
-          aliases: newTag.aliases,
-          createdAt: newTag.createdAt
-        }
-      });
-      
+
+      return NextResponse.json(newTag);
     } catch (error) {
       console.error('Error creating tag:', error);
-      return createErrorResponse('Internal server error');
+      return createErrorResponse('Internal server error', 500);
     }
   });
 } 

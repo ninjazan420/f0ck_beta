@@ -57,7 +57,7 @@ export function TagList({ tags, filters, page }: TagListProps) {
                     +{tag.newPostsToday} today
                   </span>
                 )}
-                {tag.newPostsThisWeek > tag.newPostsToday && (
+                {tag.newPostsThisWeek > 0 && (
                   <span className="px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                     +{tag.newPostsThisWeek} this week
                   </span>
@@ -94,7 +94,7 @@ export function TagList({ tags, filters, page }: TagListProps) {
                       method: 'DELETE',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
-                        tagName: tag.name,  // Send the tag name instead of ID
+                        tagName: tag.name,
                         reason: 'Moderation - Tag deletion'
                       })
                     }).then(res => {
