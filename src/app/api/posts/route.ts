@@ -189,7 +189,7 @@ export async function GET(req: Request) {
         _id: 0
       })
       .populate('author', 'username avatar premium member admin moderator')
-      .sort(sortOptions)
+      .sort({ isPinned: -1, ...sortOptions }) // Gepinnte Posts zuerst
       .skip(offset)
       .limit(limit);
     
