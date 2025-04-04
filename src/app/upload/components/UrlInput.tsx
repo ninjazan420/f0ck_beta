@@ -153,10 +153,9 @@ export function UrlInput({
         }
       }
     };
-    
     if (urlInputElement) {
-      urlInputElement.addEventListener('paste', handleInputPaste);
-      return () => urlInputElement.removeEventListener('paste', handleInputPaste);
+      (urlInputElement as HTMLElement).addEventListener('paste', handleInputPaste as EventListener);
+      return () => (urlInputElement as HTMLElement).removeEventListener('paste', handleInputPaste as EventListener);
     }
     
     return undefined;
@@ -191,7 +190,7 @@ export function UrlInput({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Paste image URL here..."
-            className={`w-full p-2 rounded-lg border ${
+            className={`w-full p-1 rounded-lg border ${
               isImageUrl ? 'border-green-300 dark:border-green-700' : 'border-gray-200 dark:border-gray-700'
             } bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200`}
           />
@@ -214,7 +213,7 @@ export function UrlInput({
         <button 
           type="submit" 
           disabled={!isImageUrl || isChecking || isDownloading}
-          className={`relative h-10 px-6 rounded-lg overflow-hidden transition-all duration-500 group ${
+          className={`relative h-8 px-4 rounded-lg overflow-hidden transition-all duration-500 group ${
             !isImageUrl || isChecking || isDownloading
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-gradient-to-b from-[#654358] via-[#17092A] to-[#2F0D64]'
@@ -254,8 +253,8 @@ export function UrlInput({
         </div>
       )}
       
-      <p className="text-xs text-gray-500 dark:text-gray-400">
-        Paste image URLs or links to social media posts. URLs from clipboard will be automatically detected.
+      <p className="text-xs px-1 text-gray-500 dark:text-gray-400">
+        Paste image URLs or links to social media posts. URLs from clipboard will be automatically detected. (not functional yet)
       </p>
     </div>
   );

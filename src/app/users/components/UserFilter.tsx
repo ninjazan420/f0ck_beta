@@ -1,4 +1,6 @@
 import { UserRole, SortBy } from './UsersPage';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 
 interface UserFilterProps {
   filters: {
@@ -12,11 +14,52 @@ interface UserFilterProps {
 }
 
 export function UserFilter({ filters, onFilterChange }: UserFilterProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  // Initialisiere Filter aus URL-Parametern
+  useEffect(() => {
+    const search = searchParams.get('search');
+    const roles = searchParams.get('roles')?.split(',') as UserRole[] || [];
+    const premium = searchParams.get('premium');
+    const sortBy = searchParams.get('sort') as SortBy;
+    const timeRange = searchParams.get('time') as 'all' | 'day' | 'week' | 'month' | 'year';
+    
+    const newFilters = {
+      ...filters,
+      search: search || '',
+      roles: roles.length > 0 ? roles : filters.roles,
+      isPremium: premium ? premium === 'true' : filters.isPremium,
+      sortBy: sortBy || filters.sortBy,
+      timeRange: timeRange || filters.timeRange
+    };
+    
+    // Nur aktualisieren, wenn sich tatsächlich etwas geändert hat
+    if (JSON.stringify(newFilters) !== JSON.stringify(filters)) {
+      onFilterChange(newFilters);
+    }
+  }, [searchParams]);
+  
+  // Update URL when filters change
+  const updateURLParams = (newFilters) => {
+    const params = new URLSearchParams();
+    
+    if (newFilters.search) params.set('search', newFilters.search);
+    if (newFilters.roles.length > 0) params.set('roles', newFilters.roles.join(','));
+    if (newFilters.isPremium !== null) params.set('premium', newFilters.isPremium.toString());
+    if (newFilters.sortBy) params.set('sort', newFilters.sortBy);
+    if (newFilters.timeRange !== 'all') params.set('time', newFilters.timeRange);
+    
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    onFilterChange(newFilters);
+  };
+
   const handleRoleToggle = (role: UserRole) => {
     const newRoles = filters.roles.includes(role)
       ? filters.roles.filter(r => r !== role)
       : [...filters.roles, role];
-    onFilterChange({ ...filters, roles: newRoles });
+    updateURLParams({ ...filters, roles: newRoles });
   };
 
   const timeRangeOptions = [
@@ -44,7 +87,7 @@ export function UserFilter({ filters, onFilterChange }: UserFilterProps) {
             <input
               type="text"
               value={filters.search}
-              onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
+              onChange={(e) => updateURLParams({ ...filters, search: e.target.value })}
               placeholder="Search users..."
               className="w-full px-4 py-2 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700"
             />
@@ -85,7 +128,7 @@ export function UserFilter({ filters, onFilterChange }: UserFilterProps) {
               {timeRangeOptions.map(option => (
                 <button
                   key={option.value}
-                  onClick={() => onFilterChange({ ...filters, timeRange: option.value })}
+                  onClick={() => updateURLParams({ ...filters, timeRange: option.value })}
                   className={`group relative px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     filters.timeRange === option.value
                       ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
@@ -114,7 +157,7 @@ export function UserFilter({ filters, onFilterChange }: UserFilterProps) {
               {sortOptions.map(option => (
                 <button
                   key={option.value}
-                  onClick={() => onFilterChange({ ...filters, sortBy: option.value })}
+                  onClick={() => updateURLParams({ ...filters, sortBy: option.value })}
                   className={`group relative px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     filters.sortBy === option.value
                       ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
@@ -138,7 +181,7 @@ export function UserFilter({ filters, onFilterChange }: UserFilterProps) {
             </label>
             <div className="flex gap-2">
               <button
-                onClick={() => onFilterChange({ ...filters, isPremium: null })}
+                onClick={() => updateURLParams({ ...filters, isPremium: null })}
                 className={`px-3 py-1.5 rounded-lg text-sm ${
                   filters.isPremium === null
                     ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
@@ -148,7 +191,7 @@ export function UserFilter({ filters, onFilterChange }: UserFilterProps) {
                 All Users
               </button>
               <button
-                onClick={() => onFilterChange({ ...filters, isPremium: true })}
+                onClick={() => updateURLParams({ ...filters, isPremium: true })}
                 className={`px-3 py-1.5 rounded-lg text-sm ${
                   filters.isPremium === true
                     ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
@@ -158,7 +201,7 @@ export function UserFilter({ filters, onFilterChange }: UserFilterProps) {
                 Premium Only
               </button>
               <button
-                onClick={() => onFilterChange({ ...filters, isPremium: false })}
+                onClick={() => updateURLParams({ ...filters, isPremium: false })}
                 className={`px-3 py-1.5 rounded-lg text-sm ${
                   filters.isPremium === false
                     ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'

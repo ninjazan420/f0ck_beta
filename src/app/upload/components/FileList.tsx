@@ -352,7 +352,7 @@ export function FileList({ files, urls, onRemoveFile, onRemoveUrl, onUpdateRatin
                   {item.tags.length > 0 && (
                     <button
                       onClick={() => clearAllTags(item.id)}
-                      className="px-4 py-2 text-sm rounded-lg text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      className="px-3 py-1 text-sm rounded-lg text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     >
                       Clear All Tags
                     </button>

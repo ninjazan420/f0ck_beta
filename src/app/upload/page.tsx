@@ -354,17 +354,17 @@ export default function UploadPage() {
                   <div className="flex gap-4">
                     <button
                       onClick={handleClearAll}
-                      className="px-4 py-2 text-sm rounded-lg text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      className="px-3 py-1 text-sm rounded-lg text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     >
                       Clear All
                     </button>
                     <button
                       onClick={handleUpload}
                       disabled={isUploading || isProcessingUrls}
-                      className={`px-6 py-2 rounded-lg text-white font-medium transition-colors ${
+                      className={`px-4 py-1 rounded-lg text-white font-medium transition-colors ${
                         isUploading || isProcessingUrls
                           ? 'bg-purple-400 cursor-not-allowed'
-                          : 'bg-purple-500 hover:bg-purple-600'
+                          : 'bg-purple-500 hover:bg-purple-600' 
                       }`}
                     >
                       {isUploading ? 'Uploading...' : isProcessingUrls ? 'Processing URLs...' : 'Upload'}

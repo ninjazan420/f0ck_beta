@@ -69,7 +69,7 @@ export function BatchTagging({ fileItems, onApplyTags }: BatchTaggingProps) {
       <button
         onClick={handleApplyTags}
         disabled={selectedFiles.length === 0 || !tags.trim()}
-        className="bg-purple-500 text-white px-4 py-2 rounded disabled:bg-gray-300 hover:bg-purple-600"
+        className="bg-purple-500 text-white px-4 py-1 rounded disabled:bg-gray-300 hover:bg-purple-600"
       >
         Apply Tags to Selected Files
       </button>
