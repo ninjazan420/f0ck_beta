@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 export async function GET() {
   return withAuth(async (session: { user: { id: string } }) => {
     await dbConnect();
-    
+
     // Aggregation statt einfaches Finden verwenden, um die Stats korrekt zu berechnen
     const users = await User.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(session.user.id) } },
@@ -90,6 +90,13 @@ export async function PUT(req: Request) {
       }
     }
 
+    // Debug-Ausgabe vor dem Update
+    console.log('Updating user bio:', {
+      currentBio: user.bio,
+      newBio: bio,
+      willUpdate: bio !== undefined
+    });
+
     // Update existierenden Benutzer
     user = await User.findByIdAndUpdate(
       session.user.id,
@@ -104,6 +111,9 @@ export async function PUT(req: Request) {
       },
       { new: true }
     );
+
+    // Debug-Ausgabe nach dem Update
+    console.log('Updated user bio:', user.bio);
 
     // Erneut mit Aggregation abrufen, um korrekte Stats zu haben
     const updatedUsers = await User.aggregate([
@@ -132,7 +142,10 @@ export async function PUT(req: Request) {
 
     const updatedUser = updatedUsers[0];
 
-    return {
+    // Debug-Ausgabe der Aggregationsergebnisse
+    console.log('Aggregation result bio:', updatedUser.bio);
+
+    const response = {
       username: updatedUser.username,
       email: updatedUser.email,
       name: updatedUser.name,
@@ -143,5 +156,10 @@ export async function PUT(req: Request) {
       premium: updatedUser.premium,
       stats: updatedUser.stats
     };
+
+    // Debug-Ausgabe der Antwort
+    console.log('API response bio:', response.bio);
+
+    return response;
   });
 }

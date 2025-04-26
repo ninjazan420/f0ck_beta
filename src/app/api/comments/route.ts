@@ -26,18 +26,18 @@ export async function GET(req: Request) {
     await dbConnect();
 
     const query: any = {};
-    
+
     // Basis-Query für postId
     if (postId) {
       if (!mongoose.Types.ObjectId.isValid(postId)) {
         const numericId = Number(postId);
         if (isNaN(numericId)) {
-          return NextResponse.json({ 
+          return NextResponse.json({
             comments: [],
             pagination: { total: 0, pages: 0, current: page, limit }
           });
         }
-        
+
         const Post = mongoose.model('Post');
         const post = await Post.findOne({ id: numericId });
         if (!post) {
@@ -101,19 +101,19 @@ export async function GET(req: Request) {
 
     const processedComments = comments.map(comment => {
       const processedComment = comment.toObject();
-      
+
       if (processedComment.post && processedComment.post._id) {
         if (!processedComment.post.numericId && processedComment.post.id) {
           processedComment.post.numericId = processedComment.post.id;
         }
       }
-      
+
       if (processedComment.replyTo) {
         processedComment.replyTo.id = processedComment.replyTo._id.toString();
       }
-      
+
       processedComment.id = processedComment._id.toString();
-      
+
       return processedComment;
     });
 
@@ -139,7 +139,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     // Hole request body
     const body = await req.json();
     const { content, postId, replyTo, isAnonymous } = body;
@@ -161,15 +161,15 @@ export async function POST(req: Request) {
     }
 
     await dbConnect();
-    
+
     let postObjectId;
-    
+
     // Wenn postId vorhanden ist, verarbeite es wie bisher
     if (postId) {
       // Post-Existenzprüfung
       const Post = mongoose.model('Post');
       let post;
-      
+
       if (mongoose.isValidObjectId(postId)) {
         post = await Post.findById(postId);
       } else {
@@ -179,7 +179,7 @@ export async function POST(req: Request) {
           post = await Post.findOne({ id: numericId });
         }
       }
-      
+
       if (!post) {
         return NextResponse.json(
           { error: 'Post not found' },
@@ -208,18 +208,18 @@ export async function POST(req: Request) {
       try {
         const user = await User.findById(session.user.id);
         console.log('User found:', user ? user.username : 'null');
-        
+
         if (!user || user.role === 'banned') {
           return NextResponse.json(
             { error: 'User is not allowed to comment' },
             { status: 403 }
           );
         }
-        
+
         userRole = user.role;
         author = session.user.id;
         actualIsAnonymous = isAnonymous === true; // Nur wenn explizit auf true gesetzt
-        
+
         console.log(`User is logged in. Using anonymous mode: ${actualIsAnonymous}`);
       } catch (error) {
         console.error('Error finding user:', error);
@@ -244,20 +244,35 @@ export async function POST(req: Request) {
     // Kommentar erstellen
     const commentData = {
       content: sanitizedContent,
-      author: isAnonymous === true ? null : (session?.user?.id || null), 
+      author: isAnonymous === true ? null : (session?.user?.id || null),
       post: postObjectId,
       replyTo,
       // Alle Kommentare werden standardmäßig als "approved" markiert
       status: 'approved'
     };
-    
+
     console.log('Comment data being saved:', JSON.stringify(commentData));
-    
+
     const comment = new Comment(commentData);
 
     try {
       await comment.save();
       console.log('Comment saved successfully:', comment._id);
+
+      // Wenn der Kommentar einen Autor hat (nicht anonym), aktualisiere das User-Modell
+      if (comment.author) {
+        try {
+          // Füge den Kommentar zum comments-Array des Benutzers hinzu
+          await User.findByIdAndUpdate(
+            comment.author,
+            { $push: { comments: comment._id } }
+          );
+          console.log('User comments array updated successfully');
+        } catch (userUpdateError) {
+          console.error('Error updating user comments array:', userUpdateError);
+          // Fehler beim Aktualisieren des Benutzers sollte den Erfolg des Kommentars nicht beeinträchtigen
+        }
+      }
 
       // Benachrichtigungen senden
       try {
@@ -268,16 +283,16 @@ export async function POST(req: Request) {
           // Für neue Kommentare unter Posts
           await NotificationService.notifyNewComment(comment._id.toString());
         }
-        
+
         // Neue Funktion: Benutzererwähnungen verarbeiten und Benachrichtigungen senden
         if (session?.user?.id) {
           const authorId = session.user.id;
           const postIdForMention = postObjectId.toString();
           const commentId = comment._id.toString();
-          
+
           // Importieren Sie den MentionService an der Spitze der Datei
           const { MentionService } = await import('@/lib/services/mentionService');
-          
+
           // Erwähnungen extrahieren und verarbeiten
           await MentionService.extractAndProcessMentions(
             sanitizedContent,
@@ -337,7 +352,7 @@ export async function PATCH(req: Request) {
   try {
     const url = new URL(req.url);
     const commentId = url.pathname.split('/').pop();
-    
+
     if (!commentId || !mongoose.Types.ObjectId.isValid(commentId)) {
       return NextResponse.json(
         { error: 'Invalid comment ID' },
@@ -388,7 +403,7 @@ export async function PATCH(req: Request) {
 
       return NextResponse.json({ success: true, status: comment.status });
     }
-    
+
     // Für Bearbeitung von Inhalten
     if (content !== undefined) {
       // Prüfen, ob der Benutzer der Autor ist oder Moderator/Admin
@@ -397,13 +412,13 @@ export async function PATCH(req: Request) {
         sessionUserId: session.user.id,
         userRole: user.role
       });
-      
-      const isAuthor = comment.author && 
-        (typeof comment.author === 'object' && comment.author._id 
-          ? comment.author._id.toString() === session.user.id 
+
+      const isAuthor = comment.author &&
+        (typeof comment.author === 'object' && comment.author._id
+          ? comment.author._id.toString() === session.user.id
           : comment.author.toString() === session.user.id);
       const isModerator = ['moderator', 'admin'].includes(user.role);
-      
+
       console.log('Authorization result in /api/comments:', { isAuthor, isModerator });
 
       if (!isAuthor && !isModerator) {
@@ -470,7 +485,7 @@ export async function DELETE(req: Request) {
   try {
     const url = new URL(req.url);
     const commentId = url.pathname.split('/').pop();
-    
+
     if (!commentId || !mongoose.Types.ObjectId.isValid(commentId)) {
       return NextResponse.json(
         { error: 'Invalid comment ID' },
@@ -510,6 +525,19 @@ export async function DELETE(req: Request) {
     if (isModerator) {
       // Moderatoren können Kommentare dauerhaft löschen
       await Comment.findByIdAndDelete(commentId);
+
+      // Wenn der Kommentar einen Autor hat, entferne ihn aus dem comments-Array des Benutzers
+      if (comment.author) {
+        try {
+          await User.findByIdAndUpdate(
+            comment.author,
+            { $pull: { comments: comment._id } }
+          );
+          console.log('Comment removed from user comments array');
+        } catch (userUpdateError) {
+          console.error('Error removing comment from user comments array:', userUpdateError);
+        }
+      }
     } else {
       // Normale Benutzer markieren ihre Kommentare als versteckt
       comment.isHidden = true;

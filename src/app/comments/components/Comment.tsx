@@ -65,7 +65,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
 
   // Sicherstellen, dass data.author immer definiert ist
   const author = data.author || { id: '', username: 'Anonymous', avatar: null, role: 'user' };
-  
+
   const formattedDate = new Date(data.createdAt).toLocaleString();
 
   const getUserUrl = (username: string) => {
@@ -113,7 +113,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
       if (hash === `#comment-${data.id}`) {
         // Highlight the comment
         setIsHighlighted(true);
-        
+
         // Scroll to the comment after a brief delay
         setTimeout(() => {
           const element = document.getElementById(`comment-${data.id}`);
@@ -121,7 +121,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }, 500);
-        
+
         // Remove highlight after 3 seconds
         setTimeout(() => {
           setIsHighlighted(false);
@@ -153,7 +153,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
       setIsSubmitting(true);
       // Log für Debugging
       console.log(`Attempting to update comment with ID: ${data.id}`);
-      
+
       // API-Aufruf zum Aktualisieren des Kommentars
       const response = await fetch(`/api/comments/${data.id}`, {
         method: 'PATCH',
@@ -190,14 +190,19 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
 
     try {
       setIsSubmitting(true);
-      
+
       // Füge das GIF am Ende des Kommentars hinzu, wenn eins ausgewählt ist
-      let finalContent = replyText;
+      let finalContent = replyText || ''; // Stelle sicher, dass finalContent immer ein String ist
       if (selectedGif) {
         // Füge den GIF-Platzhalter am Ende des Texts hinzu
-        finalContent = finalContent.trim() + ` [GIF:${selectedGif.url}] `;
+        // Wenn Text vorhanden ist, füge ein Leerzeichen hinzu, sonst nicht
+        if (finalContent.trim()) {
+          finalContent = finalContent.trim() + ` [GIF:${selectedGif.url}]`;
+        } else {
+          finalContent = `[GIF:${selectedGif.url}]`;
+        }
       }
-      
+
       await onReply(data.id, finalContent);
       setReplyText('');
       setSelectedGif(null);
@@ -260,7 +265,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
   };
 
   const canModerate = session?.user?.role && ['moderator', 'admin'].includes(session.user.role);
-  
+
   // Debug-Informationen für die Autorisierung
   console.log('Comment authorization check:', {
     authorId: author.id,
@@ -268,7 +273,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
     canModerate,
     sessionUserRole: session?.user?.role
   });
-  
+
   const isAuthor = session?.user?.id && author.id && (session.user.id === author.id);
   const isPending = data.status === 'pending';
   const isRejected = data.status === 'rejected';
@@ -278,33 +283,33 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
   // Rendering-Funktion für den Kommentarinhalt
   const renderContent = (text: string) => {
     if (!text) return null;
-    
+
     // GIF und Medien-Erkennung (bestehender Code)
     const gifRegex = /\[GIF:(https?:\/\/[^\]]+)\]/gi;
     const urlRegex = /(https?:\/\/[^\s]+\.(gif|png|jpg|jpeg|webp|bmp))(?:\?[^\s]*)?/gi;
-    
+
     // Neue Regex für @-Erwähnungen
     const mentionRegex = /@([a-zA-Z0-9_]+)/g;
-    
+
     // Neue Regex für normale URLs
     const normalUrlRegex = /(https?:\/\/[^\s]+)(?!\.(gif|png|jpg|jpeg|webp|bmp))/gi;
-    
+
     // Wenn weder GIFs, Bilder, Erwähnungen noch normale URLs gefunden wurden, gib den Text zurück
     const gifMatches = Array.from(text.matchAll(gifRegex) || []);
     const urlMatches = text.match(urlRegex) || [];
     const mentionMatches = Array.from(text.matchAll(mentionRegex) || []);
     const normalUrlMatches = Array.from(text.matchAll(normalUrlRegex) || []);
-    
+
     if (gifMatches.length === 0 && urlMatches.length === 0 && mentionMatches.length === 0 && normalUrlMatches.length === 0) {
       return <span className="whitespace-pre-wrap">{text}</span>;
     }
-    
+
     // Verarbeite den Text mit Platzhaltern für alle speziellen Elemente
     let processedText = text;
-    
+
     // Ersetze zuerst GIF-Platzhalter
     processedText = processedText.replace(gifRegex, '\n[gif-media]\n');
-    
+
     // Dann ersetze URL-Medien
     const tempProcessedText = processedText;
     urlMatches.forEach(url => {
@@ -312,13 +317,13 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
         processedText = processedText.replace(url, '\n[url-media]\n');
       }
     });
-    
+
     // Dann ersetze Erwähnungen mit Platzhaltern
     mentionMatches.forEach(match => {
       const fullMatch = match[0]; // @username
       processedText = processedText.replace(fullMatch, `\n[mention:${match[1]}]\n`);
     });
-    
+
     // Dann ersetze normale URLs mit Platzhaltern
     normalUrlMatches.forEach(match => {
       const url = match[0];
@@ -327,14 +332,14 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
         processedText = processedText.replace(url, `\n[normal-url:${url}]\n`);
       }
     });
-    
+
     // Teile den Text und erstelle die Elemente
     const textParts = processedText.split('\n');
     const result: ReactElement[] = [];
     let gifIndex = 0;
     let urlIndex = 0;
     let mentionIndex = 0;
-    
+
     textParts.forEach((part, index) => {
       if (part === '[gif-media]' && gifIndex < gifMatches.length) {
         // GIF-Darstellung (bestehender Code)
@@ -370,7 +375,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
         // Erwähnungs-Darstellung
         const username = part.substring(9, part.length - 1);
         result.push(
-          <a 
+          <a
             key={`mention-${index}`}
             href={`/user/${username}`}
             className="text-purple-600 dark:text-purple-400 font-medium hover:underline"
@@ -386,7 +391,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
         // Normale URL-Darstellung (neu)
         const url = part.substring(12, part.length - 1);
         result.push(
-          <a 
+          <a
             key={`normal-url-${index}`}
             href={url}
             target="_blank"
@@ -401,7 +406,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
         result.push(<span key={`text-${index}`} className="whitespace-pre-wrap">{part}</span>);
       }
     });
-    
+
     return <>{result}</>;
   };
 
@@ -411,7 +416,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
   };
 
   return (
-    <div 
+    <div
       id={`comment-${data.id}`}
       className={`comment-card p-4 rounded-lg transition-all duration-500 ${
         isRejected
@@ -426,16 +431,16 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
       {/* Reply to section */}
       {data.replyTo && (
         <div className="mb-3">
-          <Link href={data.post ? 
+          <Link href={data.post ?
             // Verwende immer die numerische ID, wenn sie vorhanden ist (fallback auf String-ID)
-            (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.replyTo.id}` 
+            (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.replyTo.id}`
               : `/post/${String(data.post.id)}#comment-${data.replyTo.id}`)
-            : `#comment-${data.replyTo.id}`} 
+            : `#comment-${data.replyTo.id}`}
             className="block group transition-all duration-200">
-              
-            <div className="pl-3 py-2 border-l-2 border-purple-400 dark:border-purple-500 
+
+            <div className="pl-3 py-2 border-l-2 border-purple-400 dark:border-purple-500
                        bg-purple-50 dark:bg-purple-900/20 rounded-r-md
-                       hover:bg-purple-100 dark:hover:bg-purple-900/30 
+                       hover:bg-purple-100 dark:hover:bg-purple-900/30
                        hover:border-l-3 hover:border-purple-500 dark:hover:border-purple-400
                        transition-all duration-200">
               <div className="flex items-center gap-1 mb-0.5">
@@ -458,7 +463,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
                 </span>
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 break-all">
-                {data.replyTo.content.length > 100 
+                {data.replyTo.content.length > 100
                   ? data.replyTo.content.substring(0, 100) + '...'
                   : data.replyTo.content}
               </div>
@@ -501,12 +506,12 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
               </Link>
             )}
             {getRoleBadge(author.role)}
-            <Link 
-              href={data.post ? 
+            <Link
+              href={data.post ?
                 // Verwende immer die numerische ID, wenn sie vorhanden ist (fallback auf String-ID)
-                (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.id}` 
+                (data.post.numericId ? `/post/${data.post.numericId}#comment-${data.id}`
                   : `/post/${String(data.post.id)}#comment-${data.id}`)
-                : `#comment-${data.id}`} 
+                : `#comment-${data.id}`}
               className="text-sm text-gray-500 hover:text-purple-500"
               title="Link to the post containing this comment"
             >
@@ -546,8 +551,8 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
                     type="button"
                     onClick={() => setShowEditPreview(!showEditPreview)}
                     className={`px-3 py-1.5 text-sm rounded-lg ${
-                      showEditPreview 
-                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' 
+                      showEditPreview
+                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
@@ -589,7 +594,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
               >
                 Reply
               </button>
-              
+
               {/* Report-Button für alle Benutzer anzeigen, außer für Autoren des Kommentars */}
               {!isAuthor && (
                 <button
@@ -599,7 +604,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
                   Report
                 </button>
               )}
-              
+
               {/* Diese Buttons weiterhin nur für eingeloggte Benutzer anzeigen */}
               {session && (
                 <>
@@ -632,20 +637,18 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
                 value={replyText}
                 onChange={(e) => {
                   setReplyText(e.target.value);
-                  if (selectedGif) {
-                    setSelectedGif(null);
-                  }
+                  // Entfernt: GIF nicht mehr löschen, wenn Text eingegeben wird
                 }}
                 placeholder="Write a reply..."
                 className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
                 rows={3}
                 name="reply"
               />
-              
+
               {selectedGif && showPreview && (
                 <div className="mt-2 p-2 border border-gray-200 dark:border-gray-700 bg-white/20 dark:bg-gray-800/20 rounded-lg">
                   <div className="relative">
-                    <button 
+                    <button
                       onClick={() => {setSelectedGif(null); setShowPreview(false);}}
                       className="absolute top-2 right-2 bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-black/90"
                       title="Remove GIF"
@@ -663,10 +666,10 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
                       />
                       {selectedGif.source === 'giphy' && (
                         <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                          <Image 
-                            src="/powered_by_giphy.png" 
-                            alt="Powered by GIPHY" 
-                            width={70} 
+                          <Image
+                            src="/powered_by_giphy.png"
+                            alt="Powered by GIPHY"
+                            width={70}
                             height={20}
                             unoptimized
                           />
@@ -731,7 +734,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
                   </button>
                   <button
                     onClick={handleReply}
-                    disabled={!replyText.trim() || isSubmitting}
+                    disabled={((!replyText.trim() && !selectedGif) || isSubmitting)}
                     className="px-4 py-2 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? (

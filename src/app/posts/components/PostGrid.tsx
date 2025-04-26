@@ -51,12 +51,12 @@ interface PostGridProps {
 // Number of posts per page
 export const POSTS_PER_PAGE = 28;
 
-export function PostGrid({ 
-  loading = false, 
-  filters = {}, 
-  page = 1, 
+export function PostGrid({
+  loading = false,
+  filters = {},
+  page = 1,
   infiniteScroll = false,
-  onTotalPagesChange 
+  onTotalPagesChange
 }: PostGridProps) {
   // Get settings to check if NSFW blur is enabled
   const { settings } = useSettings();
@@ -83,7 +83,7 @@ export function PostGrid({
       const queryParams = new URLSearchParams();
       queryParams.append('offset', ((pageNum - 1) * POSTS_PER_PAGE).toString());
       queryParams.append('limit', POSTS_PER_PAGE.toString());
-      
+
       // Add filters to query parameters
       if (filters.searchText) queryParams.append('search', filters.searchText);
       if (filters.uploader) queryParams.append('uploader', filters.uploader);
@@ -92,14 +92,14 @@ export function PostGrid({
       if (filters.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
       if (filters.dateTo) queryParams.append('dateTo', filters.dateTo);
       if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
-      
+
       // Verbesserter Tag-Filter: Speichern Sie den aktuellen Tag im sessionStorage
       if (filters.tags?.length) {
         console.log('Adding tags to API request:', filters.tags);
         filters.tags.forEach(tag => {
           queryParams.append('tag', tag);
         });
-        
+
         // Speichern für den Fall eines unbeabsichtigten Zurücksetzens
         if (typeof window !== 'undefined' && filters.tags.length === 1) {
           sessionStorage.setItem('active_tag_filter', filters.tags[0]);
@@ -114,7 +114,7 @@ export function PostGrid({
           }
         }
       }
-      
+
       if (filters.contentRating?.length) {
         filters.contentRating.forEach(rating => {
           queryParams.append('contentRating', rating);
@@ -123,18 +123,18 @@ export function PostGrid({
 
       // Fügen Sie einen Cache-Buster hinzu, um sicherzustellen, dass wir frische Daten erhalten
       queryParams.append('_ts', Date.now().toString());
-      
+
       console.log(`Fetching page ${pageNum} with params:`, queryParams.toString());
-      
+
       const response = await fetch(`/api/posts?${queryParams.toString()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch posts');
       }
-      
+
       const data = await response.json();
-      
+
       console.log("API response for posts:", data); // Debugging log
-      
+
       // Update total posts count if available in response
       if (data.totalPosts) {
         setTotalPosts(data.totalPosts);
@@ -143,7 +143,7 @@ export function PostGrid({
         // If server doesn't return total, estimate based on whether we got a full page
         setHasMore(data.posts?.length === POSTS_PER_PAGE);
       }
-      
+
       const formattedPosts = data.posts.map((post: any) => {
         console.log("Processing post:", post); // Log jeden Post
         return {
@@ -162,9 +162,9 @@ export function PostGrid({
           author: post.author
         };
       });
-      
+
       console.log("Formatted posts:", formattedPosts); // Check das Ergebnis
-      
+
       return formattedPosts;
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -187,7 +187,7 @@ export function PostGrid({
 
     // Sofortiger Aufruf, um Verzögerung zu vermeiden
     fetchInitialPosts();
-    
+
     // Keine Abhängigkeit von externen Variablen, die sich ändern könnten
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, JSON.stringify(filters)]);
@@ -195,12 +195,12 @@ export function PostGrid({
   // Handle infinite scroll to load more pages
   useEffect(() => {
     if (!infiniteScroll || !hasMore) return;
-    
+
     // Load additional pages if we're at the last page in our current set
     const loadNextPage = async () => {
       const nextPage = Math.max(...loadedPages) + 1;
       if (nextPage > totalPages && totalPages > 0) return;
-      
+
       const newPosts = await fetchPage(nextPage);
       setPosts(prev => [...prev, ...newPosts]);
       setLoadedPages(prev => [...prev, nextPage]);
@@ -211,7 +211,7 @@ export function PostGrid({
       const scrollHeight = document.documentElement.scrollHeight;
       const scrollTop = document.documentElement.scrollTop;
       const clientHeight = document.documentElement.clientHeight;
-      
+
       // Load more when user scrolls to bottom (with some buffer)
       if (scrollHeight - scrollTop - clientHeight < 300) {
         loadNextPage();
@@ -228,19 +228,21 @@ export function PostGrid({
   useEffect(() => {
     // Wir nutzen einen Debounce, um mehrere schnelle Änderungen zu vermeiden
     const timer = setTimeout(() => {
-      // Wir laden nur neu, wenn sich die Filter tatsächlich geändert haben
+      // Wir laden immer neu, wenn sich die Filter ändern, unabhängig von der aktuellen Seite
       console.log('Filter update delayed execution with tags:', filters.tags);
-      if (page === 1) {
-        fetchPage(1).then(newPosts => {
-          console.log(`Received ${newPosts.length} posts after filter update`);
-          setPosts(newPosts);
-          setLoadedPages([1]);
-        });
-      }
-    }, 100); // 100ms Verzögerung
-    
+      console.log('Content rating filters:', filters.contentRating);
+
+      // Immer Seite 1 laden, wenn sich Filter ändern
+      fetchPage(1).then(newPosts => {
+        console.log(`Received ${newPosts.length} posts after filter update`);
+        setPosts(newPosts);
+        setLoadedPages([1]);
+      });
+    }, 200); // 200ms Verzögerung für bessere Stabilität
+
     return () => clearTimeout(timer);
-  }, [JSON.stringify(filters), page]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(filters), fetchPage]);
 
   if (isLoading && posts.length === 0) {
     return (
@@ -254,52 +256,60 @@ export function PostGrid({
 
   // Verbesserte Methode für die Anzeige der Posts mit Unterstützung für gepinnte Posts
   const getVisiblePosts = () => {
-    if (infiniteScroll) {
-      // Für Infinite Scroll, alle geladenen Posts zurückgeben (gefilteredt nach Content Rating)
-      // Aber jetzt mit gepinnten Posts zuerst
-      const filteredPosts = posts.filter(post => 
-        !filters.contentRating?.length || filters.contentRating.includes(post.contentRating)
-      );
-      
-      // Sortiere Posts: gepinnte Posts zuerst, dann die restlichen
-      return [...filteredPosts].sort((a, b) => {
-        if (a.isPinned && !b.isPinned) return -1;
-        if (!a.isPinned && b.isPinned) return 1;
-        return 0;
-      });
-    } else {
-      // Für Paginierung, nur die aktuelle Seite zurückgeben
-      // Ebenfalls mit gepinnten Posts zuerst
-      return [...posts].sort((a, b) => {
-        if (a.isPinned && !b.isPinned) return -1;
-        if (!a.isPinned && b.isPinned) return 1;
-        return 0;
-      });
-    }
+    // Wir filtern die Posts immer nach Content Rating, unabhängig vom Scroll-Modus
+    // Dies stellt sicher, dass die Filter konsistent angewendet werden
+    const filteredPosts = posts.filter(post => {
+      // Wenn keine Content-Rating-Filter gesetzt sind, zeigen wir alle Posts an
+      if (!filters.contentRating?.length) return true;
+
+      // Sonst nur Posts anzeigen, die dem ausgewählten Content Rating entsprechen
+      return filters.contentRating.includes(post.contentRating);
+    });
+
+    // Sortiere Posts: gepinnte Posts zuerst, dann die restlichen
+    return [...filteredPosts].sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return 0;
+    });
   };
 
   const visiblePosts = getVisiblePosts();
-  
+
+  // Group posts by page for infinite scroll
+  const postsByPage = infiniteScroll
+    ? visiblePosts.reduce((acc, post, index) => {
+        const pageNum = Math.floor(index / POSTS_PER_PAGE);
+        if (!acc[pageNum]) acc[pageNum] = [];
+        acc[pageNum].push(post);
+        return acc;
+      }, {} as Record<number, typeof visiblePosts>)
+    : { 0: visiblePosts };
+
   return (
     <div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 auto-rows-fr gap-2">
-        {visiblePosts.map((post, index) => (
-          <div key={post.id} data-post-id={post.id}>
-            {/* Page separator */}
-            {infiniteScroll && index > 0 && index % POSTS_PER_PAGE === 0 && (
-              <div className="col-span-full my-6 flex items-center justify-center">
-                <div className="w-1/3 h-px bg-gray-300 dark:bg-gray-700"></div>
-                <div className="px-4 text-sm text-gray-500">
-                  Page {Math.floor(index / POSTS_PER_PAGE) + 1} of {totalPages || '?'}
+      {infiniteScroll
+        ? Object.entries(postsByPage).map(([pageNum, pagePosts], pageIndex) => (
+            <div key={`page-${pageNum}`}>
+              {/* Page separator (only show after first page) */}
+              {pageIndex > 0 && (
+                <div className="w-full my-6 flex items-center justify-center">
+                  <div className="w-1/3 h-px bg-gray-300 dark:bg-gray-700"></div>
+                  <div className="px-4 text-sm text-gray-500">
+                    Page {parseInt(pageNum) + 1} of {totalPages || '?'}
+                  </div>
+                  <div className="w-1/3 h-px bg-gray-300 dark:bg-gray-700"></div>
                 </div>
-                <div className="w-1/3 h-px bg-gray-300 dark:bg-gray-700"></div>
-              </div>
-            )}
-            
-            <Link
-              href={`/post/${post.id}`}
-              className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 block"
-            >
+              )}
+
+              {/* Grid for this page */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 auto-rows-fr gap-2">
+                {pagePosts.map((post) => (
+                  <div key={post.id} data-post-id={post.id}>
+                    <Link
+                      href={`/post/${post.id}`}
+                      className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 block"
+                    >
               <div className="relative w-full h-full flex items-center justify-center">
                 <div className="relative">
                   <Image
@@ -319,7 +329,7 @@ export function PostGrid({
                   )}
                 </div>
               </div>
-            
+
               {/* Top Badge Row */}
               <div className="absolute top-1 sm:top-2 left-1 sm:left-2 right-1 sm:right-2 flex justify-between items-start">
                 {/* Left Badges */}
@@ -338,7 +348,7 @@ export function PostGrid({
 
                 {/* Right Badge (Rating) */}
                 <span className={`px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium ${
-                  post.contentRating === 'safe' 
+                  post.contentRating === 'safe'
                     ? 'bg-green-500/40 text-white border border-green-500/50'
                     : post.contentRating === 'sketchy'
                       ? 'bg-yellow-500/40 text-white border border-yellow-500/50'
@@ -368,8 +378,8 @@ export function PostGrid({
                       </span>
                     </div>
                     <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-gray-500/40 text-white border border-gray-500/50">
-                      {post.mediaType === 'gif' 
-                        ? '🎞️ GIF' 
+                      {post.mediaType === 'gif'
+                        ? '🎞️ GIF'
                         : post.mediaType === 'video'
                           ? '🎬 VID'
                           : '🖼️ PIC'}
@@ -378,11 +388,105 @@ export function PostGrid({
                   </div>
                 </div>
               </div>
-            </Link>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 auto-rows-fr gap-2">
+            {visiblePosts.map((post) => (
+              <div key={post.id} data-post-id={post.id}>
+                <Link
+                  href={`/post/${post.id}`}
+                  className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 block"
+                >
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <div className="relative">
+                      <Image
+                        src={getImageUrlWithCacheBuster(post.thumbnail)}
+                        alt={post.title}
+                        width={200}
+                        height={200}
+                        className={`object-contain w-full h-full group-hover:opacity-75 transition-opacity ${settings.blurNsfw && (post.contentRating === 'unsafe' || post.contentRating === 'sketchy') ? 'blur-md' : ''}`}
+                        unoptimized={true}
+                      />
+                      {settings.blurNsfw && (post.contentRating === 'unsafe' || post.contentRating === 'sketchy') && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className={`px-2 py-1 rounded text-sm font-bold ${post.contentRating === 'unsafe' ? 'bg-red-500/70' : 'bg-yellow-500/70'} text-white`}>
+                            {post.contentRating.toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Top Badge Row */}
+                  <div className="absolute top-1 sm:top-2 left-1 sm:left-2 right-1 sm:right-2 flex justify-between items-start">
+                    {/* Left Badges */}
+                    <div className="flex flex-col gap-0.5 sm:gap-1">
+                      {post.isPinned && (
+                        <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-amber-500/40 text-white border border-amber-500/50">
+                          📌 PINNED
+                        </span>
+                      )}
+                      {post.isAd && (
+                        <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-purple-500/40 text-white border border-purple-500/50">
+                          💎 AD
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Right Badge (Rating) */}
+                    <span className={`px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium ${
+                      post.contentRating === 'safe'
+                        ? 'bg-green-500/40 text-white border border-green-500/50'
+                        : post.contentRating === 'sketchy'
+                          ? 'bg-yellow-500/40 text-white border border-yellow-500/50'
+                          : 'bg-red-500/40 text-white border border-red-500/50'
+                    }`}>
+                      {post.contentRating.toUpperCase()}
+                    </span>
+                  </div>
+
+                  {/* Bottom Info Bar */}
+                  <div className="absolute bottom-0 left-0 right-0 p-1 sm:p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                    <div className="space-y-0.5 sm:space-y-1">
+                      {/* Stats and Media Type */}
+                      <div className="flex items-center justify-between text-gray-300 text-[8px] sm:text-[10px]">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <span className="flex items-center gap-0.5">
+                            <span className="opacity-60">👍</span>
+                            <span data-like-count={post.id}>{post.likes}</span>
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <span className="opacity-60">❤️</span>
+                            <span data-favorite-count={post.id}>{post.favorites}</span>
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <span className="opacity-60">💬</span>
+                            <span data-comment-count={post.id}>{post.comments}</span>
+                          </span>
+                        </div>
+                        <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-gray-500/40 text-white border border-gray-500/50">
+                          {post.mediaType === 'gif'
+                            ? '🎞️ GIF'
+                            : post.mediaType === 'video'
+                              ? '🎬 VID'
+                              : '🖼️ PIC'}
+                          {post.mediaType === 'video' && post.hasAudio && ' 🔊'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      
+        )
+      }
+
       {/* Loading indicator for infinite scroll */}
       {infiniteScroll && isLoading && posts.length > 0 && (
         <div className="mt-6 flex justify-center">

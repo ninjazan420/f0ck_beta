@@ -17,12 +17,13 @@ export default function LoginClient({ registered }: LoginClientProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showLoginBanner, setShowLoginBanner] = useState(false);
+  const [stayLoggedIn, setStayLoggedIn] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (loading) return; // Prevent multiple submissions
-    
+
     setLoading(true);
     setError(null);
 
@@ -45,10 +46,13 @@ export default function LoginClient({ registered }: LoginClientProps) {
         return;
       }
 
+      // Übergebe den stayLoggedIn-Parameter an die signIn-Funktion
       const res = await signIn('credentials', {
         username,
         password,
         redirect: false,
+        callbackUrl: '/',
+        stayLoggedIn: stayLoggedIn.toString(), // Übergebe als String, da NextAuth nur String-Parameter akzeptiert
       });
 
       console.log('SignIn Response:', res); // Debug-Ausgabe
@@ -60,17 +64,17 @@ export default function LoginClient({ registered }: LoginClientProps) {
       } else if (res?.ok) {
         try {
           setShowLoginBanner(true);
-          
+
           // Get the callback URL from the URL parameters
           const params = new URLSearchParams(window.location.search);
           const callbackUrl = params.get('callbackUrl');
           const targetUrl = callbackUrl || '/';
-          
+
           console.log('Redirecting to:', targetUrl); // Debug-Ausgabe
-          
+
           // Wait for the banner to show
           await new Promise(resolve => setTimeout(resolve, 1000));
-          
+
           // Perform the redirect without resetting the form
           window.location.href = targetUrl;
         } catch (redirectError) {
@@ -91,14 +95,14 @@ export default function LoginClient({ registered }: LoginClientProps) {
 
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
-      <StatusBanner 
-        show={showLoginBanner} 
-        message="Logging in..." 
+      <StatusBanner
+        show={showLoginBanner}
+        message="Logging in..."
       />
-      <StatusBanner 
-        show={!!registered} 
-        message="Registration successful! Please log in." 
-        type="default" 
+      <StatusBanner
+        show={!!registered}
+        message="Registration successful! Please log in."
+        type="default"
       />
       <div className="w-full flex justify-center py-8">
         <RandomLogo />
@@ -110,7 +114,7 @@ export default function LoginClient({ registered }: LoginClientProps) {
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-6 text-black dark:text-gray-400">
               Login
             </h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <input
@@ -123,7 +127,7 @@ export default function LoginClient({ registered }: LoginClientProps) {
                   maxLength={50}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <input
                   type="password"
@@ -136,9 +140,26 @@ export default function LoginClient({ registered }: LoginClientProps) {
                 />
               </div>
 
-              <div className="flex justify-end">
-                <Link 
-                  href="/forgot-password" 
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="stayLoggedIn"
+                    checked={stayLoggedIn}
+                    onChange={(e) => setStayLoggedIn(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 dark:border-gray-600
+                      text-purple-600 focus:ring-purple-500 dark:focus:ring-purple-600
+                      dark:bg-gray-700 transition-colors cursor-pointer"
+                  />
+                  <label
+                    htmlFor="stayLoggedIn"
+                    className="ml-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer"
+                  >
+                    Stay logged in
+                  </label>
+                </div>
+                <Link
+                  href="/forgot-password"
                   className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   Forgot password?
@@ -197,7 +218,7 @@ export default function LoginClient({ registered }: LoginClientProps) {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

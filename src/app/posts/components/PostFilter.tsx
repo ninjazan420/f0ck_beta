@@ -37,18 +37,31 @@ export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleIn
   const searchParams = useSearchParams();
 
   const toggleRating = (rating: ContentRating) => {
+    // Kopiere die aktuellen Ratings
     const newRatings = [...filters.contentRating];
-    
+
+    // Prüfe, ob das Rating bereits aktiv ist
     const index = newRatings.indexOf(rating);
-    
+
     if (index >= 0) {
+      // Entferne das Rating nur, wenn mehr als ein Rating aktiv ist
+      // Dies verhindert, dass alle Filter deaktiviert werden
       if (newRatings.length > 1) {
+        console.log(`Removing rating: ${rating}`);
         newRatings.splice(index, 1);
+      } else {
+        console.log(`Cannot remove last rating: ${rating}`);
       }
     } else {
+      // Füge das Rating hinzu
+      console.log(`Adding rating: ${rating}`);
       newRatings.push(rating);
     }
-    
+
+    console.log('New content ratings:', newRatings);
+
+    // Aktualisiere die Filter mit den neuen Ratings
+    // Dies löst auch die Speicherung im localStorage und die URL-Aktualisierung aus
     onFilterChange({ ...filters, contentRating: newRatings });
   };
 
@@ -75,7 +88,7 @@ export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleIn
           onChange={e => onFilterChange({ ...filters, searchText: e.target.value })}
           className="w-52 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
         />
-        
+
         <input
           type="text"
           placeholder="👤 Uploader"
@@ -112,7 +125,7 @@ export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleIn
           onChange={e => onFilterChange({ ...filters, minLikes: parseInt(e.target.value) || 0 })}
           className="w-24 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
         />
-        
+
         <button
           onClick={() => setShowDatePicker(!showDatePicker)}
           className={`p-1.5 text-sm rounded-lg border ${showDatePicker ? 'border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50'}`}
@@ -210,13 +223,13 @@ export function PostFilter({ filters, onFilterChange, infiniteScroll, onToggleIn
                   // Entfernen des Tags aus den Filtern
                   const newTags = filters.tags.filter(t => t !== tag);
                   onFilterChange({ ...filters, tags: newTags });
-                  
+
                   // Entfernen aus dem URL-Parameter
                   const url = new URL(window.location.href);
                   const params = new URLSearchParams(url.search);
                   params.delete('tag');
                   newTags.forEach(t => params.append('tag', t));
-                  
+
                   // URL aktualisieren ohne Neuladen der Seite
                   window.history.pushState({}, '', `${url.pathname}?${params.toString()}`);
                   sessionStorage.removeItem('active_tag_filter');

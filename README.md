@@ -1,4 +1,4 @@
-# f0ck.org Beta 3.3.0
+# f0ck.org Beta 3.4.0
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta 3.3.0](#f0ckorg-beta-330)
+- [f0ck.org Beta 3.4.0](#f0ckorg-beta-340)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
   - [🚀 Installation](#-installation)
@@ -21,11 +21,16 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v3.3.0 (Current)](#beta-v330-current)
+    - [Beta v3.4.0 (Current)](#beta-v340-current)
+      - [🔍 Optimized Tag Filters](#-optimized-tag-filters)
+      - [🔄 Enhanced User Interaction](#-enhanced-user-interaction)
+      - [🔗 Improved Comment Functions](#-improved-comment-functions)
+      - [🧹 System Optimizations](#-system-optimizations)
+    - [Beta v3.3.0](#beta-v330)
       - [🏷️ Enhanced Tag Functionality](#️-enhanced-tag-functionality)
       - [👤 Anonymous Uploads](#-anonymous-uploads)
       - [📌 Fixes](#-fixes)
-    - [Beta v3.2.0 (Current)](#beta-v320-current)
+    - [Beta v3.2.0](#beta-v320)
       - [💬 Enhanced Comment Functionality](#-enhanced-comment-functionality)
       - [🏷️ Improved Tag System](#️-improved-tag-system)
       - [📊 UI Refinements](#-ui-refinements)
@@ -166,28 +171,69 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v3.3.0 (Current)
+### Beta v3.4.0 (Current)
+
+#### 🔍 Optimized Tag Filters
+
+- **Improved Filter Page**:
+  
+  - Significantly faster loading times for tag filter page
+  - New sorting for statistics with "Trending" as default
+  - Optimized loading strategy: Only 20 tags loaded at once
+  - Improved display of time filters (+week and +today)
+
+#### 🔄 Enhanced User Interaction
+
+- **Optimized Routes and Responses**:
+  
+  - Fixed routes for better navigation
+  - Fixed date filters for more precise time settings
+  - Corrected session responses for more stable user sessions
+  - CSS adjustments to buttons for improved usability
+
+#### 🔗 Improved Comment Functions
+
+- **Enhanced Linking**:
+
+  - Fixed comment hotlinks to external URLs
+  - Improved display of external links in comments
+
+#### 🧹 System Optimizations
+
+- **Simplified Structure**:
+
+  - Temporary removal of pools feature
+  - Removal of beta authentication
+  - Optimized callback functions for reduced loading times
+
+### Beta v3.3.0
 
 #### 🏷️ Enhanced Tag Functionality
+
 - **Improved Tag Management**:
+  
   - Support for copying and pasting multiple tags at once
   - Automatic separation of multiple words into individual tags
   - Batch tagging for multiple uploads simultaneously
   - Optimized tag processing for more efficient tagging
 
 #### 👤 Anonymous Uploads
+
 - **Enhanced Privacy**:
+  
   - Removal of statistics and avatars for anonymous uploads
   - Optimized display for non-logged-in users
   - Improved user experience for anonymous uploads
 
 #### 📌 Fixes
+
 - **Pin Function Correction**:
+  
   - Pinned posts now display correctly on the first page
   - Fixed pagination for pinned posts
   - Improved consistency in post display
 
-### Beta v3.2.0 (Current)
+### Beta v3.2.0
 
 #### 💬 Enhanced Comment Functionality
 - **@-Mentions in Comments**:
@@ -195,7 +241,7 @@ NODE_ENV=development
   - Automatic notifications when mentioned
   - Smart username suggestions while typing
   - User-friendly autofill for faster mentions
-  
+
 #### 🏷️ Improved Tag System
 - **Optimized Tag Requirements**:
   - Introduced minimum of 3 tags for each upload
@@ -379,5 +425,4 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 
 MIT License - © 2024 f0ck.org Team
 
-> Beta Version 3.2.0 - We build something new...
-
+> Beta Version 3.4.0 - We build something new...

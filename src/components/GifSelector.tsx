@@ -28,7 +28,7 @@ export function GifSelector({ onSelect, onClose }: GifSelectorProps) {
         `https://api.giphy.com/v1/gifs/search?api_key=${process.env.NEXT_PUBLIC_GIPHY_API_KEY}&q=${encodeURIComponent(term)}&limit=20&rating=g`
       );
       const data = await response.json();
-      
+
       setGifs(data.data.map((gif: any) => ({
         id: gif.id,
         url: gif.images.original.url,
@@ -73,9 +73,9 @@ export function GifSelector({ onSelect, onClose }: GifSelectorProps) {
   }, [searchTerm]);
 
   return (
-    <div 
+    <div
       ref={containerRef}
-      className="absolute bottom-full right-0 mb-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden z-50"
+      className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden z-50"
     >
       <div className="p-3 border-b border-gray-200 dark:border-gray-700">
         <input
@@ -118,9 +118,9 @@ export function GifSelector({ onSelect, onClose }: GifSelectorProps) {
       </div>
 
       <div className="p-2 border-t border-gray-200 dark:border-gray-700 text-center">
-        <a 
-          href="https://giphy.com" 
-          target="_blank" 
+        <a
+          href="https://giphy.com"
+          target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-gray-500 hover:text-purple-500"
         >
@@ -129,4 +129,4 @@ export function GifSelector({ onSelect, onClose }: GifSelectorProps) {
       </div>
     </div>
   );
-} 
+}

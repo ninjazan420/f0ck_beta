@@ -8,8 +8,10 @@ declare module "next-auth" {
     email?: string
     role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned'
     avatar?: string | null
+    bio?: string | null
+    stayLoggedIn?: boolean
   }
-  
+
   interface Session extends DefaultSession {
     user: {
       id: string
@@ -21,6 +23,7 @@ declare module "next-auth" {
       image?: string | null
       bio?: string | null
     } & DefaultSession["user"]
+    maxAge?: number
   }
 }
 
@@ -30,5 +33,8 @@ declare module "next-auth/jwt" {
     username?: string
     role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned'
     avatar?: string | null
+    bio?: string | null
+    stayLoggedIn?: boolean
+    exp?: number // Ablaufzeit des Tokens
   }
 }

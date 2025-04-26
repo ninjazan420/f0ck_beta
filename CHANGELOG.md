@@ -1,5 +1,46 @@
 # Änderungsprotokoll
 
+## [3.4.0]
+
+### 😎 Fixes
+
+- **Bugfixes**:
+
+  - Infinite Scroll für bricht design nicht mehr
+  - Gif Antworten auf Kommentare funktionieren nun
+  - Avatar-Picker funktioniert nun
+  - Bio gefixt
+
+### 🔍 Optimierte Tag-Filter
+
+- **Verbesserte Filterseite**:
+  - Deutlich schnellere Ladezeiten für die Tag-Filterseite
+  - Neue Sortierung für Statistiken mit "Trending" als Standardeinstellung
+  - Optimierte Ladestrategie: Nur 20 Tags werden gleichzeitig geladen
+  - Verbesserte Anzeige von Zeitfiltern (+week und +today)
+
+### 🔄 Verbesserte Benutzerinteraktion
+
+- **Optimierte Routen und Antworten**:
+  - Korrigierte Routen für bessere Navigation
+  - Behobene Datumsfilter für präzisere Zeiteinstellungen
+  - Korrigierte Session-Antworten für stabilere Benutzersitzungen
+  - CSS-Anpassungen an Buttons für verbesserte Benutzerfreundlichkeit
+
+### 🔗 Verbesserte Kommentarfunktionen
+
+- **Optimierte Verlinkungen**:
+  - Behobene Kommentar-Hotlinks zu externen URLs
+  - Verbesserte Darstellung von externen Links in Kommentaren
+
+### 🧹 Systemoptimierungen
+
+- **Vereinfachte Struktur**:
+  - Entfernung von Pools (vorübergehend)
+  - Entfernung der Beta-Authentifizierung
+  - Optimierte Callback-Funktionen für reduzierte Ladezeiten
+  - "Stay logged in" Funktion hinzugefügt
+
 ## [3.3.0]
 
 ### 🏷️ Erweiterte Tag-Funktionalität
@@ -55,7 +96,7 @@
   - Voting-Elemente von Overlay in die Seitenleiste verschoben
   - Intuitiveres Voting-Verhalten mit besserer Sichtbarkeit
   - Konsistente Positionierung über alle Ansichten
-  
+
 - **Verbesserte Datenschutzeinstellungen**:
   - Post-Statistiken für anonyme Benutzer ausgeblendet
   - Klarere Unterscheidung zwischen anonymen und angemeldeten Benutzern
@@ -476,14 +517,14 @@ Diese Version markiert einen wichtigen Meilenstein für das f0ck.org Projekt und
 ### 👤 Verbesserte Benutzeroberfläche
 
 - **Neue Avatar-Funktionen**: Implementation eines neu gestalteten Account-Cards mit verbesserten Avatar-Funktionalitäten für Benutzer
-- **Optimierte Navigation zwischen Posts**: 
+- **Optimierte Navigation zwischen Posts**:
   - Unterstützung für Pfeil-Links/Rechts und A/D-Tasten zum Blättern durch Posts
   - Post-Navigator repariert, sodass nur der aktuelle Zustand berücksichtigt wird
 - **Verbesserte Metadaten**: Hinzufügen von og:title Tags für bessere Darstellung in sozialen Medien und Suchmaschinen
 
 ### 🎨 Neue Funktionalitäten
 
-- **Erweiterte Upload-Möglichkeiten**: 
+- **Erweiterte Upload-Möglichkeiten**:
   - Copy & Paste-Funktion implementiert
   - Direktes Hochladen über Image-Grabbing hinzugefügt
 - **Technische Verbesserungen**:

@@ -35,12 +35,12 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
   if (!mounted) return null;
 
   return (
-    <div 
+    <div
       ref={containerRef}
-      className="absolute bottom-full right-0 mb-2 z-50 rounded-lg shadow-lg overflow-hidden"
+      className="absolute top-full left-0 mt-2 z-50 rounded-lg shadow-lg overflow-hidden"
     >
-      <Picker 
-        data={data} 
+      <Picker
+        data={data}
         onEmojiSelect={(emojiData: EmojiData) => {
           if (emojiData?.native) {
             onSelect(emojiData.native);
@@ -56,4 +56,4 @@ export function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
       />
     </div>
   );
-} 
+}

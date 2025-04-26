@@ -17,14 +17,14 @@ export function PostsPage() {
   const [loading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [showFeedback, setShowFeedback] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
-  
+
   // Get current page from URL or default to 1
-  const initialPage = searchParams.get('offset') 
-    ? Math.floor(parseInt(searchParams.get('offset') || '0') / POSTS_PER_PAGE) + 1 
+  const initialPage = searchParams.get('offset')
+    ? Math.floor(parseInt(searchParams.get('offset') || '0') / POSTS_PER_PAGE) + 1
     : 1;
-  
+
   const [currentPage, setCurrentPage] = useState(initialPage);
-  
+
   // Initialen Zustand mit leeren Werten festlegen
   const [filters, setFilters] = useState({
     searchText: '',
@@ -41,13 +41,13 @@ export function PostsPage() {
   // Verbesserter useEffect für tag-Parameter
   useEffect(() => {
     const tagParam = searchParams.get('tag');
-    
+
     if (tagParam) {
       console.log('Tag parameter found in URL:', tagParam);
-      
+
       // Check if the tag is already in our filters
       const hasTag = filters.tags.includes(tagParam);
-      
+
       if (!hasTag) {
         console.log('Adding tag to filters:', tagParam);
         // Verzögern Sie die Aktualisierung leicht, um Race Conditions zu vermeiden
@@ -57,7 +57,7 @@ export function PostsPage() {
             tags: [...prev.tags, tagParam]
           }));
         }, 50);
-        
+
         // Speichern des Tags im Session Storage
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('active_tag_filter', tagParam);
@@ -74,11 +74,11 @@ export function PostsPage() {
       const handleRouteChange = () => {
         const params = new URLSearchParams(window.location.search);
         const tagParam = params.get('tag');
-        
+
         if (tagParam) {
           // Wenn wir einen Tag in der URL haben, stellen Sie sicher, dass er angewendet wird
           console.log('Route changed with tag:', tagParam);
-          
+
           setFilters(prev => {
             if (!prev.tags.includes(tagParam)) {
               return {
@@ -100,7 +100,7 @@ export function PostsPage() {
           }
         }
       };
-      
+
       window.addEventListener('popstate', handleRouteChange);
       return () => window.removeEventListener('popstate', handleRouteChange);
     }
@@ -111,19 +111,19 @@ export function PostsPage() {
     if (typeof window !== 'undefined' && !infiniteScroll) {
       const params = new URLSearchParams(window.location.search);
       const offset = (currentPage - 1) * POSTS_PER_PAGE;
-      
+
       if (offset === 0) {
         params.delete('offset');
       } else {
         params.set('offset', offset.toString());
       }
-      
+
       const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
       window.history.replaceState({ path: newUrl }, '', newUrl);
     }
   }, [currentPage, infiniteScroll]);
 
-  // Verbessere den useEffect für die Initialisierung von Filtern
+  // Verbesserte Initialisierung der Filter
   useEffect(() => {
     try {
       // Prüfen, ob im Browser-Umfeld (nicht SSR)
@@ -133,38 +133,41 @@ export function PostsPage() {
         if (savedInfiniteScroll !== null) {
           setInfiniteScroll(savedInfiniteScroll === 'true');
         }
-        
+
         // Standardwert festlegen
         let initialContentRating: ContentRating[] = ['safe'];
-        
+
         // Prüfe zuerst auf URL-Parameter (diese haben höchste Priorität)
         const urlParams = new URLSearchParams(window.location.search);
         const ratingParams = urlParams.getAll('contentRating');
-        
+
         if (ratingParams.length > 0) {
           // URL-Parameter validieren
           const validRatings = ratingParams.filter(
-            (rating): rating is ContentRating => 
+            (rating): rating is ContentRating =>
               rating === 'safe' || rating === 'sketchy' || rating === 'unsafe'
           );
-          
+
           if (validRatings.length > 0) {
             initialContentRating = validRatings;
             console.log('Content rating from URL:', initialContentRating);
+
+            // Speichere die URL-Parameter auch im localStorage für zukünftige Besuche
+            localStorage.setItem(CONTENT_RATING_STORAGE_KEY, JSON.stringify(validRatings));
           }
         } else {
           // Wenn keine URL-Parameter, dann aus localStorage laden
           const savedContentRating = localStorage.getItem(CONTENT_RATING_STORAGE_KEY);
-          
+
           if (savedContentRating) {
             try {
               const parsedRating = JSON.parse(savedContentRating) as ContentRating[];
               // Nur gültige ContentRating-Werte übernehmen
               const validRatings = parsedRating.filter(
-                (rating): rating is ContentRating => 
+                (rating): rating is ContentRating =>
                   rating === 'safe' || rating === 'sketchy' || rating === 'unsafe'
               );
-              
+
               if (validRatings.length > 0) {
                 initialContentRating = validRatings;
                 console.log('Content rating from localStorage:', initialContentRating);
@@ -174,12 +177,16 @@ export function PostsPage() {
             }
           }
         }
-        
+
         // Aktualisiere den Filter-Zustand mit den ermittelten Werten
-        setFilters(prev => ({
-          ...prev,
-          contentRating: initialContentRating
-        }));
+        // Verzögere die Aktualisierung leicht, um sicherzustellen, dass sie nach anderen Initialisierungen erfolgt
+        setTimeout(() => {
+          console.log('Setting initial content rating:', initialContentRating);
+          setFilters(prev => ({
+            ...prev,
+            contentRating: initialContentRating
+          }));
+        }, 50);
       }
     } catch (error) {
       console.error('Fehler beim Laden der gespeicherten Einstellungen:', error);
@@ -189,18 +196,41 @@ export function PostsPage() {
 
   // ContentRating speichern, wenn es sich ändert
   const handleFilterChange = (newFilters: typeof filters) => {
+    // Prüfen, ob sich die Filter tatsächlich geändert haben
+    const filtersChanged = JSON.stringify(newFilters) !== JSON.stringify(filters);
+    const contentRatingChanged = JSON.stringify(newFilters.contentRating) !== JSON.stringify(filters.contentRating);
+
+    // Aktualisiere den Filter-Zustand
     setFilters(newFilters);
-    
+
     // Reset to page 1 when filters change
-    if (JSON.stringify(newFilters) !== JSON.stringify(filters)) {
+    if (filtersChanged) {
       setCurrentPage(1);
     }
-    
+
     // Speichern der ContentRating-Einstellungen im localStorage
-    if (typeof window !== 'undefined' && 
-        JSON.stringify(newFilters.contentRating) !== JSON.stringify(filters.contentRating)) {
+    if (typeof window !== 'undefined' && contentRatingChanged) {
       try {
+        console.log('Saving content rating to localStorage:', newFilters.contentRating);
         localStorage.setItem(CONTENT_RATING_STORAGE_KEY, JSON.stringify(newFilters.contentRating));
+
+        // Aktualisiere auch die URL, um die Filter zu reflektieren
+        const params = new URLSearchParams(window.location.search);
+
+        // Entferne alte contentRating-Parameter
+        const oldParams = params.getAll('contentRating');
+        if (oldParams.length > 0) {
+          oldParams.forEach(() => params.delete('contentRating'));
+        }
+
+        // Füge neue contentRating-Parameter hinzu
+        newFilters.contentRating.forEach(rating => {
+          params.append('contentRating', rating);
+        });
+
+        // Aktualisiere die URL
+        const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+        window.history.replaceState({ path: newUrl }, '', newUrl);
       } catch (error) {
         console.error('Fehler beim Speichern der Content-Rating-Einstellungen:', error);
       }
@@ -210,7 +240,7 @@ export function PostsPage() {
   // Handle infinite scroll toggle with localStorage persistence
   const handleInfiniteScrollToggle = (value: boolean) => {
     setInfiniteScroll(value);
-    
+
     // Show feedback message
     setShowFeedback({
       message: value ? 'Infinite scroll activated' : 'Infinite scroll deactivated',
@@ -221,7 +251,7 @@ export function PostsPage() {
     setTimeout(() => {
       setShowFeedback(null);
     }, 2000);
-    
+
     // Save the preference to localStorage
     if (typeof window !== 'undefined') {
       try {
@@ -235,17 +265,17 @@ export function PostsPage() {
   return (
     <div className="min-h-screen flex flex-col">
       {showFeedback && (
-        <div 
+        <div
           className={`
             fixed inset-x-0 top-16 pointer-events-none z-50
             flex items-center justify-center
           `}
         >
           <div className={`
-            px-4 py-2 rounded-lg text-sm font-medium 
+            px-4 py-2 rounded-lg text-sm font-medium
             shadow-lg backdrop-blur-sm
             animate-fade-in-out
-            ${showFeedback.type === 'success' 
+            ${showFeedback.type === 'success'
               ? 'bg-green-100/95 text-green-800 dark:bg-green-900/95 dark:text-green-400'
               : 'bg-blue-100/95 text-blue-800 dark:bg-blue-900/95 dark:text-blue-400'}
           `}>
@@ -253,19 +283,19 @@ export function PostsPage() {
           </div>
         </div>
       )}
-      
+
       <div className="container mx-auto px-4 flex-grow space-y-4 pb-4">
-        <PostFilter 
-          filters={filters} 
+        <PostFilter
+          filters={filters}
           onFilterChange={handleFilterChange}
           infiniteScroll={infiniteScroll}
           onToggleInfiniteScroll={handleInfiniteScrollToggle}
         />
 
-        <PostGrid 
+        <PostGrid
           loading={loading}
-          filters={filters} 
-          infiniteScroll={infiniteScroll} 
+          filters={filters}
+          infiniteScroll={infiniteScroll}
           page={currentPage}
           onTotalPagesChange={setTotalPages}
         />
@@ -280,7 +310,7 @@ export function PostsPage() {
             >
               ← Previous
             </button>
-            
+
             <div className="flex items-center gap-1">
               {/* First page button if not visible in current range */}
               {currentPage > 3 && (
@@ -294,7 +324,7 @@ export function PostsPage() {
                   {currentPage > 4 && <span className="text-gray-500">...</span>}
                 </>
               )}
-              
+
               {/* Page number buttons with current page highlighted */}
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 // Calculate which page numbers to show
@@ -309,10 +339,10 @@ export function PostsPage() {
                   // In the middle, show current page and 2 pages on each side
                   pageNum = currentPage - 2 + i;
                 }
-                
+
                 // Skip if outside valid range
                 if (pageNum < 1 || pageNum > totalPages) return null;
-                
+
                 return (
                   <button
                     key={pageNum}
@@ -327,7 +357,7 @@ export function PostsPage() {
                   </button>
                 );
               }).filter(Boolean)}
-              
+
               {/* Last page button if not visible in current range */}
               {currentPage < totalPages - 2 && (
                 <>
@@ -352,7 +382,7 @@ export function PostsPage() {
           </div>
         )}
       </div>
-      
+
       <Footer />
     </div>
   );

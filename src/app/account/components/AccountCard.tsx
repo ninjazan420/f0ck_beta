@@ -48,14 +48,14 @@ interface ProfileData {
     showFavorites: boolean;
     showUploads: boolean;
   };
-  recentActivity: ActivityItem[]; 
+  recentActivity: ActivityItem[];
   email: string;
   createdAt: string;
   lastSeen: string;
 }
 
 export function AccountCard() {
-  const { data: session, update: updateSession } = useSession();  
+  const { data: session, update: updateSession } = useSession();
 
   const [profile, setProfile] = useState<ProfileData>({
     nickname: '',  // Leer initialisieren
@@ -83,7 +83,7 @@ export function AccountCard() {
     createdAt: new Date().toISOString(),
     lastSeen: new Date().toISOString(),
   });
-  
+
   const [activityLoading, setActivityLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -97,14 +97,14 @@ export function AccountCard() {
           console.log('Not authenticated, redirecting...');
           return;
         }
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch user data');
         }
 
         const userData = await response.json();
         console.log('Fetched user data:', userData);
-        
+
         setProfile(prev => ({
           ...prev,
           nickname: userData.username || userData.name || '',
@@ -130,22 +130,22 @@ export function AccountCard() {
       fetchUserData();
     }
   }, [session]);
-  
+
   // Separate effect for activity feed (lower priority)
   useEffect(() => {
     const fetchActivity = async () => {
       if (!session?.user || profileLoading) return;
-      
+
       try {
         setActivityLoading(true);
         const response = await fetch('/api/user/activity');
         if (!response.ok) {
           throw new Error('Failed to fetch activity');
         }
-        
+
         const data = await response.json();
         console.log('AccountCard: Received activities:', data.activities);
-        
+
         setProfile(prev => ({
           ...prev,
           recentActivity: data.activities || []
@@ -156,7 +156,7 @@ export function AccountCard() {
         setActivityLoading(false);
       }
     };
-    
+
     // Only fetch activity after profile data is loaded
     if (!profileLoading && session?.user) {
       fetchActivity();
@@ -179,12 +179,12 @@ export function AccountCard() {
         bio: profile.bio,
         email: profile.email
       };
-      
+
       console.log('Sending update:', updateData);
 
       const response = await fetch('/api/user', {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache'
         },
@@ -207,20 +207,34 @@ export function AccountCard() {
         bio: updatedData.bio || prev.bio
       }));
 
-      // Aktualisiere die Session
+      // Debug-Ausgabe vor der Session-Aktualisierung
+      console.log('Bio before update:', session.user.bio);
+      console.log('Bio from API response:', updatedData.bio);
+
+      // Aktualisiere die Session mit den Daten aus der API-Antwort
       await updateSession({
         ...session,
         user: {
           ...session.user,
           name: updatedData.username || session.user.name,
+          username: updatedData.username || session.user.username,
           email: updatedData.email || session.user.email,
-          bio: updatedData.bio || session.user.bio
+          bio: updatedData.bio // Verwende direkt die Antwort vom Server
         }
       });
 
+      // Debug-Ausgabe nach der Session-Aktualisierung
+      console.log('Session update completed');
+
+      // Überprüfe die aktualisierte Session nach einer kurzen Verzögerung
+      setTimeout(() => {
+        const updatedSession = session;
+        console.log('Updated session bio:', updatedSession?.user?.bio);
+      }, 500);
+
       // Zeige Erfolgsmeldung
       toast.success('Profile updated successfully');
-      
+
       // Beende den Bearbeitungsmodus
       setIsEditing(false);
     } catch (error) {
@@ -254,28 +268,28 @@ export function AccountCard() {
   // Rendering-Funktion für den Kommentarinhalt mit GIF-Support
   const renderCommentContent = (text: string) => {
     if (!text) return null;
-    
+
     // Einfacherer GIF-Platzhalter: [GIF:url]
     const gifRegex = /\[GIF:(https?:\/\/[^\]]+)\]/gi;
-    
+
     // Verbesserte Regex für URL-Erkennung - erfasst mehr Bildformate und URLs
     const urlRegex = /(https?:\/\/[^\s]+\.(gif|png|jpg|jpeg|webp|bmp))(?:\?[^\s]*)?/gi;
-    
+
     // Suche nach GIF-Platzhaltern und Standard-URLs
     const gifMatches = Array.from(text.matchAll(gifRegex) || []);
     const urlMatches = text.match(urlRegex) || [];
-    
+
     // Wenn weder GIFs noch Bilder gefunden wurden, gib den Text zurück
     if (gifMatches.length === 0 && urlMatches.length === 0) {
       return <span className="whitespace-pre-wrap">{text}</span>;
     }
-    
+
     // Ersetze GIF-Platzhalter und URLs mit Markierungen und teile den Text
     let processedText = text;
-    
+
     // Ersetze zuerst GIF-Platzhalter
     processedText = processedText.replace(gifRegex, '\n[gif-media]\n');
-    
+
     // Dann ersetze URL-Medien, aber nicht die, die bereits als GIF markiert sind
     const tempProcessedText = processedText;
     urlMatches.forEach(url => {
@@ -284,19 +298,19 @@ export function AccountCard() {
         processedText = processedText.replace(url, '\n[url-media]\n');
       }
     });
-    
+
     const textParts = processedText.split('\n');
     const result: ReactElement[] = [];
     let gifIndex = 0;
     let urlIndex = 0;
-    
+
     textParts.forEach((part, index) => {
       if (part === '[gif-media]') {
         if (gifIndex < gifMatches.length) {
           const match = gifMatches[gifIndex];
           const url = match[1];
           const isGiphy = url.includes('giphy.com');
-          
+
           result.push(
             <div key={`gif-${index}`} className="my-2">
               <Image
@@ -309,10 +323,10 @@ export function AccountCard() {
               />
               {isGiphy && (
                 <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                  <Image 
-                    src="/powered_by_giphy.png" 
-                    alt="Powered by GIPHY" 
-                    width={150} 
+                  <Image
+                    src="/powered_by_giphy.png"
+                    alt="Powered by GIPHY"
+                    width={150}
                     height={22}
                     unoptimized
                   />
@@ -325,11 +339,11 @@ export function AccountCard() {
       } else if (part === '[url-media]') {
         if (urlIndex < urlMatches.length) {
           // Überspringe URLs, die bereits als GIFs verarbeitet wurden
-          while (urlIndex < urlMatches.length && 
+          while (urlIndex < urlMatches.length &&
                  gifMatches.some(match => match[1] === urlMatches[urlIndex])) {
             urlIndex++;
           }
-          
+
           if (urlIndex < urlMatches.length) {
             const url = urlMatches[urlIndex];
             result.push(
@@ -351,20 +365,20 @@ export function AccountCard() {
         result.push(<span key={`text-${index}`} className="whitespace-pre-wrap">{part}</span>);
       }
     });
-    
+
     return <>{result}</>;
   };
 
   // Avatar-Handling-Funktion
   const handleAvatarChange = useCallback(async (newAvatarUrl: string | null) => {
     console.log('Avatar changed to:', newAvatarUrl);
-    
+
     // Set the new avatar URL in the profile
     setProfile(prev => ({
       ...prev,
       avatarUrl: newAvatarUrl
     }));
-    
+
     // Update the session to show the new avatar in the navbar
     if (session) {
       try {
@@ -375,10 +389,10 @@ export function AccountCard() {
             avatar: newAvatarUrl
           }
         });
-        
+
         // Löse ein explizites Event aus
         window.dispatchEvent(new CustomEvent('avatar-updated'));
-        
+
         // Warte kurz bevor eine Seiten-Aktualisierung erzwungen wird
         setTimeout(() => {
           toast.success('Avatar updated successfully');
@@ -396,7 +410,7 @@ export function AccountCard() {
     if (profile.avatarUrl) {
       return profile.avatarUrl;
     }
-    
+
     // Ansonsten generiere einen Standard-Avatar basierend auf dem Benutzernamen
     const username = profile.nickname || 'user';
     return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
@@ -413,7 +427,7 @@ export function AccountCard() {
             currentAvatar={profile.avatarUrl}
             onAvatarChanged={handleAvatarChange}
           />
-          
+
           {/* Edit Profile Button under Avatar */}
           <div className="space-y-1">
             {!isEditing ? (
@@ -447,7 +461,7 @@ export function AccountCard() {
             </Link>
           </div>
         </div>
-        
+
         {/* Profile Info */}
         <div className="flex-grow space-y-3">
           <div>
@@ -546,7 +560,7 @@ export function AccountCard() {
                     )
                   }
                   disabled={profile.privacySettings.isProfilePrivate}
-                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 
+                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600
                       text-purple-600 focus:ring-purple-500 dark:focus:ring-purple-600
                       dark:bg-gray-700 transition-colors cursor-pointer"
                   aria-label={`Show ${key.replace("show", "")}`}
@@ -560,7 +574,7 @@ export function AccountCard() {
             ))}
         </div>
       </div>
-      
+
       {/* Recent Activity with loading state */}
       <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400 mb-3 flex items-center justify-between">
@@ -604,7 +618,7 @@ export function AccountCard() {
                   {activity.content && activity.type === 'comment' && (
                     <div className="text-sm text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-900/30 p-2 rounded border border-gray-200 dark:border-gray-700">
                       {activity.content.length > 100 && !activity.content.includes('[GIF:')
-                        ? `${activity.content.substring(0, 100)}...` 
+                        ? `${activity.content.substring(0, 100)}...`
                         : renderCommentContent(activity.content)}
                     </div>
                   )}

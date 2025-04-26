@@ -57,7 +57,7 @@ const MOCK_COMMENTS: CommentData[] = Array.from({ length: 20 }, (_, i) => ({
       animate: true
     } : undefined
   },
-  text: i % 3 === 0 
+  text: i % 3 === 0
     ? "This is a longer comment that shows how multiple lines would look like in the comment section."
     : "Nice post!",
   post: {
@@ -73,7 +73,7 @@ const MOCK_COMMENTS: CommentData[] = Array.from({ length: 20 }, (_, i) => ({
   ...(i % 4 === 0 ? {
     replyTo: {
       id: `comment-${i-1}`,
-      user: { 
+      user: {
         name: `User${((i-1) % 5) || 5}`,
         isAnonymous: (i-1) % 3 === 0
       },
@@ -99,9 +99,9 @@ interface CommentListProps {
   infiniteScroll?: boolean;
 }
 
-export function CommentList({ 
-  postId, 
-  initialPage = 1, 
+export function CommentList({
+  postId,
+  initialPage = 1,
   limit = 10,
   status = 'approved',
   showModActions = false,
@@ -168,28 +168,28 @@ export function CommentList({
 
   const renderCommentContent = (text: string) => {
     if (!text) return null;
-    
+
     // Einfacherer GIF-Platzhalter: [GIF:url]
     const gifRegex = /\[GIF:(https?:\/\/[^\]]+)\]/gi;
-    
+
     // Verbesserte Regex für URL-Erkennung - erfasst mehr Bildformate und URLs
     const urlRegex = /(https?:\/\/[^\s]+\.(gif|png|jpg|jpeg|webp|bmp))(?:\?[^\s]*)?/gi;
-    
+
     // Suche nach GIF-Platzhaltern und Standard-URLs
     const gifMatches = Array.from(text.matchAll(gifRegex) || []);
     const urlMatches = text.match(urlRegex) || [];
-    
+
     // Wenn weder GIFs noch Bilder gefunden wurden, gib den Text zurück
     if (gifMatches.length === 0 && urlMatches.length === 0) {
       return <span className="whitespace-pre-wrap">{text}</span>;
     }
-    
+
     // Ersetze GIF-Platzhalter und URLs mit Markierungen und teile den Text
     let processedText = text;
-    
+
     // Ersetze zuerst GIF-Platzhalter
     processedText = processedText.replace(gifRegex, '\n[gif-media]\n');
-    
+
     // Dann ersetze URL-Medien, aber nicht die, die bereits als GIF markiert sind
     const tempProcessedText = processedText;
     urlMatches.forEach(url => {
@@ -198,21 +198,21 @@ export function CommentList({
         processedText = processedText.replace(url, '\n[url-media]\n');
       }
     });
-    
+
     const textParts = processedText.split('\n');
     const result: ReactElement[] = [];
     let gifIndex = 0;
     let urlIndex = 0;
-    
+
     textParts.forEach((part, index) => {
       if (part === '[gif-media]') {
         if (gifIndex < gifMatches.length) {
           const match = gifMatches[gifIndex];
           const url = match[1];
           const isGiphy = url.includes('giphy.com');
-          
+
           console.log(`Rendering GIF from placeholder: ${url}`);
-          
+
           result.push(
             <div key={`gif-${index}`} className="my-2">
               <Image
@@ -225,10 +225,10 @@ export function CommentList({
               />
               {isGiphy && (
                 <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                  <Image 
-                    src="/powered_by_giphy.png" 
-                    alt="Powered by GIPHY" 
-                    width={70} 
+                  <Image
+                    src="/powered_by_giphy.png"
+                    alt="Powered by GIPHY"
+                    width={70}
                     height={20}
                     unoptimized
                   />
@@ -241,18 +241,18 @@ export function CommentList({
       } else if (part === '[url-media]') {
         if (urlIndex < urlMatches.length) {
           // Überspringe URLs, die bereits als GIFs verarbeitet wurden
-          while (urlIndex < urlMatches.length && 
+          while (urlIndex < urlMatches.length &&
                  gifMatches.some(match => match[1] === urlMatches[urlIndex])) {
             urlIndex++;
           }
-          
+
           if (urlIndex < urlMatches.length) {
             const url = urlMatches[urlIndex];
             const cleanUrl = url.split('?')[0];
             const isGiphy = cleanUrl.includes('giphy.com');
-            
+
             console.log(`Rendering URL media: ${cleanUrl}`);
-            
+
             result.push(
               <div key={`media-${index}`} className="my-2">
                 <Image
@@ -265,10 +265,10 @@ export function CommentList({
                 />
                 {isGiphy && (
                   <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                    <Image 
-                      src="/powered_by_giphy.png" 
-                      alt="Powered by GIPHY" 
-                      width={150} 
+                    <Image
+                      src="/powered_by_giphy.png"
+                      alt="Powered by GIPHY"
+                      width={150}
                       height={22}
                       unoptimized
                     />
@@ -283,7 +283,7 @@ export function CommentList({
         result.push(<span key={`text-${index}`} className="whitespace-pre-wrap">{part}</span>);
       }
     });
-    
+
     return result;
   };
 
@@ -308,12 +308,12 @@ export function CommentList({
       if (!response.ok) throw new Error('Failed to fetch comments');
 
       const data = await response.json();
-      
+
       const processedComments = data.comments.map((comment: any) => ({
         ...comment,
         id: comment._id || comment.id
       }));
-      
+
       if (pageNum === 1) {
         setComments(processedComments);
       } else {
@@ -335,23 +335,23 @@ export function CommentList({
   useEffect(() => {
     // Nur verbinden, wenn postId definiert ist
     if (!postId) return;
-    
+
     // Vereinfache die Socket-ID - WICHTIG: Verwende eine einfache Zeichenkette als ID
     const socketId = `comments-${postId}`;
-    
+
     // Korrekt: Trenne die vorherige Verbindung (falls vorhanden)
     commentSocket.unsubscribe(socketId);
-    
+
     // Korrekt: Erstelle eine neue Verbindung mit einer separaten Callback-Funktion
     const handleCommentUpdate = (update: any) => {
       if (!update || typeof update !== 'object') return;
-      
+
       // Sichere Verarbeitung von WebSocket-Updates
       if (update.type === 'new' && update.data) {
         setComments(prev => [update.data, ...prev]);
-      } 
+      }
       else if (update.type === 'update' && update.data && update.commentId) {
-        setComments(prev => prev.map(comment => 
+        setComments(prev => prev.map(comment =>
           comment.id === update.commentId ? { ...comment, ...update.data } : comment
         ));
       }
@@ -360,7 +360,7 @@ export function CommentList({
       }
     };
 
-    commentSocket.subscribe(socketId, handleCommentUpdate);
+    commentSocket.subscribe(socketId, postId, handleCommentUpdate);
 
     return () => {
       commentSocket.unsubscribe(socketId);
@@ -389,7 +389,7 @@ export function CommentList({
       if (!response.ok) {
         throw new Error('Failed to report comment');
       }
-      
+
       return Promise.resolve();
     } catch (error) {
       console.error('Error reporting comment:', error);
@@ -402,10 +402,10 @@ export function CommentList({
       console.error('Cannot delete comment with undefined ID');
       return Promise.reject(new Error('Comment ID is required'));
     }
-    
+
     try {
       console.log(`Deleting comment with ID: ${commentId}`);
-      
+
       const response = await fetch(`/api/comments/${commentId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' }
@@ -416,12 +416,12 @@ export function CommentList({
         console.error(`Failed to delete comment: ${errorText}`);
         return Promise.reject(new Error(`Failed to delete comment: ${response.status}`));
       }
-      
+
       console.log('Comment deleted successfully');
-      
+
       // Entferne den Kommentar aus der UI
       setComments(prev => prev.filter(comment => comment.id !== commentId));
-      
+
       return Promise.resolve();
     } catch (error) {
       console.error('Error deleting comment:', error);
@@ -434,10 +434,10 @@ export function CommentList({
       console.error('Cannot delete comment with undefined ID');
       return Promise.reject(new Error('Comment ID is required for moderation delete'));
     }
-    
+
     try {
       console.log(`Moderator deleting comment with ID: ${commentId}`);
-      
+
       const response = await fetch(`/api/comments/${commentId}/modDelete`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' }
@@ -448,7 +448,7 @@ export function CommentList({
         console.error(`Failed to delete comment as moderator: ${errorText}`);
         throw new Error('Failed to delete comment as moderator');
       }
-      
+
       // Entferne den Kommentar aus der UI
       setComments(prev => prev.filter(comment => comment.id !== commentId));
     } catch (error) {
@@ -461,11 +461,11 @@ export function CommentList({
     if (!content.trim()) {
       return Promise.reject(new Error('Reply content cannot be empty'));
     }
-    
+
     try {
       // Wenn kein Benutzer eingeloggt ist, muss isAnonymous auf true gesetzt sein
       const effectiveIsAnonymous = !session?.user ? true : isAnonymous;
-      
+
       console.log('Posting reply with params:', { content, postId, replyTo: parentId, isAnonymous: effectiveIsAnonymous });
       const response = await fetch('/api/comments', {
         method: 'POST',
@@ -483,9 +483,9 @@ export function CommentList({
         console.error('Reply error response:', errorData);
         throw new Error('Failed to post reply');
       }
-      
+
       const savedReply = await response.json();
-      
+
       // Füge den neuen Kommentar am Anfang der Liste hinzu
       setComments(prev => [savedReply, ...prev]);
     } catch (error) {
@@ -497,13 +497,13 @@ export function CommentList({
   const handleSubmitComment = async () => {
     if ((!newComment.trim() && !selectedGif) || loading) return;
     setLoading(true);
-    
+
     try {
       let finalContent = newComment;
       if (selectedGif) {
         finalContent = finalContent.trim() + ` [GIF:${selectedGif.url}] `;
       }
-      
+
       const response = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -522,16 +522,16 @@ export function CommentList({
 
       const savedComment = await response.json();
       console.log('New comment saved:', savedComment);
-      
+
       // Sicherstellen, dass der neue Kommentar eine ID hat
       const processedComment = {
         ...savedComment,
         id: savedComment._id || savedComment.id // Verwende _id, wenn id nicht definiert ist
       };
-      
+
       // Füge den neuen Kommentar am Anfang der Liste hinzu
       setComments(prev => [processedComment, ...prev]);
-      
+
       // Zurücksetzen des Formulars
       setNewComment('');
       setSelectedGif(null);
@@ -551,11 +551,11 @@ export function CommentList({
       const hash = window.location.hash;
       if (hash && hash.startsWith('#comment-')) {
         const commentId = hash.substring('#comment-'.length);
-        
+
         // Check if the comment is loaded
-        const targetComment = comments.find(comment => 
+        const targetComment = comments.find(comment =>
           comment.id === commentId || comment._id === commentId);
-        
+
         if (targetComment) {
           // Scroll to the comment after a brief delay
           setTimeout(() => {
@@ -595,7 +595,7 @@ export function CommentList({
       <div className="space-y-4">
         {comments.map((comment, index) => {
           const uniqueId = `${comment.id || 'comment'}-${index}`;
-          
+
           // Erweiterte Normalisierung des Kommentar-Objekts für die Comment-Komponente
           const commentData = {
             id: comment.id || uniqueId, // Sicherstellen, dass id immer gesetzt ist
@@ -607,8 +607,8 @@ export function CommentList({
             },
             post: {
               // Stelle sicher, dass post.id korrekt ist
-              id: comment.post?._id || comment.post?.id || 
-                  (typeof comment.post === 'string' ? comment.post : '') || 
+              id: comment.post?._id || comment.post?.id ||
+                  (typeof comment.post === 'string' ? comment.post : '') ||
                   postId || '',
               title: comment.post?.title || '',
               // Numerische ID des Posts für die URL
@@ -624,7 +624,7 @@ export function CommentList({
               content: comment.replyTo.content || comment.replyTo.text || ''
             } : undefined
           };
-          
+
           return (
             <Comment
               key={`comment-${uniqueId}`}

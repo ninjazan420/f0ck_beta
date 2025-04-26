@@ -1,6 +1,7 @@
 import { CommentsPage } from "./components/CommentsPage";
 import { Metadata } from "next";
 import { siteConfig } from "../metadata";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: `Comments | ${siteConfig.name}`,
@@ -10,6 +11,14 @@ export const metadata: Metadata = {
   },
 };
 
+function CommentsPageFallback() {
+  return <div className="p-4 text-center">Loading comments...</div>;
+}
+
 export default function Comments() {
-  return <CommentsPage />;
+  return (
+    <Suspense fallback={<CommentsPageFallback />}>
+      <CommentsPage />
+    </Suspense>
+  );
 }
