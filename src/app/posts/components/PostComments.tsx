@@ -12,7 +12,7 @@ const DEFAULT_AVATAR = '/images/defaultavatar.png';
 
 interface Comment {
   id: string;
-  user: {      
+  user: {
     id: string | null;
     name: string;
     avatar: string | null;
@@ -83,7 +83,7 @@ export function PostComments({ postId }: PostCommentsProps) {
       if (hash && hash.startsWith('#comment-')) {
         const commentId = hash.replace('#comment-', '');
         setHighlightedCommentId(commentId);
-        
+
         // Scroll to the element after a short delay to ensure it's rendered
         setTimeout(() => {
           const element = document.getElementById(`comment-${commentId}`);
@@ -91,7 +91,7 @@ export function PostComments({ postId }: PostCommentsProps) {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }, 500);
-        
+
         // Clear the highlight after 3 seconds
         setTimeout(() => {
           setHighlightedCommentId(null);
@@ -113,7 +113,7 @@ export function PostComments({ postId }: PostCommentsProps) {
         console.error('Error fetching post status:', error);
       }
     }
-    
+
     fetchPostStatus();
   }, [postId]);
 
@@ -123,7 +123,7 @@ export function PostComments({ postId }: PostCommentsProps) {
     if (username === 'Anonymous') return '';
     return `/user/${username.toLowerCase()}`;
   };
-  
+
   // Role badge rendering function similar to UserProfile component
   const getRoleBadge = (role?: string) => {
     switch(role) {
@@ -158,7 +158,7 @@ export function PostComments({ postId }: PostCommentsProps) {
 
   const getNickStyle = (style?: { type: string; color?: string; gradient?: string[]; animate?: boolean }) => {
     if (!style) return '';
-    
+
     switch(style.type) {
       case 'solid':
         return `text-${style.color}`;
@@ -173,7 +173,7 @@ export function PostComments({ postId }: PostCommentsProps) {
 
   const getAvatarStyle = (style?: { type: string; color?: string; gradient?: string[]; animate?: boolean }) => {
     if (!style) return '';
-    
+
     switch(style.type) {
       case 'solid':
         return `ring-2 ring-${style.color}`;
@@ -189,24 +189,24 @@ export function PostComments({ postId }: PostCommentsProps) {
   const handleReply = async (commentId: string) => {
     if (!replyText.trim()) return;
     setIsSubmitting(true);
-    
+
     try {
       // Finde den Originalkommentar
       const originalComment = comments.find(c => c.id === commentId);
       if (!originalComment) {
         throw new Error('Original comment not found');
       }
-      
+
       // Explizit isAnonymous für nicht-eingeloggte Benutzer setzen
       const effectiveIsAnonymous = !session?.user ? true : isAnonymous;
-      
+
       console.log('Submitting reply:', {
         content: replyText,
         postId,
         replyTo: commentId,
         isAnonymous: effectiveIsAnonymous,
       });
-      
+
       // API-Aufruf zum Speichern des Kommentars
       const response = await fetch('/api/comments', {
         method: 'POST',
@@ -220,20 +220,20 @@ export function PostComments({ postId }: PostCommentsProps) {
           isAnonymous: effectiveIsAnonymous,
         }),
       });
-      
+
       if (!response.ok) {
         const error = await response.text();
         throw new Error(`Failed to post reply: ${error}`);
       }
-      
+
       // Antwort wurde erfolgreich gespeichert
       setReplyText('');
       setReplyToId(null);
-      
+
       // Aktualisiere die Kommentarliste
       console.log('Reply saved successfully, refreshing comments');
       setRefreshKey(prev => prev + 1);
-      
+
     } catch (error) {
       console.error('Error posting reply:', error);
       alert(`Failed to post reply: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -247,15 +247,15 @@ export function PostComments({ postId }: PostCommentsProps) {
     try {
       console.log(`Fetching comments for postId: ${postId}`);
       const response = await fetch(`/api/comments?postId=${postId}&page=1&limit=50`);
-      
+
       if (!response.ok) {
         console.error(`Failed to fetch comments: ${response.status} ${response.statusText}`);
         throw new Error('Failed to fetch comments');
       }
-      
+
       const responseText = await response.text();
       console.log(`Comments API response: ${responseText.substring(0, 200)}...`);
-      
+
       let data;
       try {
         data = JSON.parse(responseText);
@@ -263,18 +263,18 @@ export function PostComments({ postId }: PostCommentsProps) {
         console.error('Failed to parse comments response:', parseError);
         throw new Error('Failed to parse server response');
       }
-      
+
       console.log(`Received ${data.comments.length} comments`);
-      
+
       // Formatiere die Kommentare
       const formattedComments: Comment[] = data.comments.map((comment: any) => {
         console.log('Processing comment:', comment);
-        
+
         // Prüfen, ob der Kommentar vom aktuellen Benutzer stammt, um Edit/Delete-Buttons anzuzeigen
-        const isFromCurrentUser = session?.user && 
-          (comment.author?._id === session.user.id || 
+        const isFromCurrentUser = session?.user &&
+          (comment.author?._id === session.user.id ||
            comment.author?.id === session.user.id);
-        
+
         return {
           id: comment._id || comment.id,
           user: {
@@ -306,7 +306,7 @@ export function PostComments({ postId }: PostCommentsProps) {
           } : {})
         };
       });
-      
+
       setComments(formattedComments);
     } catch (error) {
       console.error('Error fetching comments:', error);
@@ -314,7 +314,7 @@ export function PostComments({ postId }: PostCommentsProps) {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchComments();
   }, [postId, refreshKey]);
@@ -347,13 +347,13 @@ export function PostComments({ postId }: PostCommentsProps) {
               name: savedComment.replyTo.author?.username || 'Anonymous',
               isAnonymous: !savedComment.replyTo.author
             },
-            preview: typeof savedComment.replyTo.content === 'string' 
-              ? savedComment.replyTo.content.substring(0, 100) 
+            preview: typeof savedComment.replyTo.content === 'string'
+              ? savedComment.replyTo.content.substring(0, 100)
               : "..."
           }
         } : {})
       };
-      
+
       // Füge den neuen Kommentar an den Anfang der Liste
       setComments(prev => [formattedComment, ...prev]);
     } catch (error) {
@@ -361,58 +361,80 @@ export function PostComments({ postId }: PostCommentsProps) {
     }
   };
 
-  // Verbessere die handleInputChange Funktion
+  // Verbesserte handleInputChange Funktion mit Zeichenlimit-Prüfung
   const handleInputChange = useCallback(async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
     const isReplyMode = !!replyToId;
-    
+
+    // Prüfe Zeichenlimit von 500
+    if (text.length > 500) {
+      // Kürze den Text auf 500 Zeichen
+      const truncatedText = text.substring(0, 500);
+
+      if (isReplyMode) {
+        setReplyText(truncatedText);
+      } else {
+        setNewComment(truncatedText);
+      }
+
+      // Setze den Cursor an die richtige Position
+      setTimeout(() => {
+        if (e.target) {
+          e.target.setSelectionRange(500, 500);
+        }
+      }, 0);
+
+      return;
+    }
+
     if (isReplyMode) {
       setReplyText(text);
     } else {
       setNewComment(text);
     }
-    
+
     // Debug-Ausgabe zurücksetzen
     setMentionError(null);
-    
+
     // @-Erwähnungen verarbeiten
     const cursorPosition = e.target.selectionStart || 0;
     const textUpToCursor = text.substring(0, cursorPosition);
-    
+
     // Finde den letzten @-Erwähnungs-Anfang vor dem Cursor
     const lastAtSymbol = textUpToCursor.lastIndexOf('@');
-    
+
     if (lastAtSymbol >= 0) {
       console.log("@ Symbol gefunden an Position:", lastAtSymbol);
-      
+
       // Prüfen, ob vor dem @ ein Leerzeichen oder der Textanfang ist
-      const isValidMentionStart = lastAtSymbol === 0 || 
-                               /\s/.test(textUpToCursor[lastAtSymbol - 1]) || 
+      const isValidMentionStart = lastAtSymbol === 0 ||
+                               /\s/.test(textUpToCursor[lastAtSymbol - 1]) ||
                                textUpToCursor[lastAtSymbol - 1] === '\n';
-      
+
       const textBetweenAtAndCursor = textUpToCursor.substring(lastAtSymbol + 1);
       const hasSpace = /\s/.test(textBetweenAtAndCursor);
-      
+
       setMentionSearchDebug(`@-Text: "${textBetweenAtAndCursor}", Valid: ${isValidMentionStart}, HasSpace: ${hasSpace}`);
-      
+
       if (isValidMentionStart && !hasSpace) {
         setMentionSearch(textBetweenAtAndCursor);
         console.log("Suche nach:", textBetweenAtAndCursor);
-        
+
         // Position für den Vorschlagsblock berechnen
         if (commentInputRef.current) {
           const textarea = commentInputRef.current;
           const textareaRect = textarea.getBoundingClientRect();
-          
-          // Einfachere Positionierung - direkt unter dem Cursor
+
+          // Verbesserte Positionierung - direkt unter dem Cursor
           const cursorCoords = getCaretCoordinates(textarea, textarea.selectionStart || 0);
-          
+
+          // Berechne die absolute Position im Viewport
           setMentionPosition({
             top: cursorCoords.top + cursorCoords.height,
             left: cursorCoords.left
           });
         }
-        
+
         try {
           // Benutzer suchen
           if (textBetweenAtAndCursor.length > 0) {
@@ -437,32 +459,41 @@ export function PostComments({ postId }: PostCommentsProps) {
         return;
       }
     }
-    
+
     // Wenn kein gültiges @-Muster gefunden wurde, Mentions-UI zurücksetzen
     setMentionSearch(null);
     setMentionUsers([]);
   }, [replyToId]);
 
-  // Funktion zur Berechnung der Cursor-Position hinzufügen
+  // Verbesserte Funktion zur Berechnung der Cursor-Position
   function getCaretCoordinates(element: HTMLTextAreaElement, position: number) {
-    const { offsetLeft: elementX, offsetTop: elementY } = element;
+    // Erstelle ein temporäres Element mit den gleichen Styles
     const div = document.createElement('div');
     const style = div.style;
     const computed = getComputedStyle(element);
 
+    // Kopiere die wichtigen Styles für die Textdarstellung
     style.whiteSpace = 'pre-wrap';
     style.wordWrap = 'break-word';
     style.position = 'absolute';
     style.visibility = 'hidden';
     style.overflow = 'hidden';
-    
-    // Kopiere relevante Styles
+    style.width = computed.width;
+    style.height = 'auto';
+    style.fontSize = computed.fontSize;
+    style.fontFamily = computed.fontFamily;
+    style.lineHeight = computed.lineHeight;
+    style.padding = computed.padding;
+    style.border = computed.border;
+    style.boxSizing = computed.boxSizing;
+
+    // Kopiere weitere relevante Styles
     const properties = [
-      'direction', 'boxSizing', 'width', 'height', 'overflowX', 'overflowY',
+      'direction', 'overflowX', 'overflowY',
       'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
       'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
-      'fontStyle', 'fontVariant', 'fontWeight', 'fontStretch', 'fontSize',
-      'fontSizeAdjust', 'lineHeight', 'fontFamily', 'textAlign', 'textTransform',
+      'fontStyle', 'fontVariant', 'fontWeight', 'fontStretch',
+      'fontSizeAdjust', 'textAlign', 'textTransform',
       'textIndent', 'textDecoration', 'letterSpacing', 'wordSpacing'
     ];
 
@@ -470,24 +501,32 @@ export function PostComments({ postId }: PostCommentsProps) {
       style[prop as any] = computed[prop as any];
     });
 
+    // Füge das Element zum DOM hinzu
     document.body.appendChild(div);
-    
+
+    // Teile den Text an der Cursor-Position
     const text = element.value.substring(0, position);
     const textNode = document.createTextNode(text);
     const span = document.createElement('span');
     span.appendChild(document.createTextNode(element.value.substring(position) || '.'));
-    
+
     div.appendChild(textNode);
     div.appendChild(span);
-    
+
+    // Berechne die Position relativ zum Viewport
+    const elementRect = element.getBoundingClientRect();
+    const spanRect = span.getBoundingClientRect();
+
+    // Berechne die Position relativ zum Textarea
     const coordinates = {
-      top: span.offsetTop + elementY,
-      left: span.offsetLeft + elementX,
+      top: span.offsetTop + parseInt(computed.paddingTop) + element.scrollTop,
+      left: span.offsetLeft + parseInt(computed.paddingLeft),
       height: parseInt(computed.lineHeight)
     };
-    
+
+    // Entferne das temporäre Element
     document.body.removeChild(div);
-    
+
     return coordinates;
   }
 
@@ -496,23 +535,23 @@ export function PostComments({ postId }: PostCommentsProps) {
     const isReplyMode = !!replyToId;
     const currentText = isReplyMode ? replyText : newComment;
     const cursorPosition = commentInputRef.current?.selectionStart || 0;
-    
+
     // Finde den @-Text und ersetze ihn durch den vollständigen Benutzernamen
     const textUpToCursor = currentText.substring(0, cursorPosition);
     const lastAtSymbol = textUpToCursor.lastIndexOf('@');
-    
+
     if (lastAtSymbol >= 0) {
-      const newText = 
-        currentText.substring(0, lastAtSymbol) + 
-        `@${user.username} ` + 
+      const newText =
+        currentText.substring(0, lastAtSymbol) +
+        `@${user.username} ` +
         currentText.substring(cursorPosition);
-      
+
       if (isReplyMode) {
         setReplyText(newText);
       } else {
         setNewComment(newText);
       }
-      
+
       // Setze den Cursor nach dem eingefügten Benutzernamen
       setTimeout(() => {
         if (commentInputRef.current) {
@@ -522,18 +561,18 @@ export function PostComments({ postId }: PostCommentsProps) {
         }
       }, 0);
     }
-    
+
     setMentionSearch(null);
     setMentionUsers([]);
   };
-  
+
   // Taste für Erwähnungsauswahl
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Wenn Mentions-Vorschläge angezeigt werden
     if (mentionUsers.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setHighlightedMentionIndex(prev => 
+        setHighlightedMentionIndex(prev =>
           prev < mentionUsers.length - 1 ? prev + 1 : prev
         );
       } else if (e.key === 'ArrowUp') {
@@ -553,18 +592,18 @@ export function PostComments({ postId }: PostCommentsProps) {
   const handleSubmitComment = async () => {
     if (!newComment.trim()) return;
     setIsSubmitting(true);
-    
+
     try {
       // Stelle sicher, dass eingeloggte Benutzer nicht unbeabsichtigt als anonym markiert werden
       const effectiveIsAnonymous = !session?.user ? true : isAnonymous;
-      
+
       console.log('Submitting comment:', {
         content: newComment,
         postId,
         isAnonymous: effectiveIsAnonymous,
         session: session ? 'User is logged in' : 'No session'
       });
-      
+
       // API-Aufruf zum Speichern des Kommentars
       const response = await fetch('/api/comments', {
         method: 'POST',
@@ -577,22 +616,22 @@ export function PostComments({ postId }: PostCommentsProps) {
           isAnonymous: effectiveIsAnonymous,
         }),
       });
-      
+
       const responseText = await response.text();
       console.log('Response text:', responseText);
-      
+
       if (!response.ok) {
         throw new Error(`Server responded with ${response.status}: ${responseText}`);
       }
-      
+
       try {
         // Parse der Antwort
         const savedComment = JSON.parse(responseText);
         console.log('Parsed comment response:', savedComment);
-        
+
         // Füge den neuen Kommentar zur Liste hinzu
         addNewComment(savedComment);
-        
+
         // Leere das Formular
         setNewComment('');
       } catch (parseError) {
@@ -635,7 +674,7 @@ export function PostComments({ postId }: PostCommentsProps) {
   const handleGifSelect = (gifUrl: string) => {
     // Entferne die zusätzlichen Parameter aus der GIF-URL
     const cleanGifUrl = gifUrl.split('?')[0];
-    
+
     if (replyToId) {
       setReplyText(text => text.trim() + ' ' + cleanGifUrl + ' ');
       setShowReplyGifSelector(false);
@@ -652,7 +691,7 @@ export function PostComments({ postId }: PostCommentsProps) {
     const textParts = text.replace(urlRegex, '\n[media]\n').split('\n');
     const result: ReactElement[] = [];
     let mediaIndex = 0;
-    
+
     textParts.forEach((part, index) => {
       if (part === '[media]') {
         if (matches[mediaIndex]) {
@@ -670,10 +709,10 @@ export function PostComments({ postId }: PostCommentsProps) {
               />
               {isGiphy && (
                 <div className="text-[10px] text-gray-400 dark:text-gray-500 opacity-50 mt-0.5 pl-1">
-                  <Image 
-                    src="/powered_by_giphy.png" 
-                    alt="Powered by GIPHY" 
-                    width={150} 
+                  <Image
+                    src="/powered_by_giphy.png"
+                    alt="Powered by GIPHY"
+                    width={150}
                     height={22}
                     unoptimized
                   />
@@ -687,7 +726,7 @@ export function PostComments({ postId }: PostCommentsProps) {
         result.push(<span key={`text-${index}`} className="whitespace-pre-wrap">{part}</span>);
       }
     });
-    
+
     return result;
   };
 
@@ -697,10 +736,10 @@ export function PostComments({ postId }: PostCommentsProps) {
       console.error('Cannot delete comment with undefined ID');
       return;
     }
-    
+
     try {
       console.log(`Deleting comment with ID: ${commentId}`);
-      
+
       const response = await fetch(`/api/comments/${commentId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' }
@@ -711,9 +750,9 @@ export function PostComments({ postId }: PostCommentsProps) {
         console.error(`Failed to delete comment: ${errorText}`);
         throw new Error(`Failed to delete comment: ${response.status}`);
       }
-      
+
       console.log('Comment deleted successfully');
-      
+
       // Entferne den Kommentar aus der UI
       setComments(prev => prev.filter(comment => comment.id !== commentId));
     } catch (error) {
@@ -735,10 +774,10 @@ export function PostComments({ postId }: PostCommentsProps) {
       console.error('Cannot edit comment: Missing ID or content');
       return;
     }
-    
+
     try {
       console.log(`Editing comment with ID: ${editCommentId}`);
-      
+
       const response = await fetch(`/api/comments/${editCommentId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -752,17 +791,17 @@ export function PostComments({ postId }: PostCommentsProps) {
         console.error(`Failed to update comment: ${errorText}`);
         throw new Error(`Failed to update comment: ${response.status}`);
       }
-      
+
       const updatedComment = await response.json();
       console.log('Comment updated successfully:', updatedComment);
-      
+
       // Aktualisiere den Kommentar in der UI
-      setComments(prev => prev.map(comment => 
-        comment.id === editCommentId 
-          ? { ...comment, text: editCommentText } 
+      setComments(prev => prev.map(comment =>
+        comment.id === editCommentId
+          ? { ...comment, text: editCommentText }
           : comment
       ));
-      
+
       // Zurücksetzen des Bearbeitungsmodus
       setEditCommentId(null);
       setEditCommentText('');
@@ -785,7 +824,7 @@ export function PostComments({ postId }: PostCommentsProps) {
           console.error("Failed to fetch initial users:", error);
         }
       };
-      
+
       // Initialisierung nur bei Bedarf ausführen
       commentInputRef.current.addEventListener('focus', () => {
         if (mentionUsers.length === 0) {
@@ -798,13 +837,13 @@ export function PostComments({ postId }: PostCommentsProps) {
   // Für das visuelle Feedback in Echtzeit
   const formatTextWithMentions = (text: string) => {
     if (!text) return null;
-    
+
     // Ersetze @username mit einer hervorgehobenen Version
     const mentionRegex = /@([a-zA-Z0-9_]+)/g;
     const parts = text.split(mentionRegex);
-    
+
     if (parts.length <= 1) return text;
-    
+
     // Erstelle formatierte Vorschau
     const formattedPreview = [];
     for (let i = 0; i < parts.length; i++) {
@@ -817,7 +856,7 @@ export function PostComments({ postId }: PostCommentsProps) {
         formattedPreview.push(`<span class="mention">@${username}</span>`);
       }
     }
-    
+
     return formattedPreview.join('');
   };
 
@@ -836,7 +875,7 @@ export function PostComments({ postId }: PostCommentsProps) {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Comments</h2>
-      
+
       {commentsDisabled ? (
         <div className="p-4 bg-red-50/50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800/30">
           <div className="flex items-center gap-3">
@@ -872,15 +911,15 @@ export function PostComments({ postId }: PostCommentsProps) {
           )}
         </>
       )}
-      
+
       {/* Kommentarliste - diese wird auch angezeigt, wenn Kommentare deaktiviert sind */}
-      <CommentList 
-        postId={postId} 
-        limit={10} 
+      <CommentList
+        postId={postId}
+        limit={10}
         showModActions={true}
         infiniteScroll={true}
       />
-      
+
       <div className="mt-4 relative">
         <textarea
           ref={commentInputRef}
@@ -891,7 +930,7 @@ export function PostComments({ postId }: PostCommentsProps) {
           className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
           rows={4}
         />
-        
+
         {/* Debug-Anzeige (nur während der Entwicklung) */}
         {process.env.NODE_ENV !== 'production' && (
           <div className="text-xs text-gray-500 mt-1">
@@ -900,7 +939,7 @@ export function PostComments({ postId }: PostCommentsProps) {
             <div>Vorschläge: {mentionUsers.length}</div>
           </div>
         )}
-        
+
         {/* Erwähnung wird eingegeben - zeige Vorschläge */}
         {mentionSearch !== null && mentionUsers.length > 0 && (
           <div
@@ -908,7 +947,11 @@ export function PostComments({ postId }: PostCommentsProps) {
               position: 'absolute',
               top: (mentionPosition?.top || 40) + 'px',
               left: (mentionPosition?.left || 10) + 'px',
-              zIndex: 50
+              zIndex: 50,
+              maxHeight: '300px',
+              overflowY: 'auto',
+              width: 'auto',
+              maxWidth: '90%'
             }}
             className="mention-selector-container"
           >
@@ -923,10 +966,10 @@ export function PostComments({ postId }: PostCommentsProps) {
             />
           </div>
         )}
-        
+
         {/* Keine Ergebnisse gefunden */}
         {mentionSearch !== null && mentionUsers.length === 0 && mentionSearch.length > 0 && (
-          <div 
+          <div
             style={{
               position: 'absolute',
               top: (mentionPosition?.top || 40) + 'px',
@@ -939,7 +982,7 @@ export function PostComments({ postId }: PostCommentsProps) {
           </div>
         )}
       </div>
-      
+
       {/* Füge diese JSX-Elemente unter der Textarea hinzu */}
       {showPreview && (
         <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">

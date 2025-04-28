@@ -19,11 +19,14 @@ export function PostsPage() {
   const [showFeedback, setShowFeedback] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
 
   // Get current page from URL or default to 1
-  const initialPage = searchParams.get('offset')
-    ? Math.floor(parseInt(searchParams.get('offset') || '0') / POSTS_PER_PAGE) + 1
-    : 1;
+  const getPageFromUrl = () => {
+    const offsetParam = searchParams.get('offset');
+    return offsetParam
+      ? Math.floor(parseInt(offsetParam || '0') / POSTS_PER_PAGE) + 1
+      : 1;
+  };
 
-  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [currentPage, setCurrentPage] = useState(getPageFromUrl());
 
   // Initialen Zustand mit leeren Werten festlegen
   const [filters, setFilters] = useState({
@@ -68,13 +71,14 @@ export function PostsPage() {
     }
   }, [searchParams]);
 
-  // Fügen Sie einen neuen useEffect hinzu, der die Seitennavigation überwacht
+  // Vereinfachte Überwachung von URL-Änderungen für Seitennavigation und Tags
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const handleRouteChange = () => {
         const params = new URLSearchParams(window.location.search);
-        const tagParam = params.get('tag');
 
+        // Überprüfe Tags
+        const tagParam = params.get('tag');
         if (tagParam) {
           // Wenn wir einen Tag in der URL haben, stellen Sie sicher, dass er angewendet wird
           console.log('Route changed with tag:', tagParam);
@@ -101,27 +105,56 @@ export function PostsPage() {
         }
       };
 
+      // Reagiere auf Browser-Navigationsereignisse (zurück/vorwärts)
       window.addEventListener('popstate', handleRouteChange);
+
       return () => window.removeEventListener('popstate', handleRouteChange);
     }
   }, [filters.tags]);
 
-  // Update URL when page changes
+  // Überwache searchParams für Änderungen der Seite - vereinfacht
+  useEffect(() => {
+    // Aktualisiere die Seite, wenn sich die URL ändert
+    const newPage = getPageFromUrl();
+    if (newPage !== currentPage) {
+      console.log(`Page changed from searchParams: ${currentPage} -> ${newPage}`);
+      setCurrentPage(newPage);
+    }
+  }, [searchParams]);
+
+  // Update URL when page changes - vereinfacht
   useEffect(() => {
     if (typeof window !== 'undefined' && !infiniteScroll) {
-      const params = new URLSearchParams(window.location.search);
-      const offset = (currentPage - 1) * POSTS_PER_PAGE;
+      try {
+        // Verhindere unnötige URL-Updates, wenn die Seite bereits in der URL ist
+        const currentOffset = searchParams.get('offset');
+        const newOffset = (currentPage - 1) * POSTS_PER_PAGE;
 
-      if (offset === 0) {
-        params.delete('offset');
-      } else {
-        params.set('offset', offset.toString());
+        // Nur aktualisieren, wenn sich der Offset tatsächlich geändert hat
+        if ((currentOffset === null && newOffset > 0) ||
+            (currentOffset !== null && parseInt(currentOffset) !== newOffset)) {
+
+          const params = new URLSearchParams(window.location.search);
+
+          if (newOffset === 0) {
+            params.delete('offset');
+          } else {
+            params.set('offset', newOffset.toString());
+          }
+
+          const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+
+          // Verwende replaceState statt pushState, um keinen neuen Eintrag in der Browser-Historie zu erstellen
+          // Dies verhindert, dass zu viele Einträge in der Historie entstehen
+          window.history.replaceState({ path: newUrl }, '', newUrl);
+
+          console.log(`URL updated for page ${currentPage}, offset ${newOffset}`);
+        }
+      } catch (error) {
+        console.error("Error updating URL:", error);
       }
-
-      const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
-      window.history.replaceState({ path: newUrl }, '', newUrl);
     }
-  }, [currentPage, infiniteScroll]);
+  }, [currentPage, infiniteScroll, searchParams]);
 
   // Verbesserte Initialisierung der Filter
   useEffect(() => {

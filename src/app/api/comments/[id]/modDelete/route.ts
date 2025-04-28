@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db/mongodb';
 import Comment from '@/models/Comment';
 import User from '@/models/User';
 import mongoose from 'mongoose';
+import { CommentStatsService } from '@/lib/services/commentStatsService';
 
 // DELETE /api/comments/[id]/modDelete
 export async function DELETE(
@@ -70,12 +71,19 @@ export async function DELETE(
       );
     }
 
+    // Speichere die Post-ID und Autor-ID, bevor der Kommentar gelöscht wird
+    const postId = comment.post;
+    const authorId = comment.author;
+
     // Kommentar löschen
     await Comment.findByIdAndDelete(id);
-    
+
+    // Aktualisiere die Statistiken
+    await CommentStatsService.updateStatsAfterCommentDeletion(id, postId, authorId);
+
     // Aktivität protokollieren
     try {
-      const ModerationActivity = mongoose.models.ModerationActivity || 
+      const ModerationActivity = mongoose.models.ModerationActivity ||
         mongoose.model('ModerationActivity', new mongoose.Schema({
           action: String,
           targetType: String,
@@ -84,7 +92,7 @@ export async function DELETE(
           reason: String,
           createdAt: { type: Date, default: Date.now }
         }));
-      
+
       await ModerationActivity.create({
         action: 'delete',
         targetType: 'comment',
@@ -98,9 +106,9 @@ export async function DELETE(
       // Fehlgeschlagene Protokollierung sollte den Löschvorgang nicht beeinträchtigen
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: 'Comment deleted by moderator' 
+      message: 'Comment deleted by moderator'
     });
   } catch (error) {
     console.error('Error in moderator delete comment:', error);
@@ -109,4 +117,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}

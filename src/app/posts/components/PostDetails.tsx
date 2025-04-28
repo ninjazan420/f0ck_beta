@@ -129,7 +129,7 @@ export function PostDetails({ postId }: { postId: string }) {
   const [loading, setLoading] = useState(true);
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
-  
+
   // Zustände für Kommentare
   const { data: session } = useSession();
   const [newComment, setNewComment] = useState('');
@@ -148,7 +148,7 @@ export function PostDetails({ postId }: { postId: string }) {
   useEffect(() => {
     setIsAnonymous(!session?.user);
   }, [session]);
-  
+
   // Funktionen für Kommentare
   const handleEmojiSelect = (emoji: string) => {
     const textarea = document.querySelector('textarea') as HTMLTextAreaElement;
@@ -171,13 +171,13 @@ export function PostDetails({ postId }: { postId: string }) {
   const handleSubmitComment = async () => {
     if ((!newComment.trim() && !selectedGif) || isSubmitting) return;
     setIsSubmitting(true);
-    
+
     try {
       let finalContent = newComment;
       if (selectedGif) {
         finalContent = finalContent.trim() + ` [GIF:${selectedGif.url}] `;
       }
-      
+
       const response = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -202,10 +202,10 @@ export function PostDetails({ postId }: { postId: string }) {
       setNewComment('');
       setSelectedGif(null);
       setShowPreview(false);
-      
+
       // Nur die Kommentarliste aktualisieren
       setRefreshComments(prev => prev + 1);
-      
+
     } catch (error) {
       console.error('Error posting comment:', error);
       alert('Failed to post comment. Please try again later.');
@@ -217,7 +217,7 @@ export function PostDetails({ postId }: { postId: string }) {
   // Renderung von Kommentarinhalten mit GIFs und Links
   const renderCommentContent = (text: string) => {
     if (!text) return null;
-    
+
     // GIF-Vorschau anzeigen, wenn vorhanden
     if (selectedGif) {
       return (
@@ -241,7 +241,7 @@ export function PostDetails({ postId }: { postId: string }) {
         </div>
       );
     }
-    
+
     // Einfacher Text für die Vorschau
     return <span className="whitespace-pre-wrap">{text}</span>;
   };
@@ -261,10 +261,10 @@ export function PostDetails({ postId }: { postId: string }) {
 
       // Determine the new vote state
       const newVoteState = userVote === voteType ? null : voteType;
-      
+
       // Update UI optimistically
       setUserVote(newVoteState);
-      
+
       // Update stats based on what changed
       if (previousVote === 'like' && newVoteState === null) {
         // Removing a like
@@ -340,7 +340,7 @@ export function PostDetails({ postId }: { postId: string }) {
       }
 
       const data = await response.json();
-      
+
       // Update with server data
       setPost(prev => prev ? {
         ...prev,
@@ -351,11 +351,11 @@ export function PostDetails({ postId }: { postId: string }) {
         }
       } : null);
       setUserVote(data.userVote);
-      
+
     } catch (error) {
       console.error('Error submitting vote:', error);
       toast.error('Error updating vote');
-      
+
       // Restore previous state on error
       setUserVote(userVote);
       setPost(post);
@@ -372,7 +372,7 @@ export function PostDetails({ postId }: { postId: string }) {
     // Optimistisches Update
     const wasFavorited = isFavorited;
     setIsFavorited(!wasFavorited);
-    
+
     // Aktualisiere die Statistik entsprechend
     setPost(prev => prev ? {
       ...prev,
@@ -408,7 +408,7 @@ export function PostDetails({ postId }: { postId: string }) {
     } catch (error) {
       console.error('Error updating favorite status:', error);
       toast.error('Fehler beim Aktualisieren der Favoriten');
-      
+
       // Bei Fehler den ursprünglichen Zustand wiederherstellen
       setIsFavorited(wasFavorited);
       setPost(prev => prev ? {
@@ -462,7 +462,7 @@ export function PostDetails({ postId }: { postId: string }) {
           setLoading(false);
           return;
         }
-        
+
         const data = await response.json();
         console.log("Fetched post data:", data); // Debugging log
         setPost(data);
@@ -473,7 +473,7 @@ export function PostDetails({ postId }: { postId: string }) {
         setLoading(false);
       }
     }
-    
+
     fetchPostDetails();
   }, [postId]);
 
@@ -490,7 +490,7 @@ export function PostDetails({ postId }: { postId: string }) {
         console.error('Error fetching post status:', error);
       }
     }
-    
+
     fetchPostStatus();
   }, [postId]);
 
@@ -508,7 +508,7 @@ export function PostDetails({ postId }: { postId: string }) {
           console.error('Error loading user interactions:', error);
         }
       }
-      
+
       loadUserInteractions();
     }
   }, [session, postId, post]);
@@ -545,19 +545,19 @@ export function PostDetails({ postId }: { postId: string }) {
   }
 
   // Extrahieren der Tag-Namen für den TagEditor
-  const tagNames = Array.isArray(post.tags) 
+  const tagNames = Array.isArray(post.tags)
     ? post.tags.map(tag => typeof tag === 'string' ? tag : tag.name)
     : [];
 
   return (
     <div className="space-y-6">
       {/* StatusBanner einbinden */}
-      <StatusBanner 
+      <StatusBanner
         show={showStatusBanner}
         message={statusMessage}
-        type="success" 
+        type="success"
       />
-      
+
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr,300px] gap-6">
         {/* Left Column - Image and Comments */}
@@ -590,11 +590,11 @@ export function PostDetails({ postId }: { postId: string }) {
                 />
               </div>
             )}
-            
+
             {/* Content Rating Badge */}
             <div className="absolute top-4 right-4 z-10">
               <span className={`px-2 py-1 rounded text-xs font-medium ${
-                post.contentRating === 'safe' 
+                post.contentRating === 'safe'
                   ? 'bg-green-500/40 text-white border border-green-500/50'
                   : post.contentRating === 'sketchy'
                     ? 'bg-yellow-500/40 text-white border border-yellow-500/50'
@@ -608,7 +608,7 @@ export function PostDetails({ postId }: { postId: string }) {
           {/* Comments Section */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Comments</h2>
-            
+
             {/* Kommentarbox oder Hinweis, je nach Status */}
             {commentsDisabled ? (
               <div className="p-4 bg-red-50/50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800/30 my-4">
@@ -663,7 +663,7 @@ export function PostDetails({ postId }: { postId: string }) {
                     )}
                   </div>
                 </div>
-                
+
                 {showPreview ? (
                   <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 min-h-[100px] mb-3">
                     {renderCommentContent(newComment)}
@@ -677,7 +677,7 @@ export function PostDetails({ postId }: { postId: string }) {
                       className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 resize-none text-sm"
                       rows={5}
                     />
-                    
+
                     {/* GIF-Vorschau */}
                     {selectedGif && (
                       <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 max-w-sm">
@@ -696,12 +696,12 @@ export function PostDetails({ postId }: { postId: string }) {
                     )}
                   </div>
                 )}
-                
+
                 <div className="flex justify-between items-center mt-3">
                   <div className="text-xs text-gray-500">
                     {newComment.length}/500 characters
                   </div>
-                  
+
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -742,14 +742,14 @@ export function PostDetails({ postId }: { postId: string }) {
                     </button>
                   </div>
                 </div>
-                
+
                 {showEmojiPicker && (
                   <EmojiPicker
                     onSelect={handleEmojiSelect}
                     onClose={() => setShowEmojiPicker(false)}
                   />
                 )}
-                
+
                 {showGifSelector && (
                   <GifSelector
                     onSelect={handleGifSelect}
@@ -758,10 +758,10 @@ export function PostDetails({ postId }: { postId: string }) {
                 )}
               </div>
             )}
-            
-            <CommentList 
-              postId={postId} 
-              status="approved" 
+
+            <CommentList
+              postId={postId}
+              status="approved"
               limit={20}
               key={`comments-${refreshComments}`}
             />
@@ -778,11 +778,11 @@ export function PostDetails({ postId }: { postId: string }) {
                 <Link href={`/user/${post.uploader.name}`} className="flex-shrink-0">
                   <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                     {post.uploader.avatar ? (
-                      <Image 
-                        src={getImageUrlWithCacheBuster(post.uploader.avatar)} 
-                        alt={post.uploader.name} 
-                        width={64} 
-                        height={64} 
+                      <Image
+                        src={getImageUrlWithCacheBuster(post.uploader.avatar)}
+                        alt={post.uploader.name}
+                        width={64}
+                        height={64}
                         className="object-cover w-full h-full"
                       />
                     ) : (
@@ -799,7 +799,7 @@ export function PostDetails({ postId }: { postId: string }) {
                   </div>
                 </div>
               )}
-              
+
               {/* User info column */}
               <div className="flex-1">
                 <div className="flex items-center gap-2">
@@ -814,14 +814,14 @@ export function PostDetails({ postId }: { postId: string }) {
                   )}
                   {post.uploader.name !== 'Anonymous' && getRoleBadge(post.uploader.admin, post.uploader.moderator, post.uploader.premium)}
                 </div>
-                
+
                 {/* Bio line if exists and not anonymous */}
                 {post.uploader.name !== 'Anonymous' && post.uploader.bio && (
                   <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                     {post.uploader.bio}
                   </p>
                 )}
-                
+
                 {/* Member since line - nur anzeigen, wenn nicht anonym */}
                 {post.uploader.name !== 'Anonymous' && (
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -888,7 +888,7 @@ export function PostDetails({ postId }: { postId: string }) {
                   <span className="text-base">👍</span>
                   <span>{post.stats.likes}</span>
                 </button>
-                
+
                 {/* Dislike Button */}
                 <button
                   onClick={() => handleVote('dislike')}
@@ -901,7 +901,7 @@ export function PostDetails({ postId }: { postId: string }) {
                   <span className="text-base">👎</span>
                   <span>{post.stats.dislikes}</span>
                 </button>
-                
+
                 {/* Favorite Button - jetzt kleiner und neben den Voting-Buttons */}
                 <button
                   onClick={toggleFavorite}
@@ -916,7 +916,7 @@ export function PostDetails({ postId }: { postId: string }) {
                   <span className="ml-1 text-sm">({post.stats.favorites})</span>
                 </button>
               </div>
-              
+
               {/* Share Button */}
               <button
                 onClick={handleShare}
@@ -933,9 +933,9 @@ export function PostDetails({ postId }: { postId: string }) {
 
           {/* Reverse Image Search */}
           <ReverseSearch imageUrl={post.imageUrl} />
-          
+
           {/* Metadata */}
-          <PostMetadata meta={{...post.meta, uploadDate: post.uploadDate}} />
+          <PostMetadata meta={{...post.meta, uploadDate: post.uploadDate || post.createdAt}} />
         </div>
       </div>
     </div>

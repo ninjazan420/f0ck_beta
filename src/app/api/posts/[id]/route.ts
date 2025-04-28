@@ -27,7 +27,7 @@ export async function GET(
         path: 'author',
         select: 'username avatar bio role premium lastSeen createdAt uploads comments likes favorites tags'
       });
-    
+
     if (!post) {
       return NextResponse.json(
         { error: 'Post not found' },
@@ -39,17 +39,17 @@ export async function GET(
     const tagData = [];
     if (post.tags && post.tags.length > 0) {
       console.log('Post tags before processing:', post.tags);
-      
+
       for (const tagName of post.tags) {
         console.log('Processing tag:', tagName);
         // Robust tag search with fallback
-        const tag = await Tag.findOne({ 
+        const tag = await Tag.findOne({
           $or: [
             { name: tagName },
             { id: tagName }
-          ] 
+          ]
         });
-        
+
         if (tag) {
           console.log('Found tag:', tag.name, 'with ID:', tag.id, 'and count:', tag.postsCount);
           tagData.push({
@@ -69,7 +69,7 @@ export async function GET(
           });
         }
       }
-      
+
       console.log('Processed tag data:', tagData);
       post.tags = tagData;
     } else {
@@ -78,12 +78,15 @@ export async function GET(
 
     // Erstelle ein serializierbares JSON-Objekt für die Antwort
     const serializedPost = post.toObject ? post.toObject() : JSON.parse(JSON.stringify(post));
-    
+
     // Stelle sicher, dass Tags korrekt übertragen werden
     if (tagData && tagData.length > 0) {
       serializedPost.tags = tagData;
       console.log('Final serialized tags:', serializedPost.tags);
     }
+
+    // Füge das Upload-Datum hinzu
+    serializedPost.uploadDate = post.createdAt;
 
     // Wenn ein Autor existiert, populate die Autor-Daten
     if (post.author) {
@@ -145,4 +148,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

@@ -87,3 +87,5 @@ dist/
 *.crt
 *.pfx
 package-lock.json
+package-lock.json
+package-lock.json

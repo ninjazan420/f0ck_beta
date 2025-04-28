@@ -79,10 +79,15 @@ export function PostGrid({
   // Function to fetch a specific page
   const fetchPage = async (pageNum: number) => {
     try {
+      console.log(`fetchPage called for page ${pageNum}`);
+
       // Build query parameters
       const queryParams = new URLSearchParams();
-      queryParams.append('offset', ((pageNum - 1) * POSTS_PER_PAGE).toString());
+      const offset = (pageNum - 1) * POSTS_PER_PAGE;
+      queryParams.append('offset', offset.toString());
       queryParams.append('limit', POSTS_PER_PAGE.toString());
+
+      console.log(`API request will use offset=${offset}, limit=${POSTS_PER_PAGE}`);
 
       // Add filters to query parameters
       if (filters.searchText) queryParams.append('search', filters.searchText);
@@ -128,15 +133,22 @@ export function PostGrid({
 
       const response = await fetch(`/api/posts?${queryParams.toString()}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch posts');
+        console.error(`API request failed with status ${response.status}: ${response.statusText}`);
+        throw new Error(`Failed to fetch posts: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
 
       console.log("API response for posts:", data); // Debugging log
 
+      // Überprüfe, ob die Antwort die erwartete Struktur hat
+      if (!data || !Array.isArray(data.posts)) {
+        console.error("Invalid API response format:", data);
+        throw new Error("Invalid API response format");
+      }
+
       // Update total posts count if available in response
-      if (data.totalPosts) {
+      if (data.totalPosts !== undefined) {
         setTotalPosts(data.totalPosts);
         setHasMore(pageNum * POSTS_PER_PAGE < data.totalPosts);
       } else {
@@ -145,52 +157,86 @@ export function PostGrid({
       }
 
       const formattedPosts = data.posts.map((post: any) => {
+        // Überprüfe, ob der Post die erforderlichen Felder hat
+        if (!post || !post.id) {
+          console.warn("Invalid post data:", post);
+          return null;
+        }
+
         console.log("Processing post:", post); // Log jeden Post
         return {
           id: post.id,
-          title: post.title,
-          thumbnail: post.thumbnail, // Überprüfe diesen Wert
-          url: post.imageUrl,
+          title: post.title || "Untitled",
+          thumbnail: post.thumbnailUrl || post.thumbnail || "/placeholder.jpg", // Fallback für fehlende Thumbnails
+          url: post.imageUrl || "",
           likes: post.stats?.likes || 0,
           comments: post.stats?.comments || 0,
           favorites: post.stats?.favorites || 0,
-          contentRating: post.contentRating,
-          mediaType: post.mediaType,
-          hasAudio: post.hasAudio,
-          isPinned: post.isPinned,
+          contentRating: post.contentRating || "safe",
+          mediaType: post.mediaType || "image",
+          hasAudio: post.hasAudio || false,
+          isPinned: post.isPinned || false,
           isAd: post.isAd || false,
-          author: post.author
+          author: post.author || { username: "unknown" }
         };
-      });
+      }).filter(Boolean); // Entferne null-Werte
 
       console.log("Formatted posts:", formattedPosts); // Check das Ergebnis
 
       return formattedPosts;
     } catch (error) {
       console.error("Error fetching posts:", error);
-      throw error;
+      // Gib ein leeres Array zurück, anstatt den Fehler weiterzuleiten
+      return [];
     }
   };
 
-  // Fetch initial page or when filters change
+  // Fetch initial page or when filters change - vereinfacht und mit Debounce
   useEffect(() => {
+    // Verwende eine Referenz, um den aktuellen Timer zu speichern
+    const timerRef = { current: null };
+
     const fetchInitialPosts = async () => {
-      setIsLoading(true);
-      try {
-        const newPosts = await fetchPage(page);
-        setPosts(newPosts);
-        setLoadedPages([page]);
-      } finally {
-        setIsLoading(false);
+      // Setze einen Debounce-Timer, um mehrere schnelle Änderungen zu vermeiden
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
       }
+
+      timerRef.current = setTimeout(async () => {
+        setIsLoading(true);
+        try {
+          console.log(`Fetching posts for page ${page} with filters:`, filters);
+
+          // Wichtig: Wir müssen sicherstellen, dass wir die richtigen Daten für die aktuelle Seite laden
+          const offset = (page - 1) * POSTS_PER_PAGE;
+          console.log(`Loading posts with offset ${offset} (page ${page})`);
+
+          const newPosts = await fetchPage(page);
+          console.log(`Received ${newPosts.length} posts for page ${page}`);
+
+          // Setze die Posts und aktualisiere die geladenen Seiten
+          setPosts(newPosts);
+          setLoadedPages([page]);
+        } catch (error) {
+          console.error("Error in fetchInitialPosts:", error);
+          // Setze leere Posts, um Fehler zu vermeiden
+          setPosts([]);
+        } finally {
+          setIsLoading(false);
+        }
+      }, 100); // Kurze Verzögerung, um mehrere Anfragen zu vermeiden
     };
 
-    // Sofortiger Aufruf, um Verzögerung zu vermeiden
+    // Aufruf der Funktion
     fetchInitialPosts();
 
-    // Keine Abhängigkeit von externen Variablen, die sich ändern könnten
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, JSON.stringify(filters)]);
+    // Cleanup-Funktion
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [page, filters]);
 
   // Handle infinite scroll to load more pages
   useEffect(() => {
@@ -224,25 +270,8 @@ export function PostGrid({
     }
   }, [infiniteScroll, loadedPages, hasMore, totalPages]);
 
-  // Verbesserte Filter-Anwendung
-  useEffect(() => {
-    // Wir nutzen einen Debounce, um mehrere schnelle Änderungen zu vermeiden
-    const timer = setTimeout(() => {
-      // Wir laden immer neu, wenn sich die Filter ändern, unabhängig von der aktuellen Seite
-      console.log('Filter update delayed execution with tags:', filters.tags);
-      console.log('Content rating filters:', filters.contentRating);
-
-      // Immer Seite 1 laden, wenn sich Filter ändern
-      fetchPage(1).then(newPosts => {
-        console.log(`Received ${newPosts.length} posts after filter update`);
-        setPosts(newPosts);
-        setLoadedPages([1]);
-      });
-    }, 200); // 200ms Verzögerung für bessere Stabilität
-
-    return () => clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(filters), fetchPage]);
+  // Entferne den zusätzlichen Filter-Effekt, da er zu viele Anfragen verursacht
+  // Die Filterlogik wird bereits im Haupteffekt behandelt
 
   if (isLoading && posts.length === 0) {
     return (

@@ -8,6 +8,7 @@ import { rateLimit } from '@/lib/rateLimit';
 import mongoose from 'mongoose';
 import DOMPurify from 'isomorphic-dompurify';
 import { NotificationService } from '@/lib/services/notificationService';
+import { CommentStatsService } from '@/lib/services/commentStatsService';
 
 // GET /api/comments
 export async function GET(req: Request) {
@@ -77,7 +78,6 @@ export async function GET(req: Request) {
     }
 
     if (status !== 'all') query.status = status;
-    query.isHidden = false;
 
     const [comments, total] = await Promise.all([
       Comment.find(query)
@@ -148,6 +148,14 @@ export async function POST(req: Request) {
     if (!content) {
       return NextResponse.json(
         { error: 'Missing required field: content' },
+        { status: 400 }
+      );
+    }
+
+    // Überprüfe die Länge des Inhalts
+    if (content.length > 500) {
+      return NextResponse.json(
+        { error: 'Content exceeds maximum length of 500 characters' },
         { status: 400 }
       );
     }
@@ -235,8 +243,10 @@ export async function POST(req: Request) {
 
     console.log('Creating comment with author:', author, 'isAnonymous:', actualIsAnonymous);
 
-    // Kommentarinhalt sanitisieren
-    const sanitizedContent = DOMPurify.sanitize(content, {
+    // Kommentarinhalt sanitisieren und Zeilenumbrüche erhalten
+    // Ersetze \n durch <br> für korrekte Zeilenumbrüche
+    const contentWithLineBreaks = content.replace(/\n/g, '<br>');
+    const sanitizedContent = DOMPurify.sanitize(contentWithLineBreaks, {
       ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br'],
       ALLOWED_ATTR: ['href', 'title', 'target']
     });
@@ -259,19 +269,12 @@ export async function POST(req: Request) {
       await comment.save();
       console.log('Comment saved successfully:', comment._id);
 
-      // Wenn der Kommentar einen Autor hat (nicht anonym), aktualisiere das User-Modell
+      // Aktualisiere die Statistiken
       if (comment.author) {
-        try {
-          // Füge den Kommentar zum comments-Array des Benutzers hinzu
-          await User.findByIdAndUpdate(
-            comment.author,
-            { $push: { comments: comment._id } }
-          );
-          console.log('User comments array updated successfully');
-        } catch (userUpdateError) {
-          console.error('Error updating user comments array:', userUpdateError);
-          // Fehler beim Aktualisieren des Benutzers sollte den Erfolg des Kommentars nicht beeinträchtigen
-        }
+        await CommentStatsService.updateUserCommentStats(comment.author);
+      }
+      if (postObjectId) {
+        await CommentStatsService.updatePostCommentStats(postObjectId);
       }
 
       // Benachrichtigungen senden
@@ -440,8 +443,23 @@ export async function PATCH(req: Request) {
         }
       }
 
+      // Überprüfe die Länge des Inhalts
+      if (content.length > 500) {
+        return NextResponse.json(
+          { error: 'Content exceeds maximum length of 500 characters' },
+          { status: 400 }
+        );
+      }
+
+      // Ersetze \n durch <br> für korrekte Zeilenumbrüche
+      const contentWithLineBreaks = content.replace(/\n/g, '<br>');
+      const sanitizedContent = DOMPurify.sanitize(contentWithLineBreaks, {
+        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br'],
+        ALLOWED_ATTR: ['href', 'title', 'target']
+      });
+
       // Kommentar aktualisieren
-      comment.content = content;
+      comment.content = sanitizedContent;
       await comment.save();
 
       // Kommentar mit Autor zurückgeben
@@ -521,28 +539,15 @@ export async function DELETE(req: Request) {
       );
     }
 
-    // Kommentar löschen oder als versteckt markieren
-    if (isModerator) {
-      // Moderatoren können Kommentare dauerhaft löschen
-      await Comment.findByIdAndDelete(commentId);
+    // Speichere die Post-ID und Autor-ID, bevor der Kommentar gelöscht wird
+    const postId = comment.post;
+    const authorId = comment.author;
 
-      // Wenn der Kommentar einen Autor hat, entferne ihn aus dem comments-Array des Benutzers
-      if (comment.author) {
-        try {
-          await User.findByIdAndUpdate(
-            comment.author,
-            { $pull: { comments: comment._id } }
-          );
-          console.log('Comment removed from user comments array');
-        } catch (userUpdateError) {
-          console.error('Error removing comment from user comments array:', userUpdateError);
-        }
-      }
-    } else {
-      // Normale Benutzer markieren ihre Kommentare als versteckt
-      comment.isHidden = true;
-      await comment.save();
-    }
+    // Alle Benutzer können Kommentare dauerhaft löschen
+    await Comment.findByIdAndDelete(commentId);
+
+    // Aktualisiere die Statistiken
+    await CommentStatsService.updateStatsAfterCommentDeletion(commentId, postId, authorId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

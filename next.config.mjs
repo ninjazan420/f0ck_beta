@@ -22,46 +22,18 @@ const nextConfig = {
     unoptimized: true,
     minimumCacheTTL: 0,
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos'
-      },
-      {
-        protocol: 'https',
-        hostname: 'placehold.co'
-      },
-      {
-        protocol: 'https',
-        hostname: 'giphy.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'media4.giphy.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'media3.giphy.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'media2.giphy.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'media1.giphy.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'media0.giphy.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'media.giphy.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'i.giphy.com'
-      },
+      // Nutze die neue URL()-Unterstützung in Next.js 15.3.1
+      new URL('https://picsum.photos'),
+      new URL('https://placehold.co'),
+      new URL('https://giphy.com'),
+      new URL('https://media4.giphy.com'),
+      new URL('https://media3.giphy.com'),
+      new URL('https://media2.giphy.com'),
+      new URL('https://media1.giphy.com'),
+      new URL('https://media0.giphy.com'),
+      new URL('https://media.giphy.com'),
+      new URL('https://i.giphy.com'),
+      // Wildcard-Muster müssen weiterhin im alten Format angegeben werden
       {
         protocol: 'https',
         hostname: '**',

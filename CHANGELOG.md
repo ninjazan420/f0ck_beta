@@ -1,5 +1,26 @@
 # Änderungsprotokoll
 
+## [3.4.1]
+
+### 🚀 Framework-Updates
+
+- **Technologie-Aktualisierungen**:
+  - Update von Next.js von 15.2.3 auf 15.3.1
+  - Update von npm von 11.2.0 auf 11.3.0
+  - Optimierte remotePatterns-Konfiguration mit neuer URL()-Unterstützung
+  - Verbesserte TypeScript-Plugin-Performance
+  
+- **Bug fixes**:
+
+  - Upload date und Upload time im post/id gefixt
+  - refresh aktuallisert nicht mehr "last seen" von user LOL
+  - Seitenwechsler war wegen Infinite Scroll broken
+  - Stay Login ging wegen JWT-Fehler nicht; ist behoben
+  - Logik von Kommentaren gefixt (Gab Approved und Rejected Kommentare, das gibt es nun nicht mehr)
+  - Case sensivite nicks werden nun richtig verlinkt
+  - Nicknamen markieren funktionieren nun
+  - Kommentare mit Umbruch werden nun mit Umbruch übernommen
+
 ## [3.4.0]
 
 ### 😎 Fixes

@@ -9,7 +9,7 @@ import User from '@/models/User';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.role || !['moderator', 'admin'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
@@ -20,12 +20,12 @@ export async function GET() {
     const [pendingComments, reportedPosts, activeUsers, reportedComments] = await Promise.all([
       Comment.countDocuments({ status: 'pending' }),
       Post.countDocuments({ reported: true }),
-      User.countDocuments({ 
-        lastSeen: { 
+      User.countDocuments({
+        lastSeen: {
           $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Letzte 24 Stunden
         }
       }),
-      Comment.countDocuments({ 'reports.0': { $exists: true }, isHidden: { $ne: true } })
+      Comment.countDocuments({ 'reports.0': { $exists: true }, status: 'approved' })
     ]);
 
     return NextResponse.json({
@@ -41,4 +41,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-} 
+}

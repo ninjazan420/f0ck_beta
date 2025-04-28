@@ -294,18 +294,21 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
     // Neue Regex für normale URLs
     const normalUrlRegex = /(https?:\/\/[^\s]+)(?!\.(gif|png|jpg|jpeg|webp|bmp))/gi;
 
+    // Ersetze <br> mit echten Zeilenumbrüchen für die Anzeige
+    const textWithLineBreaks = text.replace(/<br\s*\/?>/gi, '\n');
+
     // Wenn weder GIFs, Bilder, Erwähnungen noch normale URLs gefunden wurden, gib den Text zurück
-    const gifMatches = Array.from(text.matchAll(gifRegex) || []);
-    const urlMatches = text.match(urlRegex) || [];
-    const mentionMatches = Array.from(text.matchAll(mentionRegex) || []);
-    const normalUrlMatches = Array.from(text.matchAll(normalUrlRegex) || []);
+    const gifMatches = Array.from(textWithLineBreaks.matchAll(gifRegex) || []);
+    const urlMatches = textWithLineBreaks.match(urlRegex) || [];
+    const mentionMatches = Array.from(textWithLineBreaks.matchAll(mentionRegex) || []);
+    const normalUrlMatches = Array.from(textWithLineBreaks.matchAll(normalUrlRegex) || []);
 
     if (gifMatches.length === 0 && urlMatches.length === 0 && mentionMatches.length === 0 && normalUrlMatches.length === 0) {
-      return <span className="whitespace-pre-wrap">{text}</span>;
+      return <span className="whitespace-pre-wrap">{textWithLineBreaks}</span>;
     }
 
     // Verarbeite den Text mit Platzhaltern für alle speziellen Elemente
-    let processedText = text;
+    let processedText = textWithLineBreaks;
 
     // Ersetze zuerst GIF-Platzhalter
     processedText = processedText.replace(gifRegex, '\n[gif-media]\n');

@@ -11,7 +11,6 @@ export interface IComment extends mongoose.Document {
     reason: string;
     createdAt: Date;
   }[];
-  isHidden?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,12 +53,7 @@ const commentSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     }
-  }],
-  isHidden: {
-    type: Boolean,
-    default: false,
-    index: true
-  }
+  }]
 }, {
   timestamps: true
 });

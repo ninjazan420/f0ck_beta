@@ -2,7 +2,7 @@
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
-Modern, next-generation anonymous imageboard platform built with Next.js 14 and TailwindCSS. Upload and share images freely - accounts optional!
+Modern, next-generation anonymous imageboard platform built with Next.js 15 and TailwindCSS. Upload and share images freely - accounts optional!
 
 ![grafik](https://github.com/user-attachments/assets/b35c9f71-d950-4b09-9943-f228cfbd8889)
 
@@ -15,13 +15,21 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 - [f0ck.org Beta 3.4.0](#f0ckorg-beta-340)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
+    - [📷 Anonymous Image Sharing](#-anonymous-image-sharing)
+    - [🎬 Multi-Media Support](#-multi-media-support)
+    - [💬 Real-Time Comment System](#-real-time-comment-system)
+    - [👤 User Profiles (Optional)](#-user-profiles-optional)
+    - [⭐ Premium Features](#-premium-features)
+    - [🎨 Modern UI/UX](#-modern-uiux)
+    - [🔒 Security](#-security)
   - [🚀 Installation](#-installation)
     - [Development Setup](#development-setup)
     - [Production Setup](#production-setup)
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v3.4.0 (Current)](#beta-v340-current)
+    - [Beta v3.4.1 (Current)](#beta-v341-current)
+    - [Beta v3.4.0](#beta-v340)
       - [🔍 Optimized Tag Filters](#-optimized-tag-filters)
       - [🔄 Enhanced User Interaction](#-enhanced-user-interaction)
       - [🔗 Improved Comment Functions](#-improved-comment-functions)
@@ -60,45 +68,56 @@ Modern, next-generation anonymous imageboard platform built with Next.js 14 and 
 
 ## ⚡ Features
 
-- Anonymous Image Sharing
-  - No account required for uploads
-  - Quick and easy image posting
-  - Automatic thumbnail generation
-  - Support for large image files
-  - Intelligent image resizing
-  - Optional user accounts for enhanced features
-- Multi-media support
-  - Image and video uploads
-  - GIF support with GIPHY integration
-  - Embedded media preview
-  - Advanced thumbnails with hover preview
-- Real-time comment system
-  - Rich text formatting
-  - GIF and emoji support
-  - Reply threading
-  - WebSocket live updates
-  - User mentions with notifications
-  - Automatic spam detection
-  - Role-based moderation
-  - Report & live moderation system
-- User profiles with customization (Optional)
-  - Activity feed
-  - Role badges (Admin, Mod, Premium)
-  - Stats overview
-- Premium features
-  - Custom nicknames
-  - Ad-free experience
-  - Exclusive themes
-  - Premium badges
-- Modern UI/UX
-  - Dark/Light mode
-  - Infinite scroll
-  - 7x4 grid layout with intelligent image adjustment
-- Security
-  - Integrated security system
-  - Spam protection
-  - Role-based access control
-  - Report handling
+### 📷 Anonymous Image Sharing
+
+- **No Account Required** - Upload images without registration
+- **Quick & Easy** - Simple posting process with minimal steps
+- **Smart Processing** - Automatic thumbnails and intelligent resizing
+- **Large File Support** - Upload high-resolution images with ease
+- **Optional Accounts** - Register for additional features and tracking
+
+### 🎬 Multi-Media Support
+
+- **Diverse Media Types** - Support for images, videos, and GIFs
+- **GIPHY Integration** - Search and add GIFs directly from GIPHY
+- **Rich Preview** - Embedded media previews with hover functionality
+- **Optimized Thumbnails** - Fast-loading previews with full-size on demand
+
+### 💬 Real-Time Comment System
+
+- **Rich Formatting** - Text styling, emojis, and GIF support in comments
+- **Live Updates** - WebSocket integration for instant comment visibility
+- **Threaded Replies** - Organized conversation structure
+- **@Mentions** - Tag users with notifications
+- **Moderation Tools** - Spam detection, reporting, and role-based moderation
+
+### 👤 User Profiles (Optional)
+
+- **Customizable Profiles** - Personalize your presence
+- **Activity Feed** - Track your contributions and interactions
+- **Role Badges** - Display status (Admin, Mod, Premium)
+- **Statistics** - View your platform engagement metrics
+
+### ⭐ Premium Features
+
+- **Custom Nicknames** - Personalize your identity
+- **Ad-Free Experience** - Browse without advertisements
+- **Exclusive Themes** - Access to premium visual styles
+- **Premium Badges** - Show off your supporter status
+
+### 🎨 Modern UI/UX
+
+- **Theme Options** - Dark and light mode support
+- **Infinite Scroll** - Seamless content browsing
+- **Responsive Grid** - 7x4 layout with intelligent image adjustment
+- **Intuitive Design** - User-friendly interface across all devices
+
+### 🔒 Security
+
+- **Comprehensive Protection** - Integrated security systems
+- **Anti-Spam** - Automated spam detection and prevention
+- **Role-Based Access** - Granular permission controls
+- **Report System** - User-driven content moderation
 
 ## 🚀 Installation
 
@@ -160,7 +179,7 @@ NODE_ENV=development
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 15.3 (App Router)
 - **Styling**: TailwindCSS, Styled Components
 - **Typography**: Geist Font
 - **Architecture**: React Server Components
@@ -171,12 +190,32 @@ NODE_ENV=development
 
 ## 🔥 Latest Updates
 
-### Beta v3.4.0 (Current)
+### Beta v3.4.1 (Current)
+
+- **Technology updates**:
+
+  - Update of Next.js from 15.2.3 to 15.3.1
+  - Update of npm from 11.2.0 to 11.3.0
+  - Optimised remotePatterns configuration with new URL() support
+  - Improved TypeScript plugin performance
+
+- **Bug fixes**:
+
+  - Upload date and upload time in post/id fixed
+  - Refresh no longer updates ‘last seen’ from user (LOL)
+  - Page changer was broken due to infinite scroll
+  - Stay Login did not work due to JWT error; it's fixed
+  - Logic of comments fixed (there were Approved and Rejected comments, this no longer exists)
+  - Case sensivite nicks are now linked correctly
+  - Nicknames are now highlighted
+  - Comments with line breaks are now displayed with line breaks
+
+### Beta v3.4.0
 
 #### 🔍 Optimized Tag Filters
 
 - **Improved Filter Page**:
-  
+
   - Significantly faster loading times for tag filter page
   - New sorting for statistics with "Trending" as default
   - Optimized loading strategy: Only 20 tags loaded at once
@@ -185,7 +224,7 @@ NODE_ENV=development
 #### 🔄 Enhanced User Interaction
 
 - **Optimized Routes and Responses**:
-  
+
   - Fixed routes for better navigation
   - Fixed date filters for more precise time settings
   - Corrected session responses for more stable user sessions
@@ -211,7 +250,7 @@ NODE_ENV=development
 #### 🏷️ Enhanced Tag Functionality
 
 - **Improved Tag Management**:
-  
+
   - Support for copying and pasting multiple tags at once
   - Automatic separation of multiple words into individual tags
   - Batch tagging for multiple uploads simultaneously
@@ -220,7 +259,7 @@ NODE_ENV=development
 #### 👤 Anonymous Uploads
 
 - **Enhanced Privacy**:
-  
+
   - Removal of statistics and avatars for anonymous uploads
   - Optimized display for non-logged-in users
   - Improved user experience for anonymous uploads
@@ -228,7 +267,7 @@ NODE_ENV=development
 #### 📌 Fixes
 
 - **Pin Function Correction**:
-  
+
   - Pinned posts now display correctly on the first page
   - Fixed pagination for pinned posts
   - Improved consistency in post display
@@ -236,6 +275,7 @@ NODE_ENV=development
 ### Beta v3.2.0
 
 #### 💬 Enhanced Comment Functionality
+
 - **@-Mentions in Comments**:
   - Users can now mention others with @username in comments
   - Automatic notifications when mentioned
@@ -243,22 +283,29 @@ NODE_ENV=development
   - User-friendly autofill for faster mentions
 
 #### 🏷️ Improved Tag System
+
 - **Optimized Tag Requirements**:
   - Introduced minimum of 3 tags for each upload
   - Increased maximum tags to 15 for better content organization
   - Enhanced tag validation and input requirements
 
 #### 📊 UI Refinements
+
 - **Redesigned Voting System**:
+  
   - Moved voting elements from overlay to sidebar
   - More intuitive voting behavior with better visibility
   - Post statistics hidden for anonymous users
+
 - **Live Comment Reporting**:
+
   - Real-time tracking of reported comments for moderators
   - Faster response times for problematic content
 
 #### 🔄 Interaction Enhancements
+
 - **New Notification Features**:
+  
   - Added share banner for easier content distribution
   - Integrated feedback banner for improved user interaction
   - More intuitive social features guidance
@@ -268,6 +315,7 @@ NODE_ENV=development
 #### 🎨 Enhanced User Experience
 
 - **Improved Light Mode**:
+  
   - Comprehensive light mode support across all components
   - Better contrast and readability in light theme
   - Consistent styling across both themes
@@ -275,6 +323,7 @@ NODE_ENV=development
 #### 🎬 Enhanced Media Handling
 
 - **Improved Video Support**:
+  
   - Added video preview functionality during upload
   - Fixed activity feed type handling for both video and image content
   - Better media type detection and display
@@ -282,6 +331,7 @@ NODE_ENV=development
 #### 🔒 Privacy & Security
 
 - **Enhanced Content Protection**:
+
   - Activated blur effect for NSFW posts based on user settings
   - Improved content filtering mechanisms
   - Better user control over sensitive content

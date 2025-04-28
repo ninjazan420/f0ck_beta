@@ -20,7 +20,10 @@ export async function GET(
 
     console.log('Suche Benutzer:', username);
 
-    const user = await User.findOne({ username: username });
+    // Case-insensitive Suche nach dem Benutzernamen
+    const user = await User.findOne({
+      username: { $regex: new RegExp(`^${username}$`, 'i') }
+    });
     if (!user) {
       console.log('Benutzer nicht gefunden:', username);
       return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
@@ -29,7 +32,7 @@ export async function GET(
     console.log('Benutzer gefunden:', user._id);
 
     // Kommentare des Benutzers abrufen
-    const comments = await Comment.find({ 
+    const comments = await Comment.find({
       author: user._id,
       status: 'approved'
     })
@@ -79,7 +82,7 @@ export async function GET(
         // Stelle sicher, dass wir den Post richtig abbilden
         let postId = null;
         let postNumericId = null;
-        
+
         if (comment.post) {
           if (typeof comment.post === 'object') {
             // Wenn der Post ein Objekt ist, bevorzuge numericId
@@ -88,7 +91,7 @@ export async function GET(
           } else {
             // Wenn es eine direkte Referenz ist
             postId = comment.post;
-            
+
             // Versuchen, den Post zu finden und die numericId zu extrahieren
             try {
               const Post = mongoose.model('Post');

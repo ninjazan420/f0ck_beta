@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/mongodb';
 import User from '@/models/User';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(
   request: Request,
@@ -9,15 +11,27 @@ export async function GET(
   try {
     const { username } = await params;
     await dbConnect();
-    
+
     // Verwende eine Aggregation, um die Statistiken korrekt zu berechnen
+    // Case-insensitive Suche nach dem Benutzernamen
     const users = await User.aggregate([
-      { $match: { username } },
+      {
+        $match: {
+          username: { $regex: new RegExp(`^${username}$`, 'i') }
+        }
+      },
       {
         $lookup: {
           from: 'comments',
-          localField: '_id',
-          foreignField: 'author',
+          let: { userId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$author', '$$userId'] },
+                status: 'approved'
+              }
+            }
+          ],
           as: 'userComments'
         }
       },
@@ -52,8 +66,13 @@ export async function GET(
 
     const user = users[0];
 
-    // Update lastSeen silently
-    await User.findByIdAndUpdate(user._id, { lastSeen: new Date() });
+    // Hole die aktuelle Session
+    const session = await getServerSession(authOptions);
+
+    // Update lastSeen nur, wenn der Benutzer sein eigenes Profil aufruft
+    if (session?.user && session.user.username?.toLowerCase() === user.username.toLowerCase()) {
+      await User.findByIdAndUpdate(user._id, { lastSeen: new Date() });
+    }
 
     return NextResponse.json({
       username: user.username,

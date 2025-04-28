@@ -47,6 +47,7 @@ export default function LoginClient({ registered }: LoginClientProps) {
       }
 
       // Übergebe den stayLoggedIn-Parameter an die signIn-Funktion
+      console.log('Logging in with stayLoggedIn:', stayLoggedIn);
       const res = await signIn('credentials', {
         username,
         password,

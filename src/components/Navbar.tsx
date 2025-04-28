@@ -25,45 +25,71 @@ export const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
-  
+
   // Import der Seitenmetadaten
   const { title, description } = usePageMeta();
 
-  // Avatar-Aktualisierungs-Listener
+  // Improved Avatar-Aktualisierungs-Listener
   useEffect(() => {
-    const handleAvatarUpdate = () => {
-      // Force rerender
+    const handleAvatarUpdate = (event: Event) => {
+      console.log('Avatar update event received in Navbar');
+
+      // Force rerender by updating the forceUpdate state
       setForceUpdate(prev => prev + 1);
-      
-      // Force session refresh
-      updateSession();
+
+      // Get the new avatar URL from the event if available
+      const customEvent = event as CustomEvent;
+      const newAvatarUrl = customEvent.detail?.newAvatarUrl;
+
+      if (newAvatarUrl !== undefined) {
+        console.log('New avatar URL from event:', newAvatarUrl);
+
+        // If we have the session and a new avatar URL, update the session directly
+        if (session?.user) {
+          updateSession({
+            ...session,
+            user: {
+              ...session.user,
+              avatar: newAvatarUrl
+            }
+          });
+        } else {
+          // Otherwise just refresh the session
+          updateSession();
+        }
+      } else {
+        // If no specific URL was provided, just refresh the session
+        updateSession();
+      }
     };
-    
+
+    // Add event listener for avatar updates
     window.addEventListener('avatar-updated', handleAvatarUpdate);
-    
+
+    // Cleanup function to remove event listener
     return () => {
       window.removeEventListener('avatar-updated', handleAvatarUpdate);
     };
-  }, [updateSession]);
+  }, [session, updateSession]);
 
   // Erkennen der Bildschirmgröße
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 1024); // lg breakpoint in Tailwind
     };
-    
+
     // Initial check
     checkIfMobile();
-    
+
     // Event Listener for Resize
     window.addEventListener('resize', checkIfMobile);
-    
+
     // Cleanup
     return () => {
       window.removeEventListener('resize', checkIfMobile);
     };
   }, []);
-  
+
   // Close menu when page changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -95,7 +121,7 @@ export const Navbar = () => {
   const handleLogout = async () => {
     try {
       setShowLogoutBanner(true);
-      await signOut({ 
+      await signOut({
         redirect: false
       });
       window.location.href = '/';
@@ -114,11 +140,11 @@ export const Navbar = () => {
 
   const cleanPageTitle = (title: string | undefined): string => {
     if (!title) return 'f0ck.org';
-    
+
     // Remove complete domain names (e.g. example.com, site.co.uk, etc.)
     const domainPattern = /\b[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}(\s|\b)/gi;
     const withoutDomains = title.replace(domainPattern, '');
-    
+
     // Clean up multiple spaces and trim the result
     const cleaned = withoutDomains.replace(/\s+/g, ' ').trim();
     // Verwende den originalen Titel, wenn nach der Domainentfernung nichts übrig bleibt
@@ -129,8 +155,8 @@ export const Navbar = () => {
     if (isAuthenticated) {
       // Reihenfolge neu anordnen - Avatar nach ganz rechts
       return [
-        ...(session?.user?.role && ['moderator', 'admin'].includes(session.user.role)) 
-          ? [{ type: 'link' as const, label: 'Mod', href: '/moderation' }] 
+        ...(session?.user?.role && ['moderator', 'admin'].includes(session.user.role))
+          ? [{ type: 'link' as const, label: 'Mod', href: '/moderation' }]
           : [],
         ...commonMenuItems,
         {
@@ -146,14 +172,15 @@ export const Navbar = () => {
             <div className="flex items-center gap-2 ml-2">
               <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                 {session?.user?.avatar ? (
-                  <Image 
+                  <Image
                     key={`avatar-${forceUpdate}-${session.user.avatar}`}
-                    src={getImageUrlWithCacheBuster(session.user.avatar)} 
-                    alt="Avatar" 
-                    width={24} 
-                    height={24} 
+                    src={getImageUrlWithCacheBuster(session.user.avatar, true)}
+                    alt="Avatar"
+                    width={24}
+                    height={24}
                     className="object-cover w-full h-full"
                     unoptimized={true}
+                    priority={true}
                   />
                 ) : (
                   <div className="text-xs text-gray-400">
@@ -181,7 +208,7 @@ export const Navbar = () => {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
-  
+
   // Alle Menüpunkte für Mobile (links + rechts)
   const allMobileMenuItems = [...leftMenuItems, ...getAuthMenuItems()];
 
@@ -238,12 +265,12 @@ export const Navbar = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Mobile Navbar */}
         <div className={`container mx-auto px-4 h-14 flex items-center ${isMobile ? 'flex' : 'hidden'}`}>
           {/* Burger icon */}
-          <button 
-            onClick={toggleMobileMenu} 
+          <button
+            onClick={toggleMobileMenu}
             className="w-8 h-8 flex flex-col justify-center items-center gap-[5px] focus:outline-none"
             aria-label="Toggle menu"
           >
@@ -251,7 +278,7 @@ export const Navbar = () => {
             <span className={`block h-[2px] w-5 bg-current transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
             <span className={`block h-[2px] w-5 bg-current transition-transform duration-300 ${isMobileMenuOpen ? 'transform -rotate-45 -translate-y-[6px]' : ''}`}></span>
           </button>
-          
+
           {/* Page title and description (mobile) */}
           <div className="flex-grow flex justify-center overflow-hidden">
             <div className="max-w-[60%] text-center overflow-hidden">
@@ -259,7 +286,7 @@ export const Navbar = () => {
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{cleanPageTitle(title)}</p>
             </div>
           </div>
-          
+
           {/* User avatar mit NotificationBell (if logged in) */}
           {isAuthenticated && (
             <div className="flex items-center gap-2 flex-shrink-0 ml-2">
@@ -267,14 +294,15 @@ export const Navbar = () => {
               <Link href="/account">
                 <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                   {session?.user?.avatar ? (
-                    <Image 
+                    <Image
                       key={`avatar-${forceUpdate}-${session.user.avatar}`}
-                      src={getImageUrlWithCacheBuster(session.user.avatar)} 
-                      alt="Avatar" 
-                      width={32} 
-                      height={32} 
+                      src={getImageUrlWithCacheBuster(session.user.avatar, true)}
+                      alt="Avatar"
+                      width={32}
+                      height={32}
                       className="object-cover w-full h-full"
                       unoptimized={true}
+                      priority={true}
                     />
                   ) : (
                     <div className="text-sm text-gray-400">
@@ -286,10 +314,10 @@ export const Navbar = () => {
             </div>
           )}
         </div>
-        
+
         {/* Mobile menu dropdown */}
         {isMobile && (
-          <div 
+          <div
             className={`absolute w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg transition-max-height duration-300 ease-in-out overflow-hidden z-30 ${
               isMobileMenuOpen ? 'max-h-[85vh] overflow-y-auto' : 'max-h-0'
             }`}
@@ -300,13 +328,15 @@ export const Navbar = () => {
                 <div className="flex items-center gap-3 px-4 py-3 mb-2 border-b border-gray-100 dark:border-gray-800">
                   <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                     {session?.user?.avatar ? (
-                      <Image 
+                      <Image
                         key={`avatar-${forceUpdate}-${session.user.avatar}`}
-                        src={getImageUrlWithCacheBuster(session.user.avatar)} 
-                        alt="Avatar" 
-                        width={40} 
-                        height={40} 
+                        src={getImageUrlWithCacheBuster(session.user.avatar, true)}
+                        alt="Avatar"
+                        width={40}
+                        height={40}
                         className="object-cover w-full h-full"
+                        unoptimized={true}
+                        priority={true}
                       />
                     ) : (
                       <div className="text-lg text-gray-500 dark:text-gray-400">
@@ -322,7 +352,7 @@ export const Navbar = () => {
                   </div>
                 </div>
               )}
-              
+
               {/* Hauptnavigation */}
               <div className="px-4 mb-3">
                 <h3 className="text-xs uppercase font-medium text-gray-500 dark:text-gray-400 mb-1 ml-1">Navigation</h3>
@@ -344,7 +374,7 @@ export const Navbar = () => {
                   })}
                 </div>
               </div>
-              
+
               {/* Kontobereich */}
               {isAuthenticated ? (
                 <div className="px-4 mb-3">
@@ -392,7 +422,7 @@ export const Navbar = () => {
                   </div>
                 </div>
               )}
-              
+
               {/* Weitere Links */}
               <div className="px-4 mb-3">
                 <h3 className="text-xs uppercase font-medium text-gray-500 dark:text-gray-400 mb-1 ml-1">Weitere Links</h3>
@@ -414,7 +444,7 @@ export const Navbar = () => {
                   })}
                 </div>
               </div>
-              
+
               {/* Fußzeile */}
               <div className="px-4 pt-2 pb-4 text-center">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -424,11 +454,11 @@ export const Navbar = () => {
             </div>
           </div>
         )}
-        
+
         {/* Overlay to close menu when clicking outside */}
         {isMobileMenuOpen && (
-          <div 
-            className="fixed inset-0 bg-black/20 dark:bg-black/50 z-20" 
+          <div
+            className="fixed inset-0 bg-black/20 dark:bg-black/50 z-20"
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
           />

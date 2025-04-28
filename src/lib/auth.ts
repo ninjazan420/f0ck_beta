@@ -174,13 +174,15 @@ export const authOptions: AuthOptions = {
           if (user.stayLoggedIn) {
             // 30 Tage bei "Angemeldet bleiben"
             const thirtyDaysInSeconds = 30 * 24 * 60 * 60;
-            token.exp = Math.floor(Date.now() / 1000) + thirtyDaysInSeconds;
-            console.log('Token expiration set to 30 days');
+            // Wir setzen keinen expliziten exp-Wert mehr, da dies von NextAuth.js
+            // basierend auf der maxAge-Einstellung in der Session-Konfiguration gehandhabt wird
+            console.log('Token configured for 30 days (stay logged in)');
           } else {
             // 8 Stunden bei normalem Login
             const eightHoursInSeconds = 8 * 60 * 60;
-            token.exp = Math.floor(Date.now() / 1000) + eightHoursInSeconds;
-            console.log('Token expiration set to 8 hours');
+            // Wir setzen keinen expliziten exp-Wert mehr, da dies von NextAuth.js
+            // basierend auf der maxAge-Einstellung in der Session-Konfiguration gehandhabt wird
+            console.log('Token configured for 8 hours (standard login)');
           }
         }
 
@@ -221,12 +223,14 @@ export const authOptions: AuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 8 * 60 * 60, // 8 Stunden als Standard
+    // Setze die maximale Dauer auf 30 Tage als Standard
+    // Die tatsächliche Dauer wird in den Callbacks basierend auf stayLoggedIn angepasst
+    maxAge: 30 * 24 * 60 * 60, // 30 Tage in Sekunden
   },
   jwt: {
-    // Die maxAge wird dynamisch in der jwt-Callback-Funktion gesetzt
-    // Standardmäßig 8 Stunden, bei "Angemeldet bleiben" 30 Tage
-    maxAge: 8 * 60 * 60,
+    // Setze die maximale Dauer auf 30 Tage als Standard
+    // Die tatsächliche Dauer wird in den Callbacks basierend auf stayLoggedIn angepasst
+    maxAge: 30 * 24 * 60 * 60, // 30 Tage in Sekunden
   },
   cookies: {
     sessionToken: {

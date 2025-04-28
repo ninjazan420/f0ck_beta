@@ -25,17 +25,43 @@ export function getRandomLogo(): string {
 /**
  * Adds a cache-busting parameter to an image URL
  * @param url The image URL to add cache busting to
- * @param additionalBuster Optional additional buster to append
+ * @param forceRefresh Whether to force a new timestamp even if the URL already has cache busting
  * @returns URL with cache busting parameter
  */
-export function getImageUrlWithCacheBuster(url: string | null | undefined): string {
+export function getImageUrlWithCacheBuster(url: string | null | undefined, forceRefresh: boolean = false): string {
   if (!url) return '/avatar-placeholder.png';
-  
-  // Prüfe, ob die URL bereits einen Query-Parameter hat
-  const hasQuery = url.includes('?');
-  
-  // Füge einen Timestamp als Cache-Buster hinzu
-  return `${url}${hasQuery ? '&' : '?'}v=${Date.now()}`;
+
+  // If the URL is a default avatar, return it as is
+  if (url.includes('defaultavatar.png')) {
+    return url;
+  }
+
+  // Check if URL already has cache busting parameters
+  const hasCacheBuster = url.includes('v=') || url.includes('t=');
+
+  // If URL already has cache busting and we're not forcing a refresh, return as is
+  if (hasCacheBuster && !forceRefresh) {
+    return url;
+  }
+
+  // Remove any existing cache busters to avoid duplicates
+  let cleanUrl = url;
+  if (hasCacheBuster) {
+    // Remove v= or t= parameters
+    cleanUrl = url.replace(/[?&](v|t)=[^&]+/, '');
+    // Fix URL if we removed the only parameter
+    if (cleanUrl.endsWith('?')) {
+      cleanUrl = cleanUrl.slice(0, -1);
+    }
+    // Fix URL if we removed a parameter in the middle
+    cleanUrl = cleanUrl.replace(/\?&/, '?');
+  }
+
+  // Check if the cleaned URL has any query parameters
+  const hasQuery = cleanUrl.includes('?');
+
+  // Add a new timestamp as cache buster
+  return `${cleanUrl}${hasQuery ? '&' : '?'}v=${Date.now()}`;
 }
 
 type LogContext = Record<string, any>;
@@ -46,10 +72,10 @@ export function safeLog(level: LogLevel, message: string, context?: LogContext) 
   try {
     // Sanitize potentially sensitive data in context
     const safeCopy = context ? JSON.parse(JSON.stringify(context)) : undefined;
-    
+
     if (safeCopy) {
       const sensitiveKeys = ['password', 'token', 'secret', 'key', 'csrf'];
-      
+
       function sanitizeObject(obj: Record<string, any>) {
         for (const key in obj) {
           if (typeof obj[key] === 'object' && obj[key] !== null) {
@@ -59,17 +85,17 @@ export function safeLog(level: LogLevel, message: string, context?: LogContext) 
           }
         }
       }
-      
+
       sanitizeObject(safeCopy);
     }
-    
+
     const entry = {
       level: LogLevel[level],
       timestamp: new Date().toISOString(),
       message,
       ...(safeCopy && { context: safeCopy })
     };
-    
+
     switch (level) {
       case LogLevel.DEBUG:
         console.debug(JSON.stringify(entry));

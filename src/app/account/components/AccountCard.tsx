@@ -165,7 +165,7 @@ export function AccountCard() {
 
   const [isEditing, setIsEditing] = useState(false);
 
-  // Verbesserte handleSave Funktion ohne Avatar-Funktionalität
+  // Improved handleSave function
   const handleSave = async () => {
     try {
       if (!session?.user) {
@@ -173,6 +173,10 @@ export function AccountCard() {
         return;
       }
 
+      // Show loading toast
+      const loadingToast = toast.loading('Saving profile...');
+
+      // Prepare update data
       const updateData = {
         username: profile.nickname,
         name: profile.nickname,
@@ -182,6 +186,7 @@ export function AccountCard() {
 
       console.log('Sending update:', updateData);
 
+      // Send update request
       const response = await fetch('/api/user', {
         method: 'PUT',
         headers: {
@@ -191,15 +196,18 @@ export function AccountCard() {
         body: JSON.stringify(updateData),
       });
 
+      // Handle error response
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Fehler beim Speichern');
+        toast.dismiss(loadingToast);
+        throw new Error(data.error || 'Error saving profile');
       }
 
+      // Parse response data
       const updatedData = await response.json();
       console.log('Received update response:', updatedData);
 
-      // Aktualisiere den lokalen Zustand
+      // Update local state with server data
       setProfile(prev => ({
         ...prev,
         nickname: updatedData.username || prev.nickname,
@@ -207,11 +215,11 @@ export function AccountCard() {
         bio: updatedData.bio || prev.bio
       }));
 
-      // Debug-Ausgabe vor der Session-Aktualisierung
+      // Debug output
       console.log('Bio before update:', session.user.bio);
       console.log('Bio from API response:', updatedData.bio);
 
-      // Aktualisiere die Session mit den Daten aus der API-Antwort
+      // Update session with data from API response
       await updateSession({
         ...session,
         user: {
@@ -219,23 +227,24 @@ export function AccountCard() {
           name: updatedData.username || session.user.name,
           username: updatedData.username || session.user.username,
           email: updatedData.email || session.user.email,
-          bio: updatedData.bio // Verwende direkt die Antwort vom Server
+          bio: updatedData.bio // Use response directly from server
         }
       });
 
-      // Debug-Ausgabe nach der Session-Aktualisierung
-      console.log('Session update completed');
-
-      // Überprüfe die aktualisierte Session nach einer kurzen Verzögerung
+      // Force a session refresh to ensure all data is updated
       setTimeout(() => {
-        const updatedSession = session;
-        console.log('Updated session bio:', updatedSession?.user?.bio);
-      }, 500);
+        updateSession();
+      }, 100);
 
-      // Zeige Erfolgsmeldung
+      // Debug output after session update
+      console.log('Session update completed');
+      console.log('Updated session bio:', session?.user?.bio);
+
+      // Dismiss loading toast and show success message
+      toast.dismiss(loadingToast);
       toast.success('Profile updated successfully');
 
-      // Beende den Bearbeitungsmodus
+      // Exit editing mode
       setIsEditing(false);
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -243,7 +252,32 @@ export function AccountCard() {
     }
   };
 
+  // Improved handleReset function to restore original values
   const handleReset = () => {
+    // Fetch the latest user data to restore original values
+    if (session?.user) {
+      fetch('/api/user')
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          }
+          throw new Error('Failed to fetch user data');
+        })
+        .then(userData => {
+          // Restore original values from the server
+          setProfile(prev => ({
+            ...prev,
+            nickname: userData.username || userData.name || '',
+            bio: userData.bio || '',
+            email: userData.email || ''
+          }));
+        })
+        .catch(error => {
+          console.error('Error fetching user data for reset:', error);
+        });
+    }
+
+    // Exit editing mode
     setIsEditing(false);
   };
 
@@ -369,7 +403,7 @@ export function AccountCard() {
     return <>{result}</>;
   };
 
-  // Avatar-Handling-Funktion
+  // Improved Avatar-Handling-Funktion
   const handleAvatarChange = useCallback(async (newAvatarUrl: string | null) => {
     console.log('Avatar changed to:', newAvatarUrl);
 
@@ -382,21 +416,36 @@ export function AccountCard() {
     // Update the session to show the new avatar in the navbar
     if (session) {
       try {
+        // Extract the base URL without cache busting parameters
+        let baseAvatarUrl = newAvatarUrl;
+        if (baseAvatarUrl) {
+          // Remove any cache busting parameters (v= or t=)
+          const urlParts = baseAvatarUrl.split(/[?&](v|t)=/);
+          baseAvatarUrl = urlParts[0];
+        }
+
+        console.log('Updating session with avatar URL:', baseAvatarUrl);
+
+        // Update the session with the clean avatar URL
         await updateSession({
           ...session,
           user: {
             ...session.user,
-            avatar: newAvatarUrl
+            avatar: baseAvatarUrl
           }
         });
 
-        // Löse ein explizites Event aus
-        window.dispatchEvent(new CustomEvent('avatar-updated'));
-
-        // Warte kurz bevor eine Seiten-Aktualisierung erzwungen wird
+        // Force a session refresh to ensure the avatar is updated
         setTimeout(() => {
-          toast.success('Avatar updated successfully');
-        }, 300);
+          updateSession();
+        }, 100);
+
+        // Dispatch an event to notify other components about the avatar change
+        window.dispatchEvent(new CustomEvent('avatar-updated', {
+          detail: { newAvatarUrl: baseAvatarUrl }
+        }));
+
+        toast.success('Avatar updated successfully');
       } catch (error) {
         console.error('Failed to update session with new avatar:', error);
         toast.error('Failed to update avatar in session');

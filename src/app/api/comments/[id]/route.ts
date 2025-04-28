@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db/mongodb';
 import Comment from '@/models/Comment';
 import User from '@/models/User';
 import mongoose from 'mongoose';
+import { CommentStatsService } from '@/lib/services/commentStatsService';
 
 // DELETE /api/comments/[id]
 export async function DELETE(
@@ -15,7 +16,7 @@ export async function DELETE(
     // Stellen Sie sicher, dass params bereits vollständig initialisiert ist
     const resolvedParams = await Promise.resolve(params);
     const id = resolvedParams.id;
-    
+
     if (!id) {
       return NextResponse.json(
         { error: 'Comment ID is required' },
@@ -70,13 +71,13 @@ export async function DELETE(
       sessionUserId: session.user.id,
       userRole: user.role
     });
-    
-    const isAuthor = comment.author && 
-      (comment.author._id 
-        ? comment.author._id.toString() === session.user.id 
+
+    const isAuthor = comment.author &&
+      (comment.author._id
+        ? comment.author._id.toString() === session.user.id
         : comment.author.toString() === session.user.id);
     const isModerator = user && ['moderator', 'admin'].includes(user.role);
-    
+
     console.log('Authorization result:', { isAuthor: isAuthor ? true : null, isModerator });
 
     if (!isAuthor && !isModerator) {
@@ -86,8 +87,15 @@ export async function DELETE(
       );
     }
 
+    // Speichere die Post-ID und Autor-ID, bevor der Kommentar gelöscht wird
+    const postId = comment.post;
+    const authorId = comment.author;
+
     // Kommentar löschen
     await Comment.findByIdAndDelete(id);
+
+    // Aktualisiere die Statistiken
+    await CommentStatsService.updateStatsAfterCommentDeletion(id, postId, authorId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -170,13 +178,13 @@ export async function PATCH(
       sessionUserId: session.user.id,
       userRole: user.role
     });
-    
-    const isAuthor = comment.author && 
-      (comment.author._id 
-        ? comment.author._id.toString() === session.user.id 
+
+    const isAuthor = comment.author &&
+      (comment.author._id
+        ? comment.author._id.toString() === session.user.id
         : comment.author.toString() === session.user.id);
     const isModerator = user && ['moderator', 'admin'].includes(user.role);
-    
+
     console.log('Authorization result:', { isAuthor: isAuthor ? true : null, isModerator });
 
     if (!isAuthor && !isModerator) {
@@ -201,4 +209,4 @@ export async function PATCH(
       { status: 500 }
     );
   }
-} 
+}

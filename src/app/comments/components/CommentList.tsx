@@ -179,13 +179,16 @@ export function CommentList({
     const gifMatches = Array.from(text.matchAll(gifRegex) || []);
     const urlMatches = text.match(urlRegex) || [];
 
+    // Ersetze <br> mit echten Zeilenumbrüchen für die Anzeige
+    const textWithLineBreaks = text.replace(/<br\s*\/?>/gi, '\n');
+
     // Wenn weder GIFs noch Bilder gefunden wurden, gib den Text zurück
     if (gifMatches.length === 0 && urlMatches.length === 0) {
-      return <span className="whitespace-pre-wrap">{text}</span>;
+      return <span className="whitespace-pre-wrap">{textWithLineBreaks}</span>;
     }
 
     // Ersetze GIF-Platzhalter und URLs mit Markierungen und teile den Text
-    let processedText = text;
+    let processedText = textWithLineBreaks;
 
     // Ersetze zuerst GIF-Platzhalter
     processedText = processedText.replace(gifRegex, '\n[gif-media]\n');
