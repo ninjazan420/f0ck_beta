@@ -1,107 +1,136 @@
-import { withAuth, createErrorResponse } from '@/lib/api-utils';
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import User from '@/models/User';
 import dbConnect from '@/lib/db/mongodb';
 import mongoose from 'mongoose';
 
 export async function GET() {
-  return withAuth(async (session: { user: { id: string } }) => {
-    await dbConnect();
+  try {
+    // Session-Authentifizierung
+    const session = await getServerSession(authOptions);
 
-    // Aggregation statt einfaches Finden verwenden, um die Stats korrekt zu berechnen
-    const users = await User.aggregate([
-      { $match: { _id: new mongoose.Types.ObjectId(session.user.id) } },
-      {
-        $lookup: {
-          from: 'comments',
-          let: { userId: '$_id' },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ['$author', '$$userId'] },
-                status: 'approved'
-              }
-            }
-          ],
-          as: 'userComments'
-        }
-      },
-      {
-        $project: {
-          username: 1,
-          email: 1,
-          name: 1,
-          bio: 1,
-          createdAt: 1,
-          lastSeen: 1,
-          role: 1,
-          premium: { $eq: ["$role", "premium"] },
-          avatar: 1,
-          stats: {
-            uploads: { $size: { $ifNull: ["$uploads", []] } },
-            comments: { $size: { $ifNull: ["$userComments", []] } },
-            favorites: { $size: { $ifNull: ["$favorites", []] } },
-            likes: { $size: { $ifNull: ["$likes", []] } },
-            dislikes: { $size: { $ifNull: ["$dislikes", []] } },
-            tags: { $size: { $ifNull: ["$tags", []] } }
-          }
-        }
-      }
-    ]);
-
-    if (!users || users.length === 0) {
-      return createErrorResponse('Benutzer nicht gefunden', 404);
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = users[0];
+    await dbConnect();
 
-    // Update lastSeen
-    await User.findByIdAndUpdate(user._id, { lastSeen: new Date() });
+    // Finde den Benutzer
+    const user = await User.findById(session.user.id).lean();
 
-    return {
+    if (!user) {
+      console.error('User not found with ID:', session.user.id);
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Debug-Ausgabe
+    console.log('Found user:', {
+      id: user._id,
+      username: user.username,
+      bioExists: !!user.bio,
+      bioLength: user.bio?.length || 0
+    });
+
+    // Update lastSeen in einem separaten Aufruf
+    User.findByIdAndUpdate(user._id, { lastSeen: new Date() })
+      .then(() => console.log('Updated lastSeen for user:', user.username))
+      .catch(err => console.error('Error updating lastSeen:', err));
+
+    // Berechne Statistiken
+    const stats = {
+      uploads: Array.isArray(user.uploads) ? user.uploads.length : 0,
+      comments: Array.isArray(user.comments) ? user.comments.length : 0,
+      favorites: Array.isArray(user.favorites) ? user.favorites.length : 0,
+      likes: Array.isArray(user.likes) ? user.likes.length : 0,
+      dislikes: Array.isArray(user.dislikes) ? user.dislikes.length : 0,
+      tags: Array.isArray(user.tags) ? user.tags.length : 0
+    };
+
+    // Bereite die Antwort vor
+    const response = {
       username: user.username || '',
       email: user.email || '',
       name: user.name || '',
-      bio: user.bio || '',
+      bio: user.bio || '', // Stelle sicher, dass bio immer einen String-Wert hat
       createdAt: user.createdAt || new Date(),
       lastSeen: user.lastSeen || new Date(),
       role: user.role || 'user',
-      premium: user.premium || false,
-      stats: user.stats || {
-        uploads: 0,
-        comments: 0,
-        favorites: 0,
-        likes: 0,
-        dislikes: 0,
-        tags: 0
-      }
+      premium: user.role === 'premium',
+      avatar: user.avatar || null,
+      stats
     };
-  });
+
+    // Debug-Ausgabe der Antwort
+    console.log('API response:', {
+      username: response.username,
+      bioLength: response.bio?.length || 0
+    });
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error('Error in GET /api/user:', error);
+    return NextResponse.json(
+      { error: 'An error occurred while fetching user data' },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PUT(req: Request) {
-  return withAuth(async (session: { user: { id: string } }) => {
-    const { username, name, bio, email } = await req.json();
+  try {
+    // Session-Authentifizierung
+    const session = await getServerSession(authOptions);
 
-    // Nutze auch hier die session.user.id
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Parsen der Anfrage
+    let requestData;
+    try {
+      requestData = await req.json();
+    } catch (error) {
+      console.error('Error parsing request JSON:', error);
+      return NextResponse.json(
+        { error: 'Invalid JSON in request' },
+        { status: 400 }
+      );
+    }
+
+    const { username, name, bio, email } = requestData;
+
+    await dbConnect();
+
+    // Finde den Benutzer
     let user = await User.findById(session.user.id);
 
     if (!user) {
-      return createErrorResponse('Benutzer nicht gefunden', 404);
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
     }
 
     // Prüfe Username-Verfügbarkeit
     if (username && username !== user.username) {
       const existingUser = await User.findOne({ username });
       if (existingUser) {
-        return createErrorResponse('Username bereits vergeben', 400);
+        return NextResponse.json(
+          { error: 'Username already taken' },
+          { status: 400 }
+        );
       }
     }
 
     // Debug-Ausgabe vor dem Update
-    console.log('Updating user bio:', {
+    console.log('Updating user profile:', {
+      id: session.user.id,
+      currentUsername: user.username,
+      newUsername: username,
       currentBio: user.bio,
       newBio: bio,
-      willUpdate: bio !== undefined
+      willUpdateBio: bio !== undefined
     });
 
     // Prepare update object with only fields that should be updated
@@ -121,57 +150,67 @@ export async function PUT(req: Request) {
     }
 
     // Update existing user
-    user = await User.findByIdAndUpdate(
-      session.user.id,
-      { $set: updateFields },
-      { new: true }
-    );
+    try {
+      user = await User.findByIdAndUpdate(
+        session.user.id,
+        { $set: updateFields },
+        { new: true }
+      );
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return NextResponse.json(
+        { error: 'Error updating user' },
+        { status: 500 }
+      );
+    }
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found after update' },
+        { status: 404 }
+      );
+    }
 
     // Debug-Ausgabe nach dem Update
     console.log('Updated user bio:', user.bio);
 
-    // Fetch the updated user directly to ensure we have the most accurate data
-    const updatedUser = await User.findById(user._id).lean();
-
-    if (!updatedUser) {
-      return createErrorResponse('User not found after update', 404);
-    }
-
-    // Calculate stats manually to ensure accuracy
+    // Calculate stats
     const stats = {
-      uploads: Array.isArray(updatedUser.uploads) ? updatedUser.uploads.length : 0,
-      comments: Array.isArray(updatedUser.comments) ? updatedUser.comments.length : 0,
-      favorites: Array.isArray(updatedUser.favorites) ? updatedUser.favorites.length : 0,
-      likes: Array.isArray(updatedUser.likes) ? updatedUser.likes.length : 0,
-      dislikes: Array.isArray(updatedUser.dislikes) ? updatedUser.dislikes.length : 0,
-      tags: Array.isArray(updatedUser.tags) ? updatedUser.tags.length : 0
+      uploads: Array.isArray(user.uploads) ? user.uploads.length : 0,
+      comments: Array.isArray(user.comments) ? user.comments.length : 0,
+      favorites: Array.isArray(user.favorites) ? user.favorites.length : 0,
+      likes: Array.isArray(user.likes) ? user.likes.length : 0,
+      dislikes: Array.isArray(user.dislikes) ? user.dislikes.length : 0,
+      tags: Array.isArray(user.tags) ? user.tags.length : 0
     };
 
-    // Add stats to the user object
-    const userWithStats = {
-      ...updatedUser,
-      premium: updatedUser.role === 'premium',
+    // Prepare response
+    const response = {
+      username: user.username || '',
+      email: user.email || '',
+      name: user.name || '',
+      bio: user.bio || '',
+      createdAt: user.createdAt || new Date(),
+      lastSeen: user.lastSeen || new Date(),
+      role: user.role || 'user',
+      premium: user.role === 'premium',
+      avatar: user.avatar || null,
       stats
     };
 
-    // Debug-Ausgabe der Ergebnisse
-    console.log('Updated user bio:', userWithStats.bio);
-
-    const response = {
-      username: userWithStats.username,
-      email: userWithStats.email,
-      name: userWithStats.name,
-      bio: userWithStats.bio,
-      createdAt: userWithStats.createdAt,
-      lastSeen: userWithStats.lastSeen,
-      role: userWithStats.role,
-      premium: userWithStats.premium,
-      stats: userWithStats.stats
-    };
-
     // Debug-Ausgabe der Antwort
-    console.log('API response bio:', response.bio);
+    console.log('API response:', {
+      username: response.username,
+      bioLength: response.bio?.length || 0,
+      bio: response.bio
+    });
 
-    return response;
-  });
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error('Unexpected error in PUT /api/user:', error);
+    return NextResponse.json(
+      { error: 'An unexpected error occurred' },
+      { status: 500 }
+    );
+  }
 }

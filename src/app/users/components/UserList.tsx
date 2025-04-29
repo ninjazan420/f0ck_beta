@@ -51,14 +51,14 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
 
         const response = await fetch(`/api/users?${searchParams}`);
         if (!response.ok) throw new Error('Fehler beim Laden der Benutzer');
-        
+
         const data = await response.json();
         setUsers(data.users);
-        
+
         if (data.pagination && data.pagination.pages) {
           setActualTotalPages(data.pagination.pages);
         }
-        
+
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
@@ -188,18 +188,18 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
         ))}
       </div>
 
-      {/* Exakt die gleiche Paginierung wie in /posts */}
+      {/* Angepasste Paginierung mit Next links und Previous rechts */}
       {actualTotalPages >= 1 && (
         <div className="flex items-center justify-between">
-          {page > 1 ? (
-            <button 
-              onClick={() => onPageChange(page - 1)}
+          {page < actualTotalPages ? (
+            <button
+              onClick={() => onPageChange(page + 1)}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
             >
-              ← Previous
+              Next →
             </button>
           ) : (
-            <div className="p-2 invisible">← Previous</div>
+            <div className="p-2 invisible">Next →</div>
           )}
 
           <div className="flex items-center space-x-2">
@@ -207,7 +207,7 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
             {Array.from({ length: Math.min(5, actualTotalPages) }, (_, i) => {
               // Berechne die anzuzeigenden Seitenzahlen basierend auf der aktuellen Seite
               let pageNum;
-              
+
               if (page <= 3) {
                 // Wenn wir auf den ersten Seiten sind, zeige die ersten 5 Seiten
                 pageNum = i + 1;
@@ -218,19 +218,19 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
                 // Sonst zeige 2 Seiten vor und nach der aktuellen Seite
                 pageNum = page - 2 + i;
               }
-              
+
               // Stelle sicher, dass die Seitenzahl im gültigen Bereich liegt
               if (pageNum <= 0 || pageNum > actualTotalPages) {
                 return null;
               }
-              
+
               return (
                 <button
                   key={pageNum}
                   onClick={() => onPageChange(pageNum)}
                   className={`px-3 py-1 rounded-md ${
-                    pageNum === page 
-                      ? 'bg-purple-600 text-white' 
+                    pageNum === page
+                      ? 'bg-purple-600 text-white'
                       : 'text-gray-600 dark:text-gray-400'
                   }`}
                 >
@@ -238,7 +238,7 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
                 </button>
               );
             }).filter(Boolean)}
-            
+
             {/* "..." und letzte Seite anzeigen, wenn wir nicht in der Nähe der letzten Seite sind */}
             {page < actualTotalPages - 2 && actualTotalPages > 5 && (
               <>
@@ -253,15 +253,15 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
             )}
           </div>
 
-          {page < actualTotalPages ? (
-            <button 
-              onClick={() => onPageChange(page + 1)}
+          {page > 1 ? (
+            <button
+              onClick={() => onPageChange(page - 1)}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
             >
-              Next →
+              ← Previous
             </button>
           ) : (
-            <div className="p-2 invisible">Next →</div>
+            <div className="p-2 invisible">← Previous</div>
           )}
         </div>
       )}

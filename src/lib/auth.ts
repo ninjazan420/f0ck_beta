@@ -59,11 +59,31 @@ export const authOptions: AuthOptions = {
           // Validate request origin with more flexibility
           const origin = req?.headers?.origin;
 
-          // Temporarily disable origin validation
           // Log the origin for debugging purposes
-          console.log(`Auth request from IP: ${req?.headers?.['x-forwarded-for']?.substring(0, 7) || 'anonymous'}***`);
+          console.log(`Auth request from origin: ${origin || 'unknown'}, IP: ${req?.headers?.['x-forwarded-for']?.substring(0, 7) || 'anonymous'}***`);
 
-          // Skip origin validation for now
+          // Aktiviere Origin-Validierung mit Unterstützung für localhost
+          if (origin) {
+            const allowedOrigins = [
+              'https://f0ck.org',
+              'https://www.f0ck.org',
+              'http://localhost:3000',
+              'http://localhost:3001',
+              'http://localhost',
+              'http://127.0.0.1:3000', 
+              'http://127.0.0.1'
+            ];
+
+            // Prüfe, ob die Anfrage von einer erlaubten Origin kommt
+            const isAllowedOrigin = allowedOrigins.some(allowed =>
+              origin.toLowerCase().startsWith(allowed.toLowerCase())
+            );
+
+            if (!isAllowedOrigin) {
+              console.warn(`Login attempt from unauthorized origin: ${origin}`);
+              throw new Error('Unauthorized login attempt');
+            }
+          }
 
           // Apply rate limiting
           const ip = req?.headers?.['x-forwarded-for'] || 'anonymous';
@@ -240,6 +260,7 @@ export const authOptions: AuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        // Keine Domain für localhost setzen, damit Cookies funktionieren
         domain: process.env.NODE_ENV === 'production' ? '.f0ck.org' : undefined
       }
     },
@@ -249,6 +270,7 @@ export const authOptions: AuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        // Keine Domain für localhost setzen, damit Cookies funktionieren
         domain: process.env.NODE_ENV === 'production' ? '.f0ck.org' : undefined
       }
     },
@@ -259,6 +281,7 @@ export const authOptions: AuthOptions = {
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production'
+        // Keine Domain für CSRF-Token, damit es mit localhost funktioniert
       }
     }
   }

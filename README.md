@@ -1,4 +1,4 @@
-# f0ck.org Beta 3.4.0
+# f0ck.org Beta 3.4.2
 
 > ⚠️ **Development Notice**: This project is currently under active development. A public live version is online, but many functions are still being improved.
 
@@ -12,7 +12,7 @@ Modern, next-generation anonymous imageboard platform built with Next.js 15 and 
 
 ## 📋 Table of Contents
 
-- [f0ck.org Beta 3.4.0](#f0ckorg-beta-340)
+- [f0ck.org Beta 3.4.2](#f0ckorg-beta-342)
   - [📋 Table of Contents](#-table-of-contents)
   - [⚡ Features](#-features)
     - [📷 Anonymous Image Sharing](#-anonymous-image-sharing)
@@ -28,7 +28,8 @@ Modern, next-generation anonymous imageboard platform built with Next.js 15 and 
     - [Environment Setup](#environment-setup)
   - [🛠️ Tech Stack](#️-tech-stack)
   - [🔥 Latest Updates](#-latest-updates)
-    - [Beta v3.4.1 (Current)](#beta-v341-current)
+    - [Beta v3.4.2 (Current)](#beta-v342-current)
+    - [Beta v3.4.1](#beta-v341)
     - [Beta v3.4.0](#beta-v340)
       - [🔍 Optimized Tag Filters](#-optimized-tag-filters)
       - [🔄 Enhanced User Interaction](#-enhanced-user-interaction)
@@ -173,13 +174,14 @@ Create a `.env.local` file in the root directory:
 MONGODB_URI=your_mongodb_uri
 GIPHY_API_KEY=your_giphy_api_key
 NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:3001
 NODE_ENV=development
+PUBLIC_URL=http://localhost:3001
 ```
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Next.js 15.3 (App Router)
+- **Framework**: Next.js 15.3.1 (App Router)
 - **Styling**: TailwindCSS, Styled Components
 - **Typography**: Geist Font
 - **Architecture**: React Server Components
@@ -187,10 +189,21 @@ NODE_ENV=development
 - **Deployment**: Vercel Edge Runtime
 - **Database**: MongoDB Atlas
 - **Media**: GIPHY API Integration
+- **Package Manager**: npm 11.3.0
 
 ## 🔥 Latest Updates
 
-### Beta v3.4.1 (Current)
+### Beta v3.4.2 (Current)
+
+- **Bug fixes**:
+
+  - /account page fixed: avatar and bio finally editable
+  - The order of "Previous" and "Next" buttons has been reversed, so "Next" is now on the left and "Previous" on the right. Keyboard navigation has been adjusted accordingly, so the left arrow key (or 'A') leads to the newer post and the right arrow key (or 'D') to the older post.
+  - Page switcher from /tags and /user aligned according to /posts
+  - Correctly updates the statistics of likes and dislikes when a user switches between like and dislike
+  - No more infinite disliking possible
+
+### Beta v3.4.1
 
 - **Technology updates**:
 
@@ -292,7 +305,7 @@ NODE_ENV=development
 #### 📊 UI Refinements
 
 - **Redesigned Voting System**:
-  
+
   - Moved voting elements from overlay to sidebar
   - More intuitive voting behavior with better visibility
   - Post statistics hidden for anonymous users
@@ -305,7 +318,7 @@ NODE_ENV=development
 #### 🔄 Interaction Enhancements
 
 - **New Notification Features**:
-  
+
   - Added share banner for easier content distribution
   - Integrated feedback banner for improved user interaction
   - More intuitive social features guidance
@@ -315,7 +328,7 @@ NODE_ENV=development
 #### 🎨 Enhanced User Experience
 
 - **Improved Light Mode**:
-  
+
   - Comprehensive light mode support across all components
   - Better contrast and readability in light theme
   - Consistent styling across both themes
@@ -323,7 +336,7 @@ NODE_ENV=development
 #### 🎬 Enhanced Media Handling
 
 - **Improved Video Support**:
-  
+
   - Added video preview functionality during upload
   - Fixed activity feed type handling for both video and image content
   - Better media type detection and display
@@ -475,4 +488,4 @@ This version marks an important milestone for the f0ck.org project, consolidatin
 
 MIT License - © 2024 f0ck.org Team
 
-> Beta Version 3.4.0 - We build something new...
+> Beta Version 3.4.2 - We build something new...

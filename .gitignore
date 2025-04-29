@@ -19,7 +19,6 @@
 
 # production
 /build
-/wiki
 done.txt
 package-lock.json
 

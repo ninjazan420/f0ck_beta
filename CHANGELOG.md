@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## [3.4.2]
+
+- **Bug fixes**:
+  
+- /account gefixt: avatar und bio endlich bearbeitbar
+- Die Reihenfolge der "Previous" und "Next" Buttons wurde umgekehrt, sodass "Next" jetzt links und "Previous" rechts steht. Die Tastaturnavigation wurde entsprechend angepasst, sodass die linke Pfeiltaste (oder 'A') zum neueren Post führt und die rechte Pfeiltaste (oder 'D') zum älteren Post. (danke vio)
+- Seitenwechsler von /tags und /user entsprechend /posts ausgerichtet
+- Aktualisiert die Statistiken der Likes und Dislikes korrekt, wenn ein Benutzer zwischen Like und Dislike wechselt
+- Kein unendliches disliken mehr möglich
+
 ## [3.4.1]
 
 ### 🚀 Framework-Updates

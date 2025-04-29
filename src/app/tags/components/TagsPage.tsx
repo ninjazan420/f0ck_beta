@@ -50,15 +50,15 @@ export function TagsPage() {
       params.append('page', page.toString());
       params.append('limit', ITEMS_PER_PAGE.toString());
       params.append('sortBy', filters.sortBy);
-      
+
       if (filters.creator) params.append('creator', filters.creator);
       if (filters.usedBy) params.append('usedBy', filters.usedBy);
       if (filters.timeRange !== 'all') params.append('timeRange', filters.timeRange);
       if (filters.minPosts > 0) params.append('minPosts', filters.minPosts.toString());
-      
+
       const response = await fetch(`/api/tags?${params.toString()}`);
       const data = await response.json();
-      
+
       if (data.tags) {
         setTags(data.tags);
         setTotalPages(data.pagination.totalPages || 1);
@@ -89,7 +89,7 @@ export function TagsPage() {
         filters={filters}
         onFilterChange={setFilters}
       />
-      
+
       <div className="mt-6">
         {loading ? (
           <div className="animate-pulse">
@@ -110,25 +110,9 @@ export function TagsPage() {
         ) : (
           <>
             <TagList tags={tags} filters={filters} page={currentPage} />
-            
+
             <div className="mt-6 flex justify-center">
               <nav className="flex space-x-2" aria-label="Pagination">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1 || loading}
-                  className={`px-4 py-2 rounded-md ${
-                    currentPage === 1 || loading
-                      ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-700'
-                      : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  Previous
-                </button>
-                
-                <span className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-md">
-                  {currentPage}
-                </span>
-                
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages || loading}
@@ -139,6 +123,22 @@ export function TagsPage() {
                   }`}
                 >
                   Next
+                </button>
+
+                <span className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-md">
+                  {currentPage}
+                </span>
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1 || loading}
+                  className={`px-4 py-2 rounded-md ${
+                    currentPage === 1 || loading
+                      ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-700'
+                      : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Previous
                 </button>
               </nav>
             </div>

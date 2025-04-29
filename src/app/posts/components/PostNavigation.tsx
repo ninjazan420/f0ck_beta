@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 // Hilfsfunktion um zu prüfen, ob der Nutzer in einem Eingabefeld tippt
 function isUserTypingInInput(): boolean {
   const activeElement = document.activeElement;
-  const isInputField = activeElement instanceof HTMLInputElement || 
-                       activeElement instanceof HTMLTextAreaElement || 
+  const isInputField = activeElement instanceof HTMLInputElement ||
+                       activeElement instanceof HTMLTextAreaElement ||
                        activeElement instanceof HTMLSelectElement ||
                        (activeElement?.getAttribute('contenteditable') === 'true');
   return !!isInputField;
@@ -29,14 +29,14 @@ export function PostNavigation({ currentId, nextPostId, previousPostId }: PostNa
       if (isUserTypingInInput()) {
         return;
       }
-      
-      // Previous post: Left arrow or A
-      if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') && previousPostId) {
-        router.push(`/post/${previousPostId}`);
-      }
-      // Next post: Right arrow or D
-      else if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && nextPostId) {
+
+      // Neuerer Post: Left arrow or A (zum nächsten Post in der Reihenfolge)
+      if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') && nextPostId) {
         router.push(`/post/${nextPostId}`);
+      }
+      // Älterer Post: Right arrow or D (zum vorherigen Post in der Reihenfolge)
+      else if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && previousPostId) {
+        router.push(`/post/${previousPostId}`);
       }
     }
 
@@ -46,15 +46,15 @@ export function PostNavigation({ currentId, nextPostId, previousPostId }: PostNa
 
   return (
     <div className="flex items-center justify-between">
-      {previousPostId ? (
-        <Link 
-          href={`/post/${previousPostId}`}
+      {nextPostId ? (
+        <Link
+          href={`/post/${nextPostId}`}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
         >
-          ← Previous
+          Next →
         </Link>
       ) : (
-        <div className="p-2 invisible">← Previous</div>
+        <div className="p-2 invisible">Next →</div>
       )}
 
       <Link
@@ -64,15 +64,15 @@ export function PostNavigation({ currentId, nextPostId, previousPostId }: PostNa
         Back to Posts
       </Link>
 
-      {nextPostId ? (
-        <Link 
-          href={`/post/${nextPostId}`}
+      {previousPostId ? (
+        <Link
+          href={`/post/${previousPostId}`}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
         >
-          Next →
+          ← Previous
         </Link>
       ) : (
-        <div className="p-2 invisible">Next →</div>
+        <div className="p-2 invisible">← Previous</div>
       )}
     </div>
   );

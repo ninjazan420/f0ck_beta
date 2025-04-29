@@ -92,7 +92,13 @@ export function AccountCard() {
     const fetchUserData = async () => {
       try {
         setProfileLoading(true);
-        const response = await fetch('/api/user');
+        const response = await fetch('/api/user', {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
+
         if (response.status === 401) {
           console.log('Not authenticated, redirecting...');
           return;

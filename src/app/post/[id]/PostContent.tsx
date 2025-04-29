@@ -12,17 +12,19 @@ export default function PostContent({ postData, postId }) {
   const { data: session } = useSession();
   const router = useRouter();
   const [likeCount, setLikeCount] = useState(postData.stats?.likes || 0);
+  const [dislikeCount, setDislikeCount] = useState(postData.stats?.dislikes || 0);
   const [favoriteCount, setFavoriteCount] = useState(postData.stats?.favorites || 0);
   const [commentCount, setCommentCount] = useState(postData.stats?.comments || 0);
   const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
   const [favorited, setFavorited] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   // Konvertieren der Tags in das richtige Format
-  const tagNames = Array.isArray(postData.tags) 
+  const tagNames = Array.isArray(postData.tags)
     ? postData.tags.map(tag => typeof tag === 'string' ? tag : tag.name)
     : [];
-    
+
   // Lade den Benutzer-Interaktionsstatus und aktuelle Kommentaranzahl beim Laden der Komponente
   useEffect(() => {
     async function loadData() {
@@ -33,10 +35,11 @@ export default function PostContent({ postData, postId }) {
           if (interactionsResponse.ok) {
             const data = await interactionsResponse.json();
             setLiked(data.liked);
+            setDisliked(data.disliked);
             setFavorited(data.favorited);
           }
         }
-        
+
         // Lade aktuelle Kommentaranzahl
         const commentsResponse = await fetch(`/api/posts/${postId}/comments/count`);
         if (commentsResponse.ok) {
@@ -47,28 +50,36 @@ export default function PostContent({ postData, postId }) {
         console.error('Error loading data:', error);
       }
     }
-    
+
     loadData();
   }, [postId, session]);
-  
+
   const handleLike = async () => {
     if (!session) {
       router.push(`/login?callbackUrl=/post/${postId}`);
       return;
     }
-    
+
     if (isProcessing) return;
     setIsProcessing(true);
-    
+
     try {
       // Aktuellen Zustand sichern
       const currentLiked = liked;
-      const currentCount = likeCount;
-      
+      const currentLikeCount = likeCount;
+      const currentDisliked = disliked;
+      const currentDislikeCount = dislikeCount;
+
       // UI optimistisch aktualisieren
       setLiked(!liked);
       setLikeCount(prev => prev + (liked ? -1 : 1));
-      
+
+      // Wenn der Benutzer bereits einen Dislike gegeben hat, entferne diesen
+      if (disliked && !liked) {
+        setDisliked(false);
+        setDislikeCount(prev => Math.max(0, prev - 1));
+      }
+
       const method = liked ? 'DELETE' : 'POST';
       const response = await fetch(`/api/posts/${postId}/like`, {
         method,
@@ -76,26 +87,34 @@ export default function PostContent({ postData, postId }) {
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (response.ok) {
         // Daten aus der Antwort lesen
         const data = await response.json();
-        
+
         // Server-Zustand übernehmen
         setLiked(data.liked);
         setLikeCount(data.likeCount);
-        
+
+        // Wenn ein Dislike entfernt wurde, aktualisiere auch den Dislike-Status
+        if (data.dislikeCount !== undefined) {
+          setDislikeCount(data.dislikeCount);
+          setDisliked(false);
+        }
+
         // Feedback zeigen
         const message = data.message || (liked ? 'Like entfernt' : 'Beitrag geliked');
         toast.success(message);
-        
+
         // Aktualisiere die Seite
         router.refresh();
       } else {
         // Bei Fehler alten Zustand wiederherstellen
         setLiked(currentLiked);
-        setLikeCount(currentCount);
-        
+        setLikeCount(currentLikeCount);
+        setDisliked(currentDisliked);
+        setDislikeCount(currentDislikeCount);
+
         // Fehlermeldung zeigen
         const errorData = await response.json().catch(() => ({ error: 'Unbekannter Fehler' }));
         throw new Error(errorData.error || 'Fehler bei der Aktualisierung des Likes');
@@ -107,30 +126,103 @@ export default function PostContent({ postData, postId }) {
       setIsProcessing(false);
     }
   };
-  
+
+  const handleDislike = async () => {
+    if (!session) {
+      router.push(`/login?callbackUrl=/post/${postId}`);
+      return;
+    }
+
+    if (isProcessing) return;
+    setIsProcessing(true);
+
+    try {
+      // Aktuellen Zustand sichern
+      const currentDisliked = disliked;
+      const currentDislikeCount = dislikeCount;
+      const currentLiked = liked;
+      const currentLikeCount = likeCount;
+
+      // UI optimistisch aktualisieren
+      setDisliked(!disliked);
+      setDislikeCount(prev => prev + (disliked ? -1 : 1));
+
+      // Wenn der Benutzer bereits einen Like gegeben hat, entferne diesen
+      if (liked && !disliked) {
+        setLiked(false);
+        setLikeCount(prev => Math.max(0, prev - 1));
+      }
+
+      const method = disliked ? 'DELETE' : 'POST';
+      const response = await fetch(`/api/posts/${postId}/dislike`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        // Daten aus der Antwort lesen
+        const data = await response.json();
+
+        // Server-Zustand übernehmen
+        setDisliked(data.disliked);
+        setDislikeCount(data.dislikeCount);
+
+        // Wenn ein Like entfernt wurde, aktualisiere auch den Like-Status
+        if (data.likeCount !== undefined) {
+          setLikeCount(data.likeCount);
+          setLiked(false);
+        }
+
+        // Feedback zeigen
+        const message = data.message || (disliked ? 'Dislike entfernt' : 'Beitrag disliked');
+        toast.success(message);
+
+        // Aktualisiere die Seite
+        router.refresh();
+      } else {
+        // Bei Fehler alten Zustand wiederherstellen
+        setDisliked(currentDisliked);
+        setDislikeCount(currentDislikeCount);
+        setLiked(currentLiked);
+        setLikeCount(currentLikeCount);
+
+        // Fehlermeldung zeigen
+        const errorData = await response.json().catch(() => ({ error: 'Unbekannter Fehler' }));
+        throw new Error(errorData.error || 'Fehler bei der Aktualisierung des Dislikes');
+      }
+    } catch (error) {
+      console.error('Error updating dislike:', error);
+      toast.error('Fehler beim Aktualisieren des Dislikes');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleFavorite = async () => {
     if (!session) {
       router.push(`/login?callbackUrl=/post/${postId}`);
       return;
     }
-    
+
     if (isProcessing) return;
     setIsProcessing(true);
-    
+
     try {
       // Aktuellen Wert für die Wiederherstellung im Fehlerfall speichern
       const currentFavorited = favorited;
       const currentCount = favoriteCount;
-      
+
       // Optimistisches UI-Update
       setFavorited(!favorited);
       setFavoriteCount(favoriteCount + (favorited ? -1 : 1));
-      
+
       console.log('Sending favorite request:', {
         method: favorited ? 'DELETE' : 'POST',
         url: `/api/posts/${postId}/favorite`
       });
-      
+
       const method = favorited ? 'DELETE' : 'POST';
       const response = await fetch(`/api/posts/${postId}/favorite`, {
         method,
@@ -138,11 +230,11 @@ export default function PostContent({ postData, postId }) {
           'Content-Type': 'application/json'
         }
       });
-      
+
       console.log('Favorite response status:', response.status);
       const responseText = await response.text();
       console.log('Favorite response text:', responseText);
-      
+
       if (response.ok) {
         let data;
         try {
@@ -151,13 +243,13 @@ export default function PostContent({ postData, postId }) {
           console.error('Failed to parse response JSON:', e);
           data = { favorited: !favorited, favoriteCount: favoriteCount + (favorited ? -1 : 1) };
         }
-        
+
         console.log('Parsed favorite response:', data);
         setFavorited(data.favorited);
         setFavoriteCount(data.favoriteCount || data.favoritesCount);
-        
+
         toast.success(favorited ? 'Aus Favoriten entfernt' : 'Zu Favoriten hinzugefügt');
-        
+
         router.refresh();
       } else {
         // Bei Fehler zurück zum vorherigen Zustand
@@ -186,15 +278,15 @@ export default function PostContent({ postData, postId }) {
     <>
       {/* Post-Inhalt */}
       <h1 className="text-2xl font-bold">{postData.title}</h1>
-      
+
       {/* Interaktionsleiste mit korrekter Kommentaranzahl */}
       <div className="my-2 p-3 bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-xl flex items-center space-x-4">
-        <button 
+        <button
           onClick={handleLike}
           disabled={isProcessing}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-            liked 
-              ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
+            liked
+              ? 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400'
               : 'bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
           }`}
           aria-label={liked ? "Unlike post" : "Like post"}
@@ -202,13 +294,27 @@ export default function PostContent({ postData, postId }) {
           <span className="text-xl">👍</span>
           <span>{likeCount}</span>
         </button>
-        
-        <button 
+
+        <button
+          onClick={handleDislike}
+          disabled={isProcessing}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+            disliked
+              ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+              : 'bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
+          aria-label={disliked ? "Remove dislike" : "Dislike post"}
+        >
+          <span className="text-xl">👎</span>
+          <span>{dislikeCount}</span>
+        </button>
+
+        <button
           onClick={handleFavorite}
           disabled={isProcessing}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-            favorited 
-              ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400' 
+            favorited
+              ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400'
               : 'bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
           }`}
           aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
@@ -216,7 +322,7 @@ export default function PostContent({ postData, postId }) {
           <span className="text-xl">❤️</span>
           <span>{favoriteCount}</span>
         </button>
-        
+
         <Link
           href={`/comments?post=${postId}`}
           className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -225,7 +331,7 @@ export default function PostContent({ postData, postId }) {
           <span className="text-xl">💬</span>
           <span>{commentCount}</span>
         </Link>
-        
+
         <button
           onClick={() => {
             navigator.clipboard.writeText(window.location.href);
@@ -238,22 +344,22 @@ export default function PostContent({ postData, postId }) {
           <span>Teilen</span>
         </button>
       </div>
-      
+
       {/* Bild */}
       <div className="my-4">
-        <img 
-          src={postData.imageUrl} 
-          alt={postData.title} 
+        <img
+          src={postData.imageUrl}
+          alt={postData.title}
           className="max-w-full h-auto rounded-lg"
         />
       </div>
-      
+
       {/* PostModerator-Komponente */}
       <PostModerator postId={postId} />
-      
+
       {/* PostTagEditor-Komponente */}
       <PostTagEditor postId={postId} initialTags={tagNames} />
-      
+
       {/* Autoren-Infobox mit korrekten Statistiken */}
       {postData.author && (
         <div className="mt-4 p-4 rounded-lg bg-white/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
@@ -262,8 +368,8 @@ export default function PostContent({ postData, postId }) {
               <Link href={`/user/${postData.author.username}`}>
                 <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
                   {postData.author.avatar ? (
-                    <img 
-                      src={postData.author.avatar} 
+                    <img
+                      src={postData.author.avatar}
                       alt={`${postData.author.username}'s avatar`}
                       className="w-full h-full object-cover"
                     />
@@ -279,7 +385,7 @@ export default function PostContent({ postData, postId }) {
                 <span className="text-gray-500">?</span>
               </div>
             )}
-            
+
             <div className="flex-1">
               <h3 className="font-medium">
                 {postData.author.username !== 'anonymous' ? (
@@ -290,13 +396,13 @@ export default function PostContent({ postData, postId }) {
                   'Anonymous'
                 )}
               </h3>
-              
+
               {postData.author.username !== 'anonymous' && postData.author.bio && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {postData.author.bio}
                 </p>
               )}
-              
+
               {postData.author.username !== 'anonymous' && (
                 <div className="flex flex-wrap gap-4 mt-2">
                   <Link href={`/posts?uploader=${postData.author.username}`} className="text-sm hover:text-purple-600">
@@ -322,4 +428,4 @@ export default function PostContent({ postData, postId }) {
       )}
     </>
   );
-} 
+}
