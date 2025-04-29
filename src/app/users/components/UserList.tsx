@@ -188,18 +188,18 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
         ))}
       </div>
 
-      {/* Angepasste Paginierung mit Next links und Previous rechts */}
+      {/* Angepasste Paginierung mit korrekter Beschriftung */}
       {actualTotalPages >= 1 && (
         <div className="flex items-center justify-between">
-          {page < actualTotalPages ? (
+          {page > 1 ? (
             <button
-              onClick={() => onPageChange(page + 1)}
+              onClick={() => onPageChange(page - 1)}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
             >
-              Next →
+              ← Next
             </button>
           ) : (
-            <div className="p-2 invisible">Next →</div>
+            <div className="p-2 invisible">← Next</div>
           )}
 
           <div className="flex items-center space-x-2">
@@ -253,15 +253,15 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
             )}
           </div>
 
-          {page > 1 ? (
+          {page < actualTotalPages ? (
             <button
-              onClick={() => onPageChange(page - 1)}
+              onClick={() => onPageChange(page + 1)}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
             >
-              ← Previous
+              Previous →
             </button>
           ) : (
-            <div className="p-2 invisible">← Previous</div>
+            <div className="p-2 invisible">Previous →</div>
           )}
         </div>
       )}

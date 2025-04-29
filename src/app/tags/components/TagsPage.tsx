@@ -114,10 +114,10 @@ export function TagsPage() {
             <div className="mt-6 flex justify-center">
               <nav className="flex space-x-2" aria-label="Pagination">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages || loading}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1 || loading}
                   className={`px-4 py-2 rounded-md ${
-                    currentPage === totalPages || loading
+                    currentPage === 1 || loading
                       ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-700'
                       : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
                   }`}
@@ -130,10 +130,10 @@ export function TagsPage() {
                 </span>
 
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1 || loading}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages || loading}
                   className={`px-4 py-2 rounded-md ${
-                    currentPage === 1 || loading
+                    currentPage === totalPages || loading
                       ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-gray-700'
                       : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
                   }`}

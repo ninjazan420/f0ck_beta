@@ -337,11 +337,11 @@ export function PostsPage() {
         {!infiniteScroll && (
           <div className="flex justify-center items-center gap-2 pt-4">
             <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
               className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 text-sm"
             >
-              Next →
+              ← Next
             </button>
 
             <div className="flex items-center gap-1">
@@ -406,11 +406,11 @@ export function PostsPage() {
             </div>
 
             <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
               className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 text-sm"
             >
-              ← Previous
+              Previous →
             </button>
           </div>
         )}

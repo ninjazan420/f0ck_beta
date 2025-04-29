@@ -51,10 +51,10 @@ export function PostNavigation({ currentId, nextPostId, previousPostId }: PostNa
           href={`/post/${nextPostId}`}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
         >
-          Next →
+          ← Next
         </Link>
       ) : (
-        <div className="p-2 invisible">Next →</div>
+        <div className="p-2 invisible">← Next</div>
       )}
 
       <Link
@@ -69,10 +69,10 @@ export function PostNavigation({ currentId, nextPostId, previousPostId }: PostNa
           href={`/post/${previousPostId}`}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
         >
-          ← Previous
+          Previous →
         </Link>
       ) : (
-        <div className="p-2 invisible">← Previous</div>
+        <div className="p-2 invisible">Previous →</div>
       )}
     </div>
   );
