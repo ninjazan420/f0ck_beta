@@ -1,6 +1,25 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+interface IPremiumInfo {
+  isActive: boolean;
+  subscriptionId?: string;
+  customerId?: string;
+  plan?: 'monthly' | 'yearly';
+  startDate?: Date;
+  endDate?: Date;
+  cancelAtPeriodEnd?: boolean;
+  invoices?: Array<{
+    id: string;
+    amount: number;
+    currency: string;
+    status: string;
+    created: Date;
+    invoiceUrl?: string;
+    receiptUrl?: string;
+  }>;
+}
+
 interface IUser extends mongoose.Document {
   email: string;
   name?: string;
@@ -14,6 +33,7 @@ interface IUser extends mongoose.Document {
   role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
   storageQuota: number;
   usedStorage: number;
+  premium?: IPremiumInfo;
 }
 
 const userSchema = new mongoose.Schema({
@@ -92,6 +112,33 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     required: true
+  },
+  premium: {
+    isActive: {
+      type: Boolean,
+      default: false
+    },
+    subscriptionId: String,
+    customerId: String,
+    plan: {
+      type: String,
+      enum: ['monthly', 'yearly']
+    },
+    startDate: Date,
+    endDate: Date,
+    cancelAtPeriodEnd: {
+      type: Boolean,
+      default: false
+    },
+    invoices: [{
+      id: String,
+      amount: Number,
+      currency: String,
+      status: String,
+      created: Date,
+      invoiceUrl: String,
+      receiptUrl: String
+    }]
   }
 }, {
   timestamps: true // Dies erstellt automatisch createdAt und updatedAt
@@ -116,7 +163,7 @@ userSchema.virtual('stats').get(function() {
 });
 
 // Stellen Sie sicher, dass virtuals in JSON enthalten sind
-userSchema.set('toJSON', { 
+userSchema.set('toJSON', {
   virtuals: true,
   transform: function(doc, ret) {
     ret.id = ret._id;

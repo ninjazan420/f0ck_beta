@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AvatarPicker } from './AvatarPicker';
+import { PremiumPanel } from './PremiumPanel';
 import { ReactElement } from 'react';
 import { AlertCircle, Pencil, Eye, Save, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -508,12 +509,14 @@ export function AccountCard() {
                 </button>
               </div>
             )}
-            <Link
-              href="/premium"
-              className="w-full py-1.5 px-3 text-xs rounded-lg text-center bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-1"
-            >
-              Buy Premium
-            </Link>
+            {session?.user?.role !== 'premium' && (
+              <Link
+                href="/premium"
+                className="w-full py-1.5 px-3 text-xs rounded-lg text-center bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-1"
+              >
+                Buy Premium
+              </Link>
+            )}
           </div>
         </div>
 
@@ -580,6 +583,11 @@ export function AccountCard() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Premium Panel */}
+      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <PremiumPanel />
       </div>
 
       {/* Privacy Settings - Kompakteres Layout */}

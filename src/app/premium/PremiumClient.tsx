@@ -1,28 +1,43 @@
 'use client';
 import { Footer } from "@/components/Footer";
 import { RandomLogo } from "@/components/RandomLogo";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { StripeCheckout } from './components/StripeCheckout';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { PREMIUM_PLANS } from '@/lib/stripe';
 
 export default function PremiumClient() {
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
+  const [isPremium, setIsPremium] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { data: session } = useSession();
+  const router = useRouter();
 
-  const plans = {
-    monthly: {
-      price: '1.99',
-      period: 'month',
-      savings: ''
-    },
-    yearly: {
-      price: '19.99',
-      period: 'year',
-      savings: 'Save ~17%'
-    }
-  };
+  const plans = PREMIUM_PLANS;
 
-  const handlePurchase = () => {
-    // TODO: Implement purchase logic
-    console.log(`Processing ${selectedPlan} purchase...`);
-  };
+  // Premium-Status abrufen
+  useEffect(() => {
+    const checkPremiumStatus = async () => {
+      if (!session?.user) return;
+
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/user/premium');
+
+        if (response.ok) {
+          const data = await response.json();
+          setIsPremium(data.isPremium);
+        }
+      } catch (error) {
+        console.error('Error checking premium status:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkPremiumStatus();
+  }, [session]);
 
   return (
     <div className="min-h-[calc(100vh-36.8px)] flex flex-col">
@@ -159,7 +174,7 @@ export default function PremiumClient() {
           <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-6 text-black dark:text-gray-400">
             Frequently Asked Questions
           </h2>
-          
+
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
               <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
@@ -243,15 +258,16 @@ export default function PremiumClient() {
           <p className="text-gray-600 dark:text-gray-400">
             Join thousands of premium users and unlock all features today.
           </p>
-          <button
-            onClick={handlePurchase}
-            className="inline-flex items-center px-6 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-          >
-            Get Premium Now 💎
-          </button>
+          {isPremium ? (
+            <div className="inline-flex items-center px-6 py-3 rounded-lg bg-green-600 text-white font-medium">
+              You already have Premium 💎
+            </div>
+          ) : (
+            <StripeCheckout selectedPlan={selectedPlan} />
+          )}
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );
