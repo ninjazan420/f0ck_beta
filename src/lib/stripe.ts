@@ -6,11 +6,11 @@ let stripeInstance: Stripe | null = null;
 export const getStripe = (): Stripe => {
   if (!stripeInstance) {
     const secretKey = process.env.STRIPE_SECRET_KEY;
-    
+
     if (!secretKey) {
       throw new Error('Missing Stripe secret key');
     }
-    
+
     stripeInstance = new Stripe(secretKey, {
       apiVersion: '2023-10-16', // Aktuelle API-Version
       appInfo: {
@@ -19,25 +19,33 @@ export const getStripe = (): Stripe => {
       },
     });
   }
-  
+
   return stripeInstance;
 };
 
 // Client-seitiger Stripe-Instance (für Frontend)
 export const getStripePublic = async () => {
   const { loadStripe } = await import('@stripe/stripe-js');
-  
+
   const publicKey = process.env.STRIPE_PUBLIC_KEY;
-  
+
   if (!publicKey) {
     throw new Error('Missing Stripe public key');
   }
-  
+
   return loadStripe(publicKey);
 };
 
 // Premium-Pläne
 export const PREMIUM_PLANS = {
+  onetime: {
+    id: process.env.STRIPE_ONETIME_PRICE_ID || 'price_onetime',
+    name: 'One-time Premium',
+    price: '1.99',
+    period: 'month',
+    interval: 'one-time',
+    savings: ''
+  },
   monthly: {
     id: process.env.STRIPE_MONTHLY_PLAN_ID || 'price_monthly',
     name: 'Monthly Premium',
@@ -49,10 +57,10 @@ export const PREMIUM_PLANS = {
   yearly: {
     id: process.env.STRIPE_YEARLY_PLAN_ID || 'price_yearly',
     name: 'Yearly Premium',
-    price: '19.99',
+    price: '15.00',
     period: 'year',
     interval: 'year',
-    savings: 'Save ~17%'
+    savings: 'Save ~37%'
   }
 };
 

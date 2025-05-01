@@ -6,9 +6,11 @@ import { StripeCheckout } from './components/StripeCheckout';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { PREMIUM_PLANS } from '@/lib/stripe';
+import PremiumCard from '@/components/PremiumCard';
+import PlanSelector from './components/PlanSelector';
 
 export default function PremiumClient() {
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
+  const [selectedPlan, setSelectedPlan] = useState<'onetime' | 'monthly' | 'yearly'>('monthly');
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
@@ -51,58 +53,48 @@ export default function PremiumClient() {
             Upgrade to Premium 💎
           </h1>
           <p className="text-xl text-gray-700 dark:text-gray-300">
-            Unlock the full potential of f0ck.org (not live yet, do not pay or buy)
+             (not live yet, do not pay or buy) Unlock the full potential of f0ck.org
           </p>
         </div>
 
         {/* Pricing Section */}
         <div className="mb-12">
-          <div className="max-w-md mx-auto p-6 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 border border-purple-100 dark:border-purple-800/20">
-            <div className="flex justify-center gap-4 mb-6">
-              <button
-                onClick={() => setSelectedPlan('monthly')}
-                className={`px-4 py-2 rounded-lg transition-all ${
-                  selectedPlan === 'monthly'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-white/50 dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/20'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setSelectedPlan('yearly')}
-                className={`px-4 py-2 rounded-lg transition-all ${
-                  selectedPlan === 'yearly'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-white/50 dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/20'
-                }`}
-              >
-                Yearly
-              </button>
-            </div>
+          <div className="max-w-md mx-auto">
+            <PremiumCard title="Upgrade to Premium 💎" subtitle="Unlock all premium features and benefits">
+              <PlanSelector
+                selectedPlan={selectedPlan}
+                onSelectPlan={setSelectedPlan}
+              />
 
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-                  ${plans[selectedPlan].price}
-                </span>
-                <span className="text-gray-600 dark:text-gray-400">
-                  /{plans[selectedPlan].period}
-                </span>
+              <div className="text-center mb-6">
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-4xl font-bold text-white">
+                    ${plans[selectedPlan].price}
+                  </span>
+                  <span className="text-bd89ff">
+                    /{plans[selectedPlan].period}
+                  </span>
+                </div>
+                {plans[selectedPlan].savings && (
+                  <span className="text-sm text-green-400">
+                    {plans[selectedPlan].savings}
+                  </span>
+                )}
               </div>
-              {plans[selectedPlan].savings && (
-                <span className="text-sm text-green-600 dark:text-green-400">
-                  {plans[selectedPlan].savings}
-                </span>
-              )}
-            </div>
 
-            <button
-              onClick={handlePurchase}
-              className="w-full py-3 px-4 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-medium transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Upgrade Now
-            </button>
+              {isPremium ? (
+                <div className="flex justify-center">
+                  <button
+                    disabled
+                    className="px-6 py-3 rounded-lg bg-green-600 text-white font-medium"
+                  >
+                    You already have Premium 💎
+                  </button>
+                </div>
+              ) : (
+                <StripeCheckout selectedPlan={selectedPlan} />
+              )}
+            </PremiumCard>
           </div>
         </div>
 
@@ -251,20 +243,21 @@ export default function PremiumClient() {
         </section>
 
         {/* Call to Action */}
-        <div className="text-center space-y-4">
-          <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] text-black dark:text-gray-400">
-            Ready to Upgrade?
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Join thousands of premium users and unlock all features today.
-          </p>
-          {isPremium ? (
-            <div className="inline-flex items-center px-6 py-3 rounded-lg bg-green-600 text-white font-medium">
-              You already have Premium 💎
-            </div>
-          ) : (
-            <StripeCheckout selectedPlan={selectedPlan} />
-          )}
+        <div className="text-center space-y-4 max-w-md mx-auto">
+          <PremiumCard title="Ready to Upgrade?" subtitle="Join thousands of premium users and unlock all features today.">
+            {isPremium ? (
+              <div className="flex justify-center">
+                <button
+                  disabled
+                  className="px-6 py-3 rounded-lg bg-green-600 text-white font-medium"
+                >
+                  You already have Premium 💎
+                </button>
+              </div>
+            ) : (
+              <StripeCheckout selectedPlan={selectedPlan} />
+            )}
+          </PremiumCard>
         </div>
       </div>
 

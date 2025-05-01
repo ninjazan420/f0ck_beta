@@ -10,6 +10,7 @@ import { ReactElement } from 'react';
 import { AlertCircle, Pencil, Eye, Save, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getImageUrlWithCacheBuster } from '@/lib/utils';
+import PremiumButton from '@/components/PremiumButton';
 
 interface ActivityItem {
   id: string;
@@ -510,12 +511,9 @@ export function AccountCard() {
               </div>
             )}
             {session?.user?.role !== 'premium' && (
-              <Link
-                href="/premium"
-                className="w-full py-1.5 px-3 text-xs rounded-lg text-center bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-1"
-              >
-                Buy Premium
-              </Link>
+              <div className="w-auto">
+                <PremiumButton href="/premium" text="Buy Premium" />
+              </div>
             )}
           </div>
         </div>
@@ -590,53 +588,7 @@ export function AccountCard() {
         <PremiumPanel />
       </div>
 
-      {/* Privacy Settings - Kompakteres Layout */}
-      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400">
-            Privacy (does not change anything yet)
-          </h3>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              checked={profile.privacySettings.isProfilePrivate}
-              onChange={() => togglePrivacySetting("isProfilePrivate")}
-              id="privacy-toggle"
-              aria-label="Toggle private profile"
-              title="Toggle private profile"
-            />
-            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-          </label>
-        </div>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          {Object.entries(profile.privacySettings)
-            .filter(([key]) => key !== "isProfilePrivate")
-            .map(([key, value]) => (
-              <label key={key} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={value}
-                  onChange={() =>
-                    togglePrivacySetting(
-                      key as keyof ProfileData["privacySettings"]
-                    )
-                  }
-                  disabled={profile.privacySettings.isProfilePrivate}
-                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600
-                      text-purple-600 focus:ring-purple-500 dark:focus:ring-purple-600
-                      dark:bg-gray-700 transition-colors cursor-pointer"
-                  aria-label={`Show ${key.replace("show", "")}`}
-                  title={`Toggle visibility of ${key.replace("show", "")}`}
-                  id={`privacy-${key}`}
-                />
-                <span className="text-gray-600 dark:text-gray-400">
-                  Show {key.replace("show", "")}
-                </span>
-              </label>
-            ))}
-        </div>
-      </div>
+
 
       {/* Recent Activity with loading state */}
       <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
