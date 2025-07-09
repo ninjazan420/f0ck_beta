@@ -107,7 +107,7 @@ export default function ModerationDashboard() {
         
         {/* Tabs */}
         <div className="flex justify-center mb-8">
-          <div className="inline-flex rounded-md shadow-sm">
+          <div className="inline-flex rounded-md shadow-xs">
             <button
               onClick={() => setActiveTab('overview')}
               className={`px-4 py-2 text-sm font-medium rounded-l-lg ${

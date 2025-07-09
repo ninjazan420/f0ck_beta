@@ -97,27 +97,35 @@ export async function POST(
 
     // Speichere Like auch beim User
     user.likes.push(post._id);
-    await user.save();
 
-    // Benachrichtigung an den Autor senden, wenn es nicht sein eigener Post ist
+    // Use transaction to prevent version conflicts
+    const session_db = await mongoose.startSession();
+    try {
+      await session_db.withTransaction(async () => {
+        await user.save({ session: session_db });
+        await post.save({ session: session_db });
+
+        // ModLog eintragen - direkte Implementierung statt Service-Aufruf
+        await ModLog.create([{
+          moderator: session.user.id,
+          action: 'like',
+          targetType: 'post',
+          targetId: post._id,
+          reason: 'User liked post',
+          metadata: {
+            postId: post._id,
+            postTitle: post.title
+          }
+        }], { session: session_db });
+      });
+    } finally {
+      await session_db.endSession();
+    }
+
+    // Benachrichtigung an den Autor senden (outside transaction)
     if (post.author && post.author.toString() !== session.user.id) {
       await NotificationService.notifyPostLike(post._id.toString(), session.user.id);
     }
-
-    // ModLog eintragen - direkte Implementierung statt Service-Aufruf
-    await ModLog.create({
-      moderator: session.user.id,
-      action: 'like',
-      targetType: 'post',
-      targetId: post._id,
-      reason: 'User liked post',
-      metadata: {
-        postId: post._id,
-        postTitle: post.title
-      }
-    });
-
-    await post.save();
 
     return NextResponse.json({
       liked: true,
@@ -214,21 +222,29 @@ export async function DELETE(
       post.stats.likes = Math.max(0, (post.stats.likes || 0) - 1);
     }
 
-    await post.save();
+    // Use transaction to prevent version conflicts
+    const session_db = await mongoose.startSession();
+    try {
+      await session_db.withTransaction(async () => {
+        await post.save({ session: session_db });
 
-    // ModLog eintragen mit korrektem action Enum
-    await ModLog.create({
-      moderator: session.user.id,
-      action: 'like', // Korrektur von 'unlike' zu 'like'
-      targetType: 'post',
-      targetId: post._id,
-      reason: 'User removed like from post',
-      metadata: {
-        postId: post._id,
-        postTitle: post.title,
-        removed: true // Flag für Entfernung
-      }
-    });
+        // ModLog eintragen mit korrektem action Enum
+        await ModLog.create([{
+          moderator: session.user.id,
+          action: 'like', // Korrektur von 'unlike' zu 'like'
+          targetType: 'post',
+          targetId: post._id,
+          reason: 'User removed like from post',
+          metadata: {
+            postId: post._id,
+            postTitle: post.title,
+            removed: true // Flag für Entfernung
+          }
+        }], { session: session_db });
+      });
+    } finally {
+      await session_db.endSession();
+    }
 
     return NextResponse.json({
       liked: false,

@@ -68,7 +68,7 @@ export function PostComments({ postId }: PostCommentsProps) {
   const [mentionPosition, setMentionPosition] = useState<{ top: number, left: number } | null>(null);
   const [highlightedMentionIndex, setHighlightedMentionIndex] = useState(0);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
-  const [mentionSearchDebug, setMentionSearchDebug] = useState<string>("Kein @-Text erkannt");
+  const [mentionSearchDebug, setMentionSearchDebug] = useState<string>("No @-text detected");
   const [mentionError, setMentionError] = useState<string | null>(null);
 
   // Aktualisiere den isAnonymous-Status, wenn sich der Session-Status ändert
@@ -125,7 +125,12 @@ export function PostComments({ postId }: PostCommentsProps) {
   };
 
   // Role badge rendering function similar to UserProfile component
-  const getRoleBadge = (role?: string) => {
+  const getRoleBadge = (role?: string, username?: string) => {
+    // Debug: Log the role to see what we're getting
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('PostComment author role:', role, 'for user:', username);
+    }
+
     switch(role) {
       case 'banned':
         return (
@@ -151,6 +156,9 @@ export function PostComments({ postId }: PostCommentsProps) {
             PREMIUM
           </span>
         );
+      case 'user':
+        // Don't show badge for regular users
+        return null;
       default:
         return null;
     }
@@ -400,11 +408,18 @@ export function PostComments({ postId }: PostCommentsProps) {
     const cursorPosition = e.target.selectionStart || 0;
     const textUpToCursor = text.substring(0, cursorPosition);
 
+    // Debug: Log the input text and cursor position
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Input text:", text);
+      console.log("Cursor position:", cursorPosition);
+      console.log("Text up to cursor:", textUpToCursor);
+    }
+
     // Finde den letzten @-Erwähnungs-Anfang vor dem Cursor
     const lastAtSymbol = textUpToCursor.lastIndexOf('@');
 
     if (lastAtSymbol >= 0) {
-      console.log("@ Symbol gefunden an Position:", lastAtSymbol);
+      console.log("@ Symbol found at position:", lastAtSymbol);
 
       // Prüfen, ob vor dem @ ein Leerzeichen oder der Textanfang ist
       const isValidMentionStart = lastAtSymbol === 0 ||
@@ -416,9 +431,10 @@ export function PostComments({ postId }: PostCommentsProps) {
 
       setMentionSearchDebug(`@-Text: "${textBetweenAtAndCursor}", Valid: ${isValidMentionStart}, HasSpace: ${hasSpace}`);
 
+
       if (isValidMentionStart && !hasSpace) {
         setMentionSearch(textBetweenAtAndCursor);
-        console.log("Suche nach:", textBetweenAtAndCursor);
+        console.log("Searching for:", textBetweenAtAndCursor);
 
         // Position für den Vorschlagsblock berechnen
         if (commentInputRef.current) {
@@ -436,33 +452,35 @@ export function PostComments({ postId }: PostCommentsProps) {
         }
 
         try {
+
           // Benutzer suchen
           if (textBetweenAtAndCursor.length > 0) {
-            console.log("API-Aufruf mit:", textBetweenAtAndCursor);
+            console.log("API call with:", textBetweenAtAndCursor);
             const users = await MentionService.searchUsers(textBetweenAtAndCursor);
-            console.log("Gefundene Benutzer:", users);
+            console.log("Found users:", users);
             setMentionUsers(users);
             setHighlightedMentionIndex(0);
           } else {
-            // Bei leerem Suchtext zeigen wir beliebte/aktuelle Benutzer an
-            console.log("Zeige aktive Benutzer an");
+            // For empty search text, show popular/active users
+            console.log("Showing active users");
             const recentUsers = await MentionService.searchUsers('', 5);
-            console.log("Aktive Benutzer:", recentUsers);
+            console.log("Active users:", recentUsers);
             setMentionUsers(recentUsers);
             setHighlightedMentionIndex(0);
           }
+
         } catch (error) {
-          console.error("Fehler bei der Benutzersuche:", error);
-          setMentionError(`Fehler bei der Suche: ${error}`);
+          console.error("Error searching users:", error);
+          setMentionError(`Search error: ${error}`);
           setMentionUsers([]);
         }
         return;
       }
+    } else {
+      // Wenn kein gültiges @-Muster gefunden wurde, Mentions-UI zurücksetzen
+      setMentionSearch(null);
+      setMentionUsers([]);
     }
-
-    // Wenn kein gültiges @-Muster gefunden wurde, Mentions-UI zurücksetzen
-    setMentionSearch(null);
-    setMentionUsers([]);
   }, [replyToId]);
 
   // Verbesserte Funktion zur Berechnung der Cursor-Position
@@ -896,34 +914,11 @@ export function PostComments({ postId }: PostCommentsProps) {
         </div>
       ) : (
         <>
-          {/* Kommentarformular oder Login-Aufforderung */}
-          {session ? (
-            <CommentForm postId={postId} onCommentAdded={handleCommentAdded} />
-          ) : (
-            <div className="text-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-              <p className="mb-2 text-gray-600 dark:text-gray-400">
-                Please log in to leave a comment.
-              </p>
-              <Link href="/auth/signin" className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300">
-                Sign in
-              </Link>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Kommentarliste - diese wird auch angezeigt, wenn Kommentare deaktiviert sind */}
-      <CommentList
-        postId={postId}
-        limit={10}
-        showModActions={true}
-        infiniteScroll={true}
-      />
-
-      <div className="mt-4 relative">
+          {/* Kommentarformular */}
+          <div className="mt-4 relative">
         <textarea
           ref={commentInputRef}
-          placeholder={replyToId ? "Verfasse eine Antwort..." : "Hinterlasse einen Kommentar..."}
+          placeholder={replyToId ? "Write a reply..." : "Leave a comment..."}
           value={replyToId ? replyText : newComment}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
@@ -936,7 +931,7 @@ export function PostComments({ postId }: PostCommentsProps) {
           <div className="text-xs text-gray-500 mt-1">
             <div>{mentionSearchDebug}</div>
             {mentionError && <div className="text-red-500">{mentionError}</div>}
-            <div>Vorschläge: {mentionUsers.length}</div>
+            <div>Suggestions: {mentionUsers.length}</div>
           </div>
         )}
 
@@ -945,13 +940,14 @@ export function PostComments({ postId }: PostCommentsProps) {
           <div
             style={{
               position: 'absolute',
-              top: (mentionPosition?.top || 40) + 'px',
-              left: (mentionPosition?.left || 10) + 'px',
+              top: '100%',
+              left: '0',
               zIndex: 50,
               maxHeight: '300px',
               overflowY: 'auto',
               width: 'auto',
-              maxWidth: '90%'
+              maxWidth: '90%',
+              marginTop: '4px'
             }}
             className="mention-selector-container"
           >
@@ -967,34 +963,83 @@ export function PostComments({ postId }: PostCommentsProps) {
           </div>
         )}
 
-        {/* Keine Ergebnisse gefunden */}
+        {/* No results found */}
         {mentionSearch !== null && mentionUsers.length === 0 && mentionSearch.length > 0 && (
           <div
             style={{
               position: 'absolute',
-              top: (mentionPosition?.top || 40) + 'px',
-              left: (mentionPosition?.left || 10) + 'px',
-              zIndex: 50
+              top: '100%',
+              left: '0',
+              zIndex: 50,
+              marginTop: '4px'
             }}
             className="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700 p-2 text-sm"
           >
-            Keine Benutzer gefunden für "@{mentionSearch}"
+            <div className="text-gray-500 dark:text-gray-400">
+              No users found for "@{mentionSearch}"
+            </div>
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <div className="mt-3 flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <label className="inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={isAnonymous}
+                onChange={(e) => setIsAnonymous(e.target.checked)}
+              />
+              <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+              <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                Post anonymously
+              </span>
+            </label>
+          </div>
+
+          <button
+            onClick={handleSubmitComment}
+            disabled={!newComment.trim() || isSubmitting}
+            className="px-4 py-2 rounded-lg text-sm bg-purple-600 hover:bg-purple-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Posting...' : 'Post Comment'}
+          </button>
+        </div>
+
+        {/* Preview */}
+        {showPreview && (
+          <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Preview:</div>
+            <div
+              className="prose prose-sm dark:prose-dark max-w-none"
+              dangerouslySetInnerHTML={{
+                __html: formatTextWithMentions(newComment)
+              }}
+            />
           </div>
         )}
       </div>
-
-      {/* Füge diese JSX-Elemente unter der Textarea hinzu */}
-      {showPreview && (
-        <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Vorschau:</div>
-          <div
-            className="prose prose-sm dark:prose-dark max-w-none"
-            dangerouslySetInnerHTML={{
-              __html: formatTextWithMentions(replyToId ? replyText : newComment)
-            }}
-          />
+        </>
+      ) : (
+        <div className="text-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <p className="mb-2 text-gray-600 dark:text-gray-400">
+            Please log in to leave a comment.
+          </p>
+          <Link href="/auth/signin" className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300">
+            Sign in
+          </Link>
         </div>
       )}
+
+      {/* Kommentarliste - diese wird auch angezeigt, wenn Kommentare deaktiviert sind */}
+      <CommentList
+        postId={postId}
+        limit={10}
+        showModActions={true}
+        infiniteScroll={true}
+        showPostPreview={false}
+      />
     </div>
   );
 }

@@ -171,7 +171,7 @@ export function Nickname({ settings, setSettings, hasPremiumAccess }: NicknamePr
     <div className="space-y-4">
       {/* Preview Box für Nicht-Premium User */}
       {!hasPremiumAccess && (
-        <div className="relative p-6 bg-white dark:bg-gray-900 rounded-lg shadow-sm overflow-hidden">
+        <div className="relative p-6 bg-white dark:bg-gray-900 rounded-lg shadow-xs overflow-hidden">
           <div className="absolute inset-0 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-[2px] flex items-center justify-center z-10">
             <div className="text-center space-y-3">
               <span className="px-4 py-2 bg-purple-600/10 rounded-full text-sm text-purple-600 dark:text-purple-400 font-medium">
@@ -259,7 +259,7 @@ export function Nickname({ settings, setSettings, hasPremiumAccess }: NicknamePr
 
           {/* Style Options */}
           {settings.nicknameStyle && (
-            <div className="relative p-6 bg-white dark:bg-gray-900 rounded-lg shadow-sm">
+            <div className="relative p-6 bg-white dark:bg-gray-900 rounded-lg shadow-xs">
               {!hasPremiumAccess && (
                 <div className="absolute inset-0 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-[2px] rounded-lg flex items-center justify-center z-10">
                   <div className="text-center">

@@ -12,14 +12,14 @@ export async function POST(req: Request) {
     // Validierung
     if (!username || !password) {
       return NextResponse.json(
-        { error: 'Username und Passwort sind erforderlich' },
+        { error: 'Username and password required' },
         { status: 400 }
       );
     }
 
     if (password.length < 6) {
       return NextResponse.json(
-        { error: 'Passwort muss mindestens 6 Zeichen lang sein' },
+        { error: 'Password needs to be at least 6 digits long' },
         { status: 400 }
       );
     }
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Username oder Email bereits vergeben' },
+        { error: 'Username or email in use already' },
         { status: 400 }
       );
     }
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({
-      message: 'Registrierung erfolgreich',
+      message: 'Registration succeeded',
       user: {
         id: user._id,
         username: user.username,
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(
-      { error: 'Ein Fehler ist bei der Registrierung aufgetreten' },
+      { error: 'An error has accured during registration' },
       { status: 500 }
     );
   }
@@ -69,7 +69,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
+      return NextResponse.json({ error: 'Not autorized' }, { status: 401 });
     }
 
     await dbConnect();
@@ -77,14 +77,14 @@ export async function GET() {
       .select('username email name');
 
     if (!user) {
-      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json(user);
   } catch (error) {
     console.error('GET user error:', error);
     return NextResponse.json(
-      { error: 'Ein Fehler ist aufgetreten' },
+      { error: 'An error has accured while getting user data' },
       { status: 500 }
     );
   }
@@ -94,14 +94,13 @@ export async function PUT(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
+      return NextResponse.json({ error: 'Not autorized' }, { status: 401 });
     }
 
     const { username, name } = await req.json();
 
     await dbConnect();
     
-    // Prüfen ob Username bereits existiert (außer beim eigenen User)
     if (username) {
       const existingUser = await User.findOne({
         email: { $ne: session.user.email },
@@ -110,7 +109,7 @@ export async function PUT(req: Request) {
 
       if (existingUser) {
         return NextResponse.json(
-          { error: 'Username bereits vergeben' },
+          { error: 'Username taken already' },
           { status: 400 }
         );
       }
@@ -126,7 +125,7 @@ export async function PUT(req: Request) {
   } catch (error) {
     console.error('PUT user error:', error);
     return NextResponse.json(
-      { error: 'Ein Fehler ist aufgetreten' },
+      { error: 'An error has accured while updating user data' },
       { status: 500 }
     );
   }

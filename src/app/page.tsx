@@ -18,7 +18,7 @@ export default function Home() {
               Anonymous Imageboard platform for sharing Memes, Cats, and more
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Beta Version 3.4.2 - We build something new...
+              Beta Version 4.0.0 - We build something new...
             </p>
           </div>
         </div>
@@ -106,7 +106,7 @@ function FeaturedPostSection() {
 
   return (
     <div className="w-full max-w-2xl mx-auto px-4">
-      <div className="rounded-lg overflow-hidden shadow-sm border border-gray-200 dark:border-gray-800">
+      <div className="rounded-lg overflow-hidden shadow-xs border border-gray-200 dark:border-gray-800">
         <Link href={`/post/${featuredPost.id}`}>
           <div className="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-800">
             <img 

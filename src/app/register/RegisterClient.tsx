@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { RandomLogo } from "@/components/RandomLogo";
+import DiscordButton from '@/components/DiscordButton';
 
 export default function RegisterClient() {
   const router = useRouter();
@@ -134,6 +135,21 @@ export default function RegisterClient() {
                   </div>
                   <div className="absolute inset-[2px] opacity-0 transition-opacity duration-300 bg-gradient-to-r from-[#2A1736]/20 via-[#C787F6]/10 to-[#2A1736]/20 group-hover:opacity-100 rounded-lg"></div>
                 </button>
+
+                {/* Discord Register Button */}
+                <div className="mt-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">or</span>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <DiscordButton text="Register with Discord" variant="register" disabled={loading} />
+                  </div>
+                </div>
               </form>
             </div>
 
@@ -162,7 +178,21 @@ export default function RegisterClient() {
                 href="/rules"
                 className="text-blue-600 dark:text-blue-400 hover:underline"
               >
-                Rules/ToS
+                Rules
+              </Link>
+              {" "}•{" "}
+              <Link
+                href="/terms"
+                className="text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Terms
+              </Link>
+              {" "}•{" "}
+              <Link
+                href="/help"
+                className="text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Help
               </Link>
             </p>
           </div>

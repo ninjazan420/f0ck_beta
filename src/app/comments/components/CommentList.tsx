@@ -97,6 +97,7 @@ interface CommentListProps {
     minLikes: number;
   };
   infiniteScroll?: boolean;
+  showPostPreview?: boolean; // New prop to control post preview visibility
 }
 
 export function CommentList({
@@ -107,7 +108,8 @@ export function CommentList({
   showModActions = false,
   hideDuplicateButtons = false,
   filters,
-  infiniteScroll = false
+  infiniteScroll = false,
+  showPostPreview = true // Default to true for backward compatibility
 }: CommentListProps) {
   const { data: session } = useSession();
   const [comments, setComments] = useState<any[]>([]);
@@ -179,7 +181,7 @@ export function CommentList({
     const gifMatches = Array.from(text.matchAll(gifRegex) || []);
     const urlMatches = text.match(urlRegex) || [];
 
-    // Ersetze <br> mit echten Zeilenumbrüchen für die Anzeige
+    // Handle both old <br> tags and new \n line breaks for backward compatibility
     const textWithLineBreaks = text.replace(/<br\s*\/?>/gi, '\n');
 
     // Wenn weder GIFs noch Bilder gefunden wurden, gib den Text zurück
@@ -469,13 +471,21 @@ export function CommentList({
       // Wenn kein Benutzer eingeloggt ist, muss isAnonymous auf true gesetzt sein
       const effectiveIsAnonymous = !session?.user ? true : isAnonymous;
 
-      console.log('Posting reply with params:', { content, postId, replyTo: parentId, isAnonymous: effectiveIsAnonymous });
+      // Finde den parent comment um die postId zu extrahieren
+      const parentComment = comments.find(c => c.id === parentId);
+      const targetPostId = postId || parentComment?.post?.id || parentComment?.post?._id;
+      
+      if (!targetPostId) {
+        throw new Error('Cannot determine post ID for reply');
+      }
+
+      console.log('Posting reply with params:', { content, postId: targetPostId, replyTo: parentId, isAnonymous: effectiveIsAnonymous });
       const response = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content,
-          postId, // Dies könnte undefined sein, wenn auf der /comments-Seite
+          postId: targetPostId,
           replyTo: parentId,
           isAnonymous: effectiveIsAnonymous
         })
@@ -603,10 +613,14 @@ export function CommentList({
           const commentData = {
             id: comment.id || uniqueId, // Sicherstellen, dass id immer gesetzt ist
             content: comment.content || comment.text || '', // Unterstützung für beide Feldnamen
-            author: comment.author || {
+            author: comment.author ? {
+              ...comment.author,
+              role: comment.author.role || 'user'
+            } : {
               id: comment.user?.id || null,
               username: comment.user?.name || 'Anonymous',
-              avatar: comment.user?.avatar || null
+              avatar: comment.user?.avatar || null,
+              role: comment.user?.role || 'user'
             },
             post: {
               // Stelle sicher, dass post.id korrekt ist
@@ -615,7 +629,11 @@ export function CommentList({
                   postId || '',
               title: comment.post?.title || '',
               // Numerische ID des Posts für die URL
-              numericId: comment.post?.numericId || comment.post?.id || ''
+              numericId: comment.post?.numericId || comment.post?.id || '',
+              imageUrl: comment.post?.imageUrl || '',
+              videoUrl: comment.post?.videoUrl || '',
+              type: comment.post?.type || 'image',
+              nsfw: comment.post?.nsfw || false
             },
             status: comment.status || 'approved',
             createdAt: comment.createdAt || new Date().toISOString(),
@@ -636,6 +654,7 @@ export function CommentList({
               onDelete={handleDelete}
               onReply={handleReply}
               onModDelete={showModActions ? handleModDelete : undefined}
+              showPostPreview={showPostPreview}
             />
           );
         })}

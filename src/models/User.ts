@@ -14,12 +14,14 @@ interface IUser extends mongoose.Document {
   role: 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
   storageQuota: number;
   usedStorage: number;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
 
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: [false, 'Email is optional'],
+    required: false,
     unique: true,
     sparse: true,
   },
@@ -29,12 +31,26 @@ const userSchema = new mongoose.Schema({
   },
   username: {
     type: String,
-    required: [true, 'Username is required'],
+    required: true,
     unique: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 20,
   },
   password: {
     type: String,
-    required: [true, 'Passwort is required'],
+    required: false, // Not required for Discord users
+    minlength: 6,
+  },
+  discordId: {
+    type: String,
+    required: false,
+    unique: true,
+    sparse: true,
+  },
+  discordUsername: {
+    type: String,
+    required: false,
   },
   bio: {
     type: String,
@@ -54,6 +70,11 @@ const userSchema = new mongoose.Schema({
     index: true, // Expliziter Index
   }],
   likes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Post',
+    index: true, // Expliziter Index
+  }],
+  dislikes: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Post',
     index: true, // Expliziter Index
@@ -92,16 +113,31 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     required: true
+  },
+  resetPasswordToken: {
+    type: String,
+    required: false
+  },
+  resetPasswordExpires: {
+    type: Date,
+    required: false
   }
 }, {
   timestamps: true // Dies erstellt automatisch createdAt und updatedAt
 });
 
-// Password Hashing
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
+// Pre-save hook to hash password
+userSchema.pre('save', async function (next) {
+  // Skip password hashing if password is not provided (Discord users)
+  if (!this.password || !this.isModified('password')) return next();
+  
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error as Error);
+  }
 });
 
 // Virtuals für die Statistiken
@@ -111,6 +147,7 @@ userSchema.virtual('stats').get(function() {
     comments: this.comments?.length || 0,
     favorites: this.favorites?.length || 0,
     likes: this.likes?.length || 0,
+    dislikes: this.dislikes?.length || 0,
     tags: this.tags?.length || 0
   };
 });

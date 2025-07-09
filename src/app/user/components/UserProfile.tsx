@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { ReactElement } from 'react';
 import { getImageUrlWithCacheBuster } from '@/lib/utils';
+import { UserModerationPanel } from '@/components/UserModerationPanel';
 
 interface ActivityItem {
   id: string;
@@ -288,7 +289,7 @@ export function UserProfile({ username }: { username: string }) {
   return (
     <div className="space-y-6">
       {/* Profile Header */}
-      <div className="p-6 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+      <div className="p-6 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-xs border border-gray-100 dark:border-gray-800">
         <div className="flex gap-6">
           {/* Avatar Section */}
           <div className="w-32 md:w-32 flex-shrink-0">
@@ -344,32 +345,46 @@ export function UserProfile({ username }: { username: string }) {
               </div>
             </div>
 
-            {/* Kompakte Stats in einer Zeile */}
-            <div className="flex justify-between items-end gap-4 py-2 text-sm">
-              <Link href={`/posts?uploader=${userData.username}`} className="text-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                <div className="text-xs text-gray-500 mb-1">uploads</div>
-                <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.uploads}</div>
+            {/* Stats Grid - same colors as /account */}
+            <div className="grid grid-cols-3 gap-4 py-4 border-t border-gray-200 dark:border-gray-700">
+              <Link href={`/posts?uploader=${userData.username}`} className="text-center p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors cursor-pointer">
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{userData.stats.uploads}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Uploads</div>
               </Link>
-              <Link href={`/comments?author=${userData.username}`} className="text-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                <div className="text-xs text-gray-500 mb-1">comments</div>
-                <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.comments}</div>
+              <Link href={`/comments?author=${userData.username}`} className="text-center p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors cursor-pointer">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{userData.stats.comments}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Comments</div>
               </Link>
-              <Link href={`/posts?liked=${userData.username}`} className="text-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                <div className="text-xs text-gray-500 mb-1">likes</div>
-                <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.likes}</div>
+              <Link href={`/posts?liked=${userData.username}`} className="text-center p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors cursor-pointer">
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{userData.stats.likes}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Likes</div>
               </Link>
-              <Link href={`/posts?favorited=${userData.username}`} className="text-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                <div className="text-xs text-gray-500 mb-1">favorites</div>
-                <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.favorites}</div>
+              <Link href={`/posts?favorited=${userData.username}`} className="text-center p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors cursor-pointer">
+                <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">{userData.stats.favorites}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Favorites</div>
               </Link>
-              <Link href={`/tags?creator=${userData.username}`} className="text-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                <div className="text-xs text-gray-500 mb-1">tags</div>
-                <div className="font-medium text-gray-900 dark:text-gray-100">{userData.stats.tags}</div>
+              <Link href={`/posts?disliked=${userData.username}`} className="text-center p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors cursor-pointer">
+                <div className="text-2xl font-bold text-red-600 dark:text-red-400">{userData.stats.dislikes}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Dislikes</div>
+              </Link>
+              <Link href={`/tags?creator=${userData.username}`} className="text-center p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors cursor-pointer">
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{userData.stats.tags}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Tags Created</div>
               </Link>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Moderation Panel */}
+      <UserModerationPanel
+        targetUsername={userData.username}
+        targetRole={userData.role}
+        onUserUpdate={() => {
+          // Refresh user data after moderation action
+          window.location.reload();
+        }}
+      />
 
       {/* Recent Activity mit Thumbnails */}
       <div className="p-6 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">

@@ -3,7 +3,7 @@ import { Metadata } from "next";
 // Allgemeine Konfiguration
 export const siteConfig = {
   name: "f0ck.org - Anoymous Imageboard",
-  description: "Anonymous Imageboard platform for sharing Memes, Cats, and more",
+  description: "Discover f0ck.org, the anonymous imageboard. Share, rate & comment on images, videos and take part in creative cat memes. Enjoy full transparancy, anonymity and little to none moderation.",
   url: "https://f0ck.org",
   icon: "/favicon.ico",
 };

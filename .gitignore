@@ -20,8 +20,70 @@
 # production
 /build
 done.txt
-package-lock.json
+package-lock.json*
+yarn.lock
+yarn-error.log*
+# misc
+.DS_Store
+*.pem
+*.vscode
+_todo.txt
+projekt
 
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env.local
+.env.production
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE und Editor-Dateien
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*.swo   
+
+# Logs  
+logs/
+*.log
+
+# System-Dateien
+Thumbs.db
+desktop.ini
+.cursor*
+.trae*
+.augment*
+
+# Temporäre Dateien und Cache
+.cache/
+.temp/
+tmp/
+dist/
+
+# Sicherheitsrelevante Dateien
+*.key
+*.crt
+*.pfx
+package-lock.json
+package-lock.json   
+yarn.lock
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env.local
+.env.production
 # Upload directories
 public/uploads/*
 !public/uploads/.gitkeep
@@ -51,8 +113,8 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
-
+.env.local
+.env.production
 # vercel
 .vercel
 
@@ -85,6 +147,10 @@ dist/
 *.key
 *.crt
 *.pfx
+package-lock.json
+package-lock.json
+package-lock.json
+.trae/.ignore
 package-lock.json
 package-lock.json
 package-lock.json

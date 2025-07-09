@@ -58,8 +58,9 @@ async function getUser(username: string) {
   }
 }
 
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
-  const user = await getUser(params.username);
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params;
+  const user = await getUser(username);
   
   const formattedUsername = user.username.charAt(0).toUpperCase() + user.username.slice(1);
   
@@ -128,6 +129,7 @@ export async function generateMetadata({ params }: { params: { username: string 
   };
 }
 
-export default async function UserPage({ params }: { params: { username: string } }) {
-  return <UserDetails username={params.username} />;
+export default async function UserPage({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params;
+  return <UserDetails username={username} />;
 }

@@ -18,6 +18,7 @@ import { toast } from 'react-hot-toast';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import styled from 'styled-components';
 import { StatusBanner } from '@/components/StatusBanner';
+import { useSettings } from '@/hooks/useSettings';
 
 interface PostData {
   id: string;
@@ -70,6 +71,7 @@ interface PostData {
   }>;
   contentRating: 'safe' | 'sketchy' | 'unsafe';
   isAnimated: boolean;
+  isAd?: boolean;
 }
 
 const MOCK_POST: PostData = {
@@ -125,6 +127,7 @@ const MOCK_POST: PostData = {
 };
 
 export function PostDetails({ postId }: { postId: string }) {
+  const { settings } = useSettings();
   const [post, setPost] = useState<PostData | null>(null);
   const [loading, setLoading] = useState(true);
   const [userVote, setUserVote] = useState<'like' | 'dislike' | null>(null);
@@ -559,49 +562,83 @@ export function PostDetails({ postId }: { postId: string }) {
       />
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr,300px] gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Left Column - Image and Comments */}
-        <div className="space-y-6">
+        <div className="flex-1 space-y-6">
           {/* Image Container */}
           <div className="relative rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
             {post.meta?.isVideo ? (
-              <div className="video-wrapper" style={{ width: '100%', height: 'auto', maxHeight: '70vh' }}>
+              <div
+                className="video-wrapper"
+                style={{ width: "100%", height: "auto", maxHeight: "70vh" }}
+              >
                 <VideoPlayer
                   src={post.imageUrl}
                   thumbnailSrc={post.thumbnailUrl}
                   width="100%"
                   height="auto"
                   controls={true}
-                  autoPlay={false}
+                  autoPlay={settings.autoplayVideos || false}
+                  muted={settings.muteAutoplay || false}
                   className="w-full"
                 />
               </div>
             ) : (
-              <div className="image-wrapper flex justify-center" style={{ width: '100%', maxHeight: '900px', overflow: 'hidden' }}>
-                <Image
-                  src={getImageUrlWithCacheBuster(post.imageUrl)}
-                  width={post.meta.width}
-                  height={post.meta.height}
-                  quality={95}
-                  priority
-                  alt={post.title || 'Post image'}
-                  className="object-contain w-auto h-auto max-h-[900px]"
-                  style={{ maxWidth: '100%', maxHeight: '900px' }}
-                />
+              <div
+                className="image-wrapper flex justify-center"
+                style={{
+                  width: "100%",
+                  maxHeight: "900px",
+                  overflow: "hidden",
+                }}
+              >
+                {post.isAnimated ? (
+                  <img
+                    src={getImageUrlWithCacheBuster(post.imageUrl)}
+                    width={post.meta.width}
+                    height={post.meta.height}
+                    alt={post.title || "Post image"}
+                    className={`object-contain w-auto h-auto max-h-[900px] ${
+                      !settings.autoplayGifs ? "gif-paused" : ""
+                    }`}
+                    style={{ maxWidth: "100%", maxHeight: "900px" }}
+                  />
+                ) : (
+                  <Image
+                    src={getImageUrlWithCacheBuster(post.imageUrl)}
+                    width={post.meta.width}
+                    height={post.meta.height}
+                    quality={95}
+                    priority
+                    alt={post.title || "Post image"}
+                    className="object-contain w-auto h-auto max-h-[900px]"
+                    style={{ maxWidth: "100%", maxHeight: "900px" }}
+                  />
+                )}
               </div>
             )}
 
-            {/* Content Rating Badge */}
-            <div className="absolute top-4 right-4 z-10">
-              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                post.contentRating === 'safe'
-                  ? 'bg-green-500/40 text-white border border-green-500/50'
-                  : post.contentRating === 'sketchy'
-                    ? 'bg-yellow-500/40 text-white border border-yellow-500/50'
-                    : 'bg-red-500/40 text-white border border-red-500/50'
-              }`}>
-                {post.contentRating.toUpperCase()}
-              </span>
+            {/* Badges - Ad or Content Rating */}
+            <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 items-end">
+              {/* Ad Badge - only show if it's an ad */}
+              {post.isAd ? (
+                <span className="px-2 py-1 rounded text-xs font-medium bg-blue-400 text-white border border-purple-500/50">
+                  💎 AD
+                </span>
+              ) : (
+                /* Content Rating Badge - only show if not an ad */
+                <span
+                  className={`px-2 py-1 rounded text-xs font-medium ${
+                    post.contentRating === "safe"
+                      ? "bg-green-500/40 text-white border border-green-500/50"
+                      : post.contentRating === "sketchy"
+                      ? "bg-yellow-500/40 text-white border border-yellow-500/50"
+                      : "bg-red-500/40 text-white border border-red-500/50"
+                  }`}
+                >
+                  {post.contentRating.toUpperCase()}
+                </span>
+              )}
             </div>
           </div>
 
@@ -614,16 +651,29 @@ export function PostDetails({ postId }: { postId: string }) {
               <div className="p-4 bg-red-50/50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800/30 my-4">
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0 text-red-500 dark:text-red-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                       <path d="M12 8v4" />
                       <path d="M12 16h.01" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-medium text-red-700 dark:text-red-300">Comments have been disabled by a moderator</h3>
+                    <h3 className="font-medium text-red-700 dark:text-red-300">
+                      Comments have been disabled by a moderator
+                    </h3>
                     <p className="text-sm text-red-600/80 dark:text-red-400/80 mt-1">
-                      Existing comments remain visible, but new comments cannot be added.
+                      Existing comments remain visible, but new comments cannot
+                      be added.
                     </p>
                   </div>
                 </div>
@@ -724,18 +774,20 @@ export function PostDetails({ postId }: { postId: string }) {
                       😊 Emoji
                     </button>
                     <button
-                      onClick={() => setNewComment('')}
+                      onClick={() => setNewComment("")}
                       className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSubmitComment}
-                      disabled={(!newComment.trim() && !selectedGif) || isSubmitting}
+                      disabled={
+                        (!newComment.trim() && !selectedGif) || isSubmitting
+                      }
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
                         (!newComment.trim() && !selectedGif) || isSubmitting
-                          ? 'bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed'
-                          : 'bg-purple-500 text-white hover:bg-purple-600'
+                          ? "bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 cursor-not-allowed"
+                          : "bg-purple-500 text-white hover:bg-purple-600"
                       }`}
                     >
                       Post Comment
@@ -764,18 +816,22 @@ export function PostDetails({ postId }: { postId: string }) {
               status="approved"
               limit={20}
               key={`comments-${refreshComments}`}
+              showPostPreview={false}
             />
           </div>
         </div>
 
         {/* Right Column - Metadata and Tags */}
-        <div className="space-y-6">
+        <div className="w-full lg:w-80 space-y-6">
           {/* Uploader Info - mit korrekten Links */}
           <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
             <div className="flex gap-3">
               {/* Avatar column - nur verlinken, wenn kein anonymer Upload */}
-              {post.uploader.name !== 'Anonymous' ? (
-                <Link href={`/user/${post.uploader.name}`} className="flex-shrink-0">
+              {post.uploader.name !== "Anonymous" ? (
+                <Link
+                  href={`/user/${post.uploader.name}`}
+                  className="flex-shrink-0"
+                >
                   <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                     {post.uploader.avatar ? (
                       <Image
@@ -787,7 +843,7 @@ export function PostDetails({ postId }: { postId: string }) {
                       />
                     ) : (
                       <div className="text-2xl text-gray-400">
-                        {post.uploader.name[0]?.toUpperCase() ?? '?'}
+                        {post.uploader.name[0]?.toUpperCase() ?? "?"}
                       </div>
                     )}
                   </div>
@@ -803,8 +859,11 @@ export function PostDetails({ postId }: { postId: string }) {
               {/* User info column */}
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  {post.uploader.name !== 'Anonymous' ? (
-                    <Link href={`/user/${post.uploader.name}`} className="text-lg font-medium hover:underline">
+                  {post.uploader.name !== "Anonymous" ? (
+                    <Link
+                      href={`/user/${post.uploader.name}`}
+                      className="text-lg font-medium hover:underline"
+                    >
                       {post.uploader.name}
                     </Link>
                   ) : (
@@ -812,46 +871,70 @@ export function PostDetails({ postId }: { postId: string }) {
                       {post.uploader.name}
                     </span>
                   )}
-                  {post.uploader.name !== 'Anonymous' && getRoleBadge(post.uploader.admin, post.uploader.moderator, post.uploader.premium)}
+                  {post.uploader.name !== "Anonymous" &&
+                    getRoleBadge(
+                      post.uploader.admin,
+                      post.uploader.moderator,
+                      post.uploader.premium
+                    )}
                 </div>
 
                 {/* Bio line if exists and not anonymous */}
-                {post.uploader.name !== 'Anonymous' && post.uploader.bio && (
+                {post.uploader.name !== "Anonymous" && post.uploader.bio && (
                   <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                     {post.uploader.bio}
                   </p>
                 )}
 
                 {/* Member since line - nur anzeigen, wenn nicht anonym */}
-                {post.uploader.name !== 'Anonymous' && (
+                {post.uploader.name !== "Anonymous" && (
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Member since {new Date(post.uploader.joinDate).toLocaleDateString('de-DE', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
+                    Member since{" "}
+                    {new Date(post.uploader.joinDate).toLocaleDateString(
+                      "de-DE",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* User Stats - nur anzeigen, wenn nicht anonym */}
-            {post.uploader.name !== 'Anonymous' && (
-              <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400 space-x-3 border-t pt-2 border-gray-200 dark:border-gray-700">
-                <Link href={`/posts?uploader=${post.uploader.name}`} className="hover:text-purple-600 dark:hover:text-purple-400">
-                  <span>{post.uploader.stats?.uploads || 0} uploads</span>
+            {/* User Stats - same colors as /account */}
+            {post.uploader.name !== "Anonymous" && (
+              <div className="flex items-center mt-2 text-xs space-x-3 border-t pt-2 border-gray-200 dark:border-gray-700">
+                <Link
+                  href={`/posts?uploader=${post.uploader.name}`}
+                  className="hover:text-purple-600 dark:hover:text-purple-400"
+                >
+                  <span className="font-bold text-purple-600 dark:text-purple-400">{post.uploader.stats?.uploads || 0}</span> <span className="text-gray-500 dark:text-gray-400">uploads</span>
                 </Link>
-                <Link href={`/comments?author=${post.uploader.name}`} className="hover:text-purple-600 dark:hover:text-purple-400">
-                  <span>{post.uploader.stats?.comments || 0} comments</span>
+                <Link
+                  href={`/comments?author=${post.uploader.name}`}
+                  className="hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  <span className="font-bold text-blue-600 dark:text-blue-400">{post.uploader.stats?.comments || 0}</span> <span className="text-gray-500 dark:text-gray-400">comments</span>
                 </Link>
-                <Link href={`/posts?liked=${post.uploader.name}`} className="hover:text-purple-600 dark:hover:text-purple-400">
-                  <span>{post.uploader.stats?.likes || 0} likes</span>
+                <Link
+                  href={`/posts?liked=${post.uploader.name}`}
+                  className="hover:text-green-600 dark:hover:text-green-400"
+                >
+                  <span className="font-bold text-green-600 dark:text-green-400">{post.uploader.stats?.likes || 0}</span> <span className="text-gray-500 dark:text-gray-400">likes</span>
                 </Link>
-                <Link href={`/posts?favorited=${post.uploader.name}`} className="hover:text-purple-600 dark:hover:text-purple-400">
-                  <span>{post.uploader.stats?.favorites || 0} favs</span>
+                <Link
+                  href={`/posts?favorited=${post.uploader.name}`}
+                  className="hover:text-pink-600 dark:hover:text-pink-400"
+                >
+                  <span className="font-bold text-pink-600 dark:text-pink-400">{post.uploader.stats?.favorites || 0}</span> <span className="text-gray-500 dark:text-gray-400">favs</span>
                 </Link>
-                <Link href={`/tags?creator=${post.uploader.name}`} className="hover:text-purple-600 dark:hover:text-purple-400">
-                  <span>{post.uploader.stats?.tags || 0} tags</span>
+                <Link
+                  href={`/tags?creator=${post.uploader.name}`}
+                  className="hover:text-orange-600 dark:hover:text-orange-400"
+                >
+                  <span className="font-bold text-orange-600 dark:text-orange-400">{post.uploader.stats?.tags || 0}</span> <span className="text-gray-500 dark:text-gray-400">tags</span>
                 </Link>
               </div>
             )}
@@ -869,8 +952,8 @@ export function PostDetails({ postId }: { postId: string }) {
           {/* Tags - mit postId übergeben */}
           <PostTags tags={post.tags} postId={post.id} />
 
-          {/* Neue Platzierung für Post-Actions (Voting & Favorites) */}
-          <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+          {/* Post-Actions (Voting & Favorites) */}
+          <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-xs border border-gray-100 dark:border-gray-800">
             <h3 className="text-sm font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400 mb-3">
               Post Actions
             </h3>
@@ -878,11 +961,11 @@ export function PostDetails({ postId }: { postId: string }) {
               <div className="flex items-center gap-2">
                 {/* Like Button */}
                 <button
-                  onClick={() => handleVote('like')}
+                  onClick={() => handleVote("like")}
                   className={`flex-1 px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-                    userVote === 'like'
-                      ? 'bg-green-100 dark:bg-green-800/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-700/50'
-                      : 'bg-white/80 dark:bg-gray-800/50 hover:bg-green-50 dark:hover:bg-green-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                    userVote === "like"
+                      ? "bg-green-100 dark:bg-green-800/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-700/50"
+                      : "bg-white/80 dark:bg-gray-800/50 hover:bg-green-50 dark:hover:bg-green-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
                   }`}
                 >
                   <span className="text-base">👍</span>
@@ -891,36 +974,38 @@ export function PostDetails({ postId }: { postId: string }) {
 
                 {/* Dislike Button */}
                 <button
-                  onClick={() => handleVote('dislike')}
+                  onClick={() => handleVote("dislike")}
                   className={`flex-1 px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-                    userVote === 'dislike'
-                      ? 'bg-red-100 dark:bg-red-800/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-700/50'
-                      : 'bg-white/80 dark:bg-gray-800/50 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                    userVote === "dislike"
+                      ? "bg-red-100 dark:bg-red-800/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-700/50"
+                      : "bg-white/80 dark:bg-gray-800/50 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
                   }`}
                 >
                   <span className="text-base">👎</span>
                   <span>{post.stats.dislikes}</span>
                 </button>
-
-                {/* Favorite Button - jetzt kleiner und neben den Voting-Buttons */}
-                <button
-                  onClick={toggleFavorite}
-                  className={`px-2 py-2 rounded-lg flex items-center justify-center transition-colors ${
-                    isFavorited
-                      ? 'bg-purple-100 dark:bg-purple-800/30 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-700/50'
-                      : 'bg-white/80 dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
-                  }`}
-                  title={isFavorited ? "Remove from favorites" : "Add to favorites"}
-                >
-                  <span className="text-base">{isFavorited ? '❤️' : '🤍'}</span>
-                  <span className="ml-1 text-sm">({post.stats.favorites})</span>
-                </button>
               </div>
+
+              {/* Favorite Button */}
+              <button
+                onClick={toggleFavorite}
+                className={`w-full px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${
+                  isFavorited
+                    ? "bg-purple-100 dark:bg-purple-800/30 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-700/50"
+                    : "bg-white/80 dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
+                }`}
+                title={
+                  isFavorited ? "Remove from favorites" : "Add to favorites"
+                }
+              >
+                <span className="text-base">{isFavorited ? "❤️" : "🤍"}</span>
+                <span>Favorite ({post.stats.favorites})</span>
+              </button>
 
               {/* Share Button */}
               <button
                 onClick={handleShare}
-                className="px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors bg-white/80 dark:bg-gray-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
+                className="w-full px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors bg-white/80 dark:bg-gray-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
               >
                 <span className="text-base">🔗</span>
                 <span>Share</span>
@@ -935,7 +1020,7 @@ export function PostDetails({ postId }: { postId: string }) {
           <ReverseSearch imageUrl={post.imageUrl} />
 
           {/* Metadata */}
-          <PostMetadata meta={{...post.meta, uploadDate: post.uploadDate || post.createdAt}} />
+          <PostMetadata meta={{ ...post.meta, uploadDate: post.uploadDate }} />
         </div>
       </div>
     </div>

@@ -25,9 +25,9 @@ export function AvatarPicker({ username, currentAvatar, onAvatarChanged }: Avata
     setForceRender(prev => prev + 1);
   }, [currentAvatar]);
 
-  // Function to generate default avatar URL
+  // Function to get default avatar URL
   const getDefaultAvatarUrl = () => {
-    return `/images/defaultavatar.png?username=${encodeURIComponent(username || 'user')}`;
+    return `/images/defaultavatar.png`;
   };
 
   // Improved function to upload avatar
@@ -82,9 +82,15 @@ export function AvatarPicker({ username, currentAvatar, onAvatarChanged }: Avata
       // Call the provided callback function with the new avatar URL
       onAvatarChanged(newAvatarUrl);
 
+      // Wait a bit for the file to be fully written and accessible
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Dispatch a global event to update all avatar displays
       window.dispatchEvent(new CustomEvent('avatar-updated', {
-        detail: { newAvatarUrl }
+        detail: {
+          newAvatarUrl: data.avatarUrl, // Use the original URL without timestamp for session update
+          timestamp: timestamp
+        }
       }));
 
       // No page reload - we'll update the UI without disrupting the user experience
@@ -140,9 +146,15 @@ export function AvatarPicker({ username, currentAvatar, onAvatarChanged }: Avata
       // Call the provided callback function with null to reset to default
       onAvatarChanged(null);
 
+      // Wait a bit for the deletion to be processed
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       // Dispatch a global event to update all avatar displays
       window.dispatchEvent(new CustomEvent('avatar-updated', {
-        detail: { newAvatarUrl: null }
+        detail: {
+          newAvatarUrl: null,
+          timestamp: Date.now()
+        }
       }));
 
       // No page reload - we'll update the UI without disrupting the user experience

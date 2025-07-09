@@ -25,6 +25,10 @@ interface CommentProps {
       id: string;
       title: string;
       numericId?: string;
+      imageUrl?: string;
+      videoUrl?: string;
+      type?: 'image' | 'video' | 'gif';
+      nsfw?: boolean;
     };
     status: 'pending' | 'approved' | 'rejected';
     replyTo?: {
@@ -45,9 +49,10 @@ interface CommentProps {
   onDelete?: (id: string) => Promise<void>;
   onReply?: (id: string, content: string) => Promise<void>;
   onModDelete?: (id: string) => Promise<void>;
+  showPostPreview?: boolean; // New prop to control post preview visibility
 }
 
-export function Comment({ data, onReport, onDelete, onReply, onModDelete }: CommentProps) {
+export function Comment({ data, onReport, onDelete, onReply, onModDelete, showPostPreview = true }: CommentProps) {
   const { data: session } = useSession();
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState('');
@@ -76,6 +81,11 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
 
   // Role badge rendering function similar to UserProfile component
   const getRoleBadge = (role?: string) => {
+    // Debug: Log the role to see what we're getting
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Comment author role:', role, 'for user:', author.username);
+    }
+
     switch(role) {
       case 'banned':
         return (
@@ -101,6 +111,9 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
             PREMIUM
           </span>
         );
+      case 'user':
+        // Don't show badge for regular users
+        return null;
       default:
         return null;
     }
@@ -294,7 +307,7 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
     // Neue Regex für normale URLs
     const normalUrlRegex = /(https?:\/\/[^\s]+)(?!\.(gif|png|jpg|jpeg|webp|bmp))/gi;
 
-    // Ersetze <br> mit echten Zeilenumbrüchen für die Anzeige
+    // Handle both old <br> tags and new \n line breaks for backward compatibility
     const textWithLineBreaks = text.replace(/<br\s*\/?>/gi, '\n');
 
     // Wenn weder GIFs, Bilder, Erwähnungen noch normale URLs gefunden wurden, gib den Text zurück
@@ -584,6 +597,65 @@ export function Comment({ data, onReport, onDelete, onReply, onModDelete }: Comm
           ) : (
             <div className="prose dark:prose-invert max-w-none text-sm">
               {renderContent(data.content)}
+            </div>
+          )}
+
+          {/* Post Preview - only show if showPostPreview is true */}
+          {showPostPreview && data.post && data.post.title && (
+            <div className="mt-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-3">
+                {/* Post Thumbnail */}
+                {(data.post.imageUrl || data.post.videoUrl) && (
+                  <Link
+                    href={data.post.numericId ? `/post/${data.post.numericId}` : `/post/${data.post.id}`}
+                    className="flex-shrink-0 relative w-16 h-16 rounded-lg overflow-hidden group"
+                  >
+                    <Image
+                      src={getImageUrlWithCacheBuster(data.post.imageUrl || data.post.videoUrl || '')}
+                      alt={data.post.title}
+                      width={64}
+                      height={64}
+                      className={`object-cover w-full h-full transition-all duration-200 ${
+                        data.post.nsfw ? 'group-hover:blur-none blur-md' : ''
+                      }`}
+                    />
+                    {data.post.type === 'video' && (
+                      <div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-black/50 flex items-center justify-center">
+                        <div className="w-2 h-2 border-l-[4px] border-l-white border-y-[2px] border-y-transparent" />
+                      </div>
+                    )}
+                    {data.post.type === 'gif' && (
+                      <div className="absolute bottom-1 right-1">
+                        <span className="text-[8px] font-bold bg-black/50 text-white px-1 rounded">
+                          GIF
+                        </span>
+                      </div>
+                    )}
+                    {data.post.nsfw && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:opacity-0">
+                        <span className="text-[10px] font-bold text-white px-1.5 py-0.5 bg-red-500/80 rounded">
+                          NSFW
+                        </span>
+                      </div>
+                    )}
+                  </Link>
+                )}
+
+                {/* Post Info */}
+                <div className="flex-grow min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      💬 Comment on:
+                    </span>
+                  </div>
+                  <Link
+                    href={data.post.numericId ? `/post/${data.post.numericId}` : `/post/${data.post.id}`}
+                    className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 transition-colors line-clamp-2"
+                  >
+                    {data.post.title}
+                  </Link>
+                </div>
+              </div>
             </div>
           )}
 

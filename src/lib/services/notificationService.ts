@@ -247,7 +247,7 @@ export class NotificationService {
       
       const postNumericId = post.numericId || post.id || post._id;
       
-      // Aktoreninformationen vorbereiten
+      // Prepare actor information
       const actorName = mentioner ? (mentioner.name || mentioner.username) : "Anonymous";
       const actorUsername = mentioner ? mentioner.username : null;
       const actorAnonymous = !mentioner;

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 
-const ALLOWED_EXTENSIONS = ['.jpg', '.png', '.gif', '.webm', '.mp4', '.mov', '.heif', '.heic', '.webp'];
+const ALLOWED_EXTENSIONS = ['.jpg', '.png', '.gif', '.webm', '.mp4', '.mov', '.heif', '.heic', '.webp', '.avif', '.bmp', '.tiff', '.apng', '.ogg']
 
 export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void }) {
   const dropzoneRef = useRef<HTMLDivElement>(null);
@@ -11,8 +11,14 @@ export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void 
     const validFiles = acceptedFiles.filter(file => {
       // Client-seitige Validierung
       const isValidType = [
-        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-        'video/webm', 'video/mp4', 'video/quicktime',
+        // Image formats
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif',
+        'image/heif', 'image/heic', 'image/bmp', 'image/tiff', 'image/svg+xml',
+        'image/apng',
+        // Video formats
+        'video/webm', 'video/mp4', 'video/quicktime', 'video/avi',
+        'video/x-msvideo', 'video/mkv', 'video/x-matroska', 'video/ogg',
+        // Legacy support
         'application/x-shockwave-flash'
       ].includes(file.type);
       
@@ -39,11 +45,11 @@ export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void 
     onFileDrop(validFiles);
   }, [onFileDrop]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.heif', '.heic', '.webp'],
-      'video/*': ['.webm', '.mp4', '.mov'],
+      'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif', '.heif', '.heic', '.bmp', '.tiff', '.svg', '.apng'],
+      'video/*': ['.webm', '.mp4', '.mov', '.avi', '.mkv', '.ogg'],
     }
   });
 
@@ -96,16 +102,23 @@ export function UploadBox({ onFileDrop }: { onFileDrop: (files: File[]) => void 
     >
       <input {...getInputProps()} />
       <div className="absolute inset-0 bg-gradient-to-b from-gray-50/50 via-transparent to-transparent dark:from-gray-900/50"></div>
-      <div className="relative z-10 h-full flex flex-col items-center justify-center space-y-4">
-        <div className="text-gray-800 dark:text-gray-300">
-          <p className="text-xl font-medium">Drop or paste your files here!</p>
+      <div className="relative z-10 h-full flex flex-col items-center justify-center space-y-3 px-2">
+        <div className="text-gray-800 dark:text-gray-300 text-center">
+          <p className="text-lg sm:text-xl font-medium">Drop or paste your files here!</p>
           <p className="text-sm">Or just click on this box.</p>
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Allowed extensions: {ALLOWED_EXTENSIONS.join(', ')}<br/>
-          (not live yet) You can also use directlinks like YouTube, Twitter, Instagram, Twitch clips and more!<br/>
-          <span className="font-medium">Pro tip: You can paste (Ctrl+V) images directly from your clipboard!</span>
-        </p>
+        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center space-y-1">
+          <p>
+            <span className="font-medium">Allowed extensions:</span> {ALLOWED_EXTENSIONS.join(', ')}
+          </p>
+          {/* <p className="text-gray-400 dark:text-gray-500">
+            (not live yet) You can also use directlinks like<br className="hidden sm:block" />
+            <span className="sm:hidden"> </span>YouTube, Twitter, Instagram, Twitch clips and more!
+          </p> */}
+          <p className="font-medium text-gray-600 dark:text-gray-300">
+            Pro tip: You can paste (Ctrl+V) images directly from your clipboard!
+          </p>
+        </div>
       </div>
       {isDragActive && (
         <div className="absolute inset-0 bg-gradient-to-r from-[#2A1736]/20 via-[#C787F6]/10 to-[#2A1736]/20 animate-pulse"></div>

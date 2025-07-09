@@ -28,8 +28,15 @@ const UPLOAD_DIRS = {
 } as const;
 
 // Füge Konstanten für Content-Typen hinzu
-const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-const VALID_VIDEO_TYPES = ['video/webm', 'video/mp4', 'video/quicktime'];
+const VALID_IMAGE_TYPES = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif',
+  'image/heif', 'image/heic', 'image/bmp', 'image/tiff', 'image/svg+xml',
+  'image/apng'
+];
+const VALID_VIDEO_TYPES = [
+  'video/webm', 'video/mp4', 'video/quicktime', 'video/avi',
+  'video/x-msvideo', 'video/mkv', 'video/x-matroska', 'video/ogg'
+];
 const VALID_CONTENT_TYPES = [...VALID_IMAGE_TYPES, ...VALID_VIDEO_TYPES];
 
 // Generiere eine eindeutige Bild-ID
@@ -369,18 +376,25 @@ export async function processUpload(
           // Find or create the tag - userId übergeben!
           const tag = await Tag.findOrCreate(tagName, userId);
           console.log('✅ Tag result:', tag);
-          
+
           if (!tag) {
             console.error('❌ Failed to create tag:', tagName);
             continue;
           }
-          
+
           processedTags.push(tag.name);
-          
+
           // Increment post count for the tag
           await Tag.findByIdAndUpdate(tag._id, {
             $inc: { postsCount: 1, newPostsToday: 1, newPostsThisWeek: 1 }
           });
+
+          // Add tag to user's tags array if user exists and tag not already there
+          if (userId) {
+            await User.findByIdAndUpdate(userId, {
+              $addToSet: { tags: tag._id }
+            });
+          }
         } catch (error) {
           console.error('❌ Error processing tag:', tagName, error);
         }

@@ -9,7 +9,7 @@ export function ModerationStats() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600 dark:text-gray-400">Pending Comments</span>
-          <span className="px-2 py-0.5 rounded text-sm font-medium bg-yellow-500/40 text-white border border-yellow-500/50">0</span>
+          <span className="px-2 py-0.5 rounded-sm text-sm font-medium bg-yellow-500/40 text-white border border-yellow-500/50">0</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600 dark:text-gray-400">Reported Posts</span>

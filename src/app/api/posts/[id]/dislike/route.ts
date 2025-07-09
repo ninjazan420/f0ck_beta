@@ -92,22 +92,29 @@ export async function POST(
     post.dislikedBy.push(session.user.id);
     post.stats.dislikes += 1;
 
-    // Änderungen speichern
-    await user.save();
-    await post.save();
+    // Use transaction to prevent version conflicts
+    const session_db = await mongoose.startSession();
+    try {
+      await session_db.withTransaction(async () => {
+        await user.save({ session: session_db });
+        await post.save({ session: session_db });
 
-    // ModLog-Eintrag erstellen
-    await ModLog.create({
-      moderator: session.user.id,
-      action: 'dislike',
-      targetType: 'post',
-      targetId: post._id,
-      reason: 'User disliked post',
-      metadata: {
-        postId: post._id,
-        postTitle: post.title
-      }
-    });
+        // ModLog-Eintrag erstellen
+        await ModLog.create([{
+          moderator: session.user.id,
+          action: 'dislike',
+          targetType: 'post',
+          targetId: post._id,
+          reason: 'User disliked post',
+          metadata: {
+            postId: post._id,
+            postTitle: post.title
+          }
+        }], { session: session_db });
+      });
+    } finally {
+      await session_db.endSession();
+    }
 
     return NextResponse.json({
       disliked: true,
@@ -194,22 +201,30 @@ export async function DELETE(
     // Dislike-Zähler reduzieren
     post.stats.dislikes = Math.max(0, post.stats.dislikes - 1);
 
-    // Änderungen speichern
-    await user.save();
-    await post.save();
+    // Use transaction to prevent version conflicts
+    const session_db = await mongoose.startSession();
+    try {
+      await session_db.withTransaction(async () => {
+        await user.save({ session: session_db });
+        await post.save({ session: session_db });
 
-    // ModLog-Eintrag erstellen
-    await ModLog.create({
-      moderator: session.user.id,
-      action: 'dislike',
-      targetType: 'post',
-      targetId: post._id,
-      reason: 'User disliked post',
-      metadata: {
-        postId: post._id,
-        postTitle: post.title
-      }
-    });
+        // ModLog-Eintrag erstellen
+        await ModLog.create([{
+          moderator: session.user.id,
+          action: 'dislike',
+          targetType: 'post',
+          targetId: post._id,
+          reason: 'User removed dislike from post',
+          metadata: {
+            postId: post._id,
+            postTitle: post.title,
+            removed: true
+          }
+        }], { session: session_db });
+      });
+    } finally {
+      await session_db.endSession();
+    }
 
     return NextResponse.json({
       disliked: false,

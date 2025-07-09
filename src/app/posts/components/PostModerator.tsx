@@ -16,6 +16,7 @@ export function PostModerator({ postId }: PostModeratorProps) {
   const [commentsBlocked, setCommentsBlocked] = useState(false);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
+  const [isAd, setIsAd] = useState(false);
   const [showStatusBanner, setShowStatusBanner] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [statusType, setStatusType] = useState<'default' | 'success'>('default');
@@ -30,6 +31,7 @@ export function PostModerator({ postId }: PostModeratorProps) {
           console.log("Post status data received:", data); // Debug-Ausgabe
           setCommentsBlocked(!!data.commentsDisabled);
           setIsPinned(!!data.isPinned);
+          setIsAd(!!data.isAd);
         }
         
         // Prüfen, ob dieser Post der featured post ist
@@ -228,6 +230,56 @@ export function PostModerator({ postId }: PostModeratorProps) {
     }
   };
 
+  const toggleAdStatus = async () => {
+    if (isProcessing) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      const response = await fetch(`/api/posts/${postId}/ad`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: isAd ? 'remove' : 'add'
+        })
+      });
+      
+      if (response.ok) {
+        const message = isAd ? 'Post removed from ads' : 'Post marked as ad';
+        
+        // Optimistisches Update
+        setIsAd(!isAd);
+        
+        // Show status banner
+        setStatusMessage(message);
+        setStatusType('success');
+        setShowStatusBanner(true);
+        
+        if (typeof toast !== 'undefined') {
+          toast.success(message);
+        }
+        
+        // Aktualisiere die Seite, um die Änderungen zu sehen
+        router.refresh();
+        
+        console.log("Ad status after toggle:", !isAd);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Error ${isAd ? 'removing ad status from' : 'marking as ad'} post`);
+      }
+    } catch (error) {
+      console.error(`Error ${isAd ? 'removing ad status from' : 'marking as ad'} post:`, error);
+      
+      if (typeof toast !== 'undefined') {
+        toast.error(error instanceof Error ? error.message : 'An error occurred');
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <>
       <StatusBanner 
@@ -297,8 +349,20 @@ export function PostModerator({ postId }: PostModeratorProps) {
             </svg>
             <p className="font-medium text-sm">{isPinned ? "Unpin Post" : "Pin this Post"}</p>
           </li>
+          
+          <li className="flex cursor-pointer items-center gap-3 px-4 py-2 text-purple-400 transition-all hover:bg-purple-500/20 hover:text-white"
+              onClick={toggleAdStatus}
+              style={{ opacity: isProcessing ? 0.6 : 1, pointerEvents: isProcessing ? 'none' : 'auto' }}
+          >
+            <svg className="h-5 w-5" strokeLinejoin="round" strokeLinecap="round" strokeWidth={2} stroke="currentColor" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+            <p className="font-medium text-sm">{isAd ? "Remove AD Status" : "Mark as Advertising"}</p>
+          </li>
         </ul>
       </div>
     </>
   );
-} 
+}

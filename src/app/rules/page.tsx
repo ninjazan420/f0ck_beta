@@ -71,10 +71,10 @@ export default function Rules() {
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 • Explicit erotic content<br />
+                • Full nudity<br />
                 • Artistic NSFW content<br />
                 • Only visible to registered users<br />
-                • Hidden/blurred by default<br />
-                • Strict age verification required
+                • Hidden/blurred by default
               </p>
             </div>
           </div>
@@ -154,7 +154,7 @@ export default function Rules() {
                 <li>Only own works or with permission</li>
                 <li>Credit original creators</li>
                 <li>No duplicate uploads</li>
-                <li>Adequate image quality (min 500px width)</li>
+                <li>Adequate image quality</li>
               </ul>
             </div>
           </div>
@@ -165,21 +165,38 @@ export default function Rules() {
           <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
             Account Policies
           </h2>
-          
+
           <div className="space-y-4">
             <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
               <h3 className="font-medium text-gray-900 dark:text-gray-100">Account Security</h3>
               <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
                 <li>No account sharing or selling</li>
-                <li>Strong passwords required</li>
-                <li>2FA recommended</li>
+                <li>Strong passwords required (minimum 6 characters)</li>
+                <li>Email registration optional but recommended for recovery</li>
                 <li>Maximum security settings for NSFW access</li>
               </ul>
-              <div className="mt-3 p-2 rounded bg-amber-50/50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30">
-                <p className="text-sm text-amber-600 dark:text-amber-400">
-                  ⚠️ Important: Accounts created without an email address CANNOT be recovered if the password is lost. This is a strict policy with no exceptions - choose wisely during registration! You can always add an email address later in your account settings while logged in.
-                </p>
-              </div>
+            </div>
+
+            <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">Discord Integration</h3>
+              <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
+                <li>Discord OAuth available for registration and login</li>
+                <li>Link existing accounts with Discord for easier access</li>
+                <li>Automatic avatar synchronization from Discord</li>
+                <li>One Discord account per f0ck.org account</li>
+                <li>Join our Discord: <a href="https://discord.gg/SmWpwGnyrU" className="underline hover:opacity-80" target="_blank" rel="noopener noreferrer">discord.gg/SmWpwGnyrU</a></li>
+              </ul>
+            </div>
+
+            <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">Account Recovery</h3>
+              <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
+                <li>Password reset via email (if email is registered)</li>
+                <li>Reset tokens expire after 1 hour for security</li>
+                <li>No password recovery without email - choose wisely</li>
+                <li>Discord linking provides alternative access method</li>
+                <li>Contact support for account issues: mail[@]f0ck.org</li>
+              </ul>
             </div>
 
             <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
@@ -188,6 +205,47 @@ export default function Rules() {
                 <li>Minimum age: 18 years</li>
                 <li>No underage users</li>
                 <li>Account suspension upon suspicion</li>
+                <li>Age verification may be required</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Community Guidelines Section */}
+        <section className="settings-card mb-6">
+          <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
+            Community Guidelines
+          </h2>
+
+          <div className="space-y-4">
+            <div className="p-3 rounded-lg bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30">
+              <h3 className="font-medium text-blue-900 dark:text-blue-300 mb-2">f0ck.org Ecosystem</h3>
+              <ul className="list-disc list-inside text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                <li>Main site: <a href="https://f0ck.org/" className="underline hover:opacity-80" target="_blank" rel="noopener noreferrer">f0ck.org</a> - Original platform</li>
+                <li>Discord server: <a href="https://discord.gg/SmWpwGnyrU" className="underline hover:opacity-80" target="_blank" rel="noopener noreferrer">discord.gg/SmWpwGnyrU</a> - Community chat</li>
+                <li>TeamSpeak 3: <a href="ts3server://ts.f0ck.org" className="underline hover:opacity-80" target="_blank" rel="noopener noreferrer">ts.f0ck.org</a> - Voice chat</li>
+                <li>ShareX Server: <a href="https://sx.f0ck.org" className="underline hover:opacity-80" target="_blank" rel="noopener noreferrer">sx.f0ck.org</a> - Quick uploads</li>
+                <li>GitHub: <a href="https://github.com/ninjazan420/f0ck_beta" className="underline hover:opacity-80" target="_blank" rel="noopener noreferrer">Open source project</a></li>
+              </ul>
+            </div>
+
+            <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">Cross-Platform Behavior</h3>
+              <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
+                <li>Same rules apply across all f0ck.org services</li>
+                <li>Violations on one platform may affect access to others</li>
+                <li>Discord integration links your accounts</li>
+                <li>Maintain consistent respectful behavior</li>
+              </ul>
+            </div>
+
+            <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">Community Participation</h3>
+              <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
+                <li>Contribute to discussions constructively</li>
+                <li>Help new users understand the platform</li>
+                <li>Report bugs and suggest improvements on GitHub</li>
+                <li>Participate in community events and activities</li>
               </ul>
             </div>
           </div>
@@ -198,7 +256,7 @@ export default function Rules() {
           <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-4 text-black dark:text-gray-400">
             Violation Consequences
           </h2>
-          
+
           <div className="space-y-4">
             <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
               <h3 className="font-medium text-gray-900 dark:text-gray-100">Tier System</h3>
@@ -207,6 +265,7 @@ export default function Rules() {
                 <li>Temporary ban for repeated violations</li>
                 <li>Permanent ban for severe violations</li>
                 <li>Immediate deletion of illegal content</li>
+                <li>Cross-platform enforcement for serious violations</li>
               </ul>
             </div>
 
@@ -214,17 +273,20 @@ export default function Rules() {
               <h3 className="font-medium text-gray-900 dark:text-gray-100">Moderation Actions</h3>
               <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
                 <li>Content removal without notice</li>
-                <li>Account restrictions</li>
+                <li>Account restrictions and role changes</li>
+                <li>Storage quota limitations</li>
+                <li>Upload privileges suspension</li>
               </ul>
             </div>
 
             <div className="p-3 rounded-lg bg-gray-50/80 dark:bg-gray-800/50">
-              <h3 className="font-medium text-gray-900 dark:text-gray-100">Appeals</h3>
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">Appeals & Support</h3>
               <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
                 <li>Appeals against warnings possible</li>
                 <li>Support contact: mail[@]f0ck.org</li>
-                <li>Review by moderators</li>
-                <li>Case-by-case decisions</li>
+                <li>Discord community support available</li>
+                <li>Review by moderators within 24-48 hours</li>
+                <li>Case-by-case decisions with transparency</li>
               </ul>
             </div>
           </div>

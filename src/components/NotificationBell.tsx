@@ -265,7 +265,7 @@ export function NotificationBell() {
       {/* Benachrichtigungsglocke mit transparentem Hintergrund */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-1 rounded-md bg-transparent hover:bg-gray-700/10 dark:hover:bg-gray-600/10 transition-colors focus:outline-none"
+        className="relative p-1 rounded-md bg-transparent hover:bg-gray-700/10 dark:hover:bg-gray-600/10 transition-colors focus:outline-hidden"
         aria-label="Notifications"
       >
         <svg 

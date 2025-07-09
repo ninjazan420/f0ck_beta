@@ -1,0 +1,21 @@
+/* GIF Autoplay Control */
+img[data-no-autoplay="true"] {
+  /* Pause GIF animation by setting animation-play-state */
+  animation-play-state: paused !important;
+}
+
+/* For browsers that don't support animation-play-state on images */
+img[data-no-autoplay="true"]:hover {
+  /* Allow GIF to play on hover when autoplay is disabled */
+  animation-play-state: running !important;
+}
+
+/* Alternative approach using CSS to control GIF playback */
+.gif-container {
+  position: relative;
+  display: inline-block;
+}
+
+.gif-container img[data-no-autoplay="true"] {
+  /* This will be handled by JavaScript for better browser compatibility */
+}

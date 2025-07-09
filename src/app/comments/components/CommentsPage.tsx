@@ -1,12 +1,14 @@
 'use client';
-import { useState } from 'react';
-import { Footer } from "@/components/Footer";
-import { CommentFilter } from "./CommentFilter";
-import { CommentList } from "./CommentList";
+
+import { useState, useEffect } from 'react';
+import { CommentFilter } from './CommentFilter';
+import { CommentList } from './CommentList';
+import { Footer } from '@/components/Footer';
+import { StatusBanner } from '@/components/StatusBanner';
+
+const COMMENTS_INFINITE_SCROLL_KEY = 'commentsInfiniteScrollPreference';
 
 export function CommentsPage() {
-  const [infiniteScroll, setInfiniteScroll] = useState(false);
-  const [showFeedback, setShowFeedback] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
   const [filters, setFilters] = useState({
     username: '',
     searchText: '',
@@ -15,53 +17,60 @@ export function CommentsPage() {
     minLikes: 0
   });
 
+  const [infiniteScroll, setInfiniteScroll] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+
+  // Load infinite scroll preference for comments specifically
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedInfiniteScroll = localStorage.getItem(COMMENTS_INFINITE_SCROLL_KEY);
+      if (savedInfiniteScroll !== null) {
+        setInfiniteScroll(savedInfiniteScroll === 'true');
+      }
+    }
+  }, []);
+
   const handleInfiniteScrollToggle = (enabled: boolean) => {
     setInfiniteScroll(enabled);
-    setShowFeedback({
-      message: enabled ? 'Infinite scroll activated' : 'Infinite scroll deactivated',
-      type: enabled ? 'success' : 'info'
-    });
+    setShowBanner(true);
 
-    // Hide feedback after 2 seconds
+    // Save the preference to localStorage with comments-specific key
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(COMMENTS_INFINITE_SCROLL_KEY, enabled.toString());
+      } catch (error) {
+        console.error('Error saving comments infinite scroll preference:', error);
+      }
+    }
+
+    // Hide banner after 2 seconds
     setTimeout(() => {
-      setShowFeedback(null);
+      setShowBanner(false);
     }, 2000);
   };
 
   return (
-    <div className="min-h-[calc(100vh-36.8px)] flex flex-col">      
-      {showFeedback && (
-        <div 
-          className={`
-            fixed inset-x-0 top-16 pointer-events-none z-50
-            flex items-center justify-center
-          `}
-        >
-          <div className={`
-            px-4 py-2 rounded-lg text-sm font-medium 
-            shadow-lg backdrop-blur-sm
-            animate-fade-in-out
-            ${showFeedback.type === 'success' 
-              ? 'bg-green-100/95 text-green-800 dark:bg-green-900/95 dark:text-green-400'
-              : 'bg-blue-100/95 text-blue-800 dark:bg-blue-900/95 dark:text-blue-400'}
-          `}>
-            {showFeedback.message}
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen flex flex-col">
+      
+      {/* Status Banner */}
+      <StatusBanner
+        show={showBanner}
+        message={infiniteScroll ? 'Infinite scroll activated' : 'Infinite scroll deactivated'}
+        type="success"
+      />
       
       <div className="container mx-auto px-4 py-4 max-w-4xl flex-grow">
         <div className="space-y-6">
-          <CommentFilter 
-            filters={filters} 
+          <CommentFilter
+            filters={filters}
             onFilterChange={setFilters}
             infiniteScroll={infiniteScroll}
             onToggleInfiniteScroll={handleInfiniteScrollToggle}
           />
 
-          <CommentList 
-            filters={filters} 
-            infiniteScroll={infiniteScroll} 
+          <CommentList
+            filters={filters}
+            infiniteScroll={infiniteScroll}
           />
         </div>
       </div>

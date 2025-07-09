@@ -210,17 +210,17 @@ export function RecentActivity() {
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
         </div>
       ) : error ? (
-        <div className="p-3 rounded bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30">
+        <div className="p-3 rounded-sm bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30">
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           <button 
             onClick={() => window.location.reload()}
-            className="mt-2 px-3 py-1 text-xs bg-red-100 dark:bg-red-800/30 text-red-700 dark:text-red-300 rounded"
+            className="mt-2 px-3 py-1 text-xs bg-red-100 dark:bg-red-800/30 text-red-700 dark:text-red-300 rounded-sm"
           >
             Try Again
           </button>
         </div>
       ) : activities.length === 0 ? (
-        <div className="p-3 rounded bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800/30">
+        <div className="p-3 rounded-sm bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800/30">
           <p className="text-sm text-gray-600 dark:text-gray-400">No moderation activities available yet</p>
         </div>
       ) : (

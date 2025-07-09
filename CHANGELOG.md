@@ -1,5 +1,185 @@
 # Änderungsprotokoll
 
+## [4.0.0] - July 9, 2025 🚀 Major Design & Integration Release
+
+### 🎨 Komplett überarbeitetes Design-System
+
+#### 🌟 Moderne UI-Komponenten
+- **Styled Components Integration**: Vollständige Integration von Styled Components für erweiterte Styling-Möglichkeiten
+- **ModernSearchInput**: Neue moderne Suchkomponente mit verbesserter UX
+- **UserFilterModern**: Komplett überarbeitete Benutzerfilter mit modernem Design und Animationen
+- **Gradient-Buttons**: Neue Gradient-Button-Designs mit Hover-Effekten und Transformationen
+- **Shimmer-Animationen**: Elegante Ladeanimationen für bessere Benutzererfahrung
+
+#### 🎭 Erweiterte Styling-Features
+- **Keyframe-Animationen**: Neue Animationen (shimmer, pulse, sparkle, rainbow, shine)
+- **Dark/Light Mode Optimierungen**: Verbesserte Kontraste und Farbschemata
+- **Responsive Design**: Optimierte mobile Darstellung für alle neuen Komponenten
+- **CSS-in-JS**: Bessere Komponenten-Isolation und Wiederverwendbarkeit
+
+### 🔗 Discord Integration
+
+#### 🎮 Vollständige Discord OAuth Integration
+- **Discord Login**: Nahtlose Anmeldung über Discord OAuth
+- **Account-Verknüpfung**: Bestehende Accounts können mit Discord verknüpft werden
+- **DiscordButton Component**: Neue wiederverwendbare Discord-Button-Komponente
+- **Automatische Avatar-Synchronisation**: Discord-Avatare werden automatisch übernommen
+- **Spezielle OAuth-Routen**: `/api/auth/link-discord` für Account-Verknüpfung
+- **Discord-Regeln**: Erweiterte Regeln und Richtlinien für Discord-Integration
+
+### 👥 Überarbeitete Benutzerseiten
+
+#### 🔍 Moderne Benutzerfilter
+- **UserFilterModern**: Komplett neu gestaltete Filter-Oberfläche
+- **Erweiterte Suchoptionen**: Verbesserte Suche mit modernen UI-Elementen
+- **Rolle-basierte Filterung**: Filterung nach Benutzerrollen (member, premium, moderator, admin, banned)
+- **Premium-Status-Filter**: Spezielle Filter für Premium-Mitglieder
+- **Zeitbereich-Filter**: Filterung nach Registrierungszeitraum
+- **Sortieroptionen**: Erweiterte Sortierung (newest, most_active, most_posts, most_likes)
+
+#### 📱 Mobile Optimierungen
+- **Touch-optimierte Filter**: Bessere mobile Bedienung
+- **Responsive Layouts**: Angepasste Layouts für verschiedene Bildschirmgrößen
+- **Swipe-Gesten**: Verbesserte Touch-Interaktionen
+
+### 🔔 Erweiterte Benachrichtigungen
+
+#### 🔔 NotificationBell Integration
+- **Navbar-Integration**: NotificationBell in der Hauptnavigation
+- **Mobile Unterstützung**: Optimierte Darstellung auf mobilen Geräten
+- **Echtzeit-Updates**: Live-Benachrichtigungen ohne Seitenaktualisierung
+- **Verbesserte Positionierung**: Bessere Platzierung in der Benutzeroberfläche
+
+### 🏠 Account-Seite Verbesserungen
+
+#### ⚙️ Erweiterte Account-Verwaltung
+- **Discord-Verknüpfung**: Integration der Discord-Account-Verknüpfung
+- **Verbesserte Avatar-Verwaltung**: Optimierte Avatar-Upload und -Anzeige
+- **Bio-Bearbeitung**: Zuverlässige Bio-Bearbeitung und -Speicherung
+- **Account-Sicherheit**: Erweiterte Sicherheitseinstellungen
+
+### 🚀 Technische Verbesserungen
+
+#### 📦 Framework & Dependencies Updates
+- **Next.js**: Update auf Version 15.3.5
+- **React**: Update auf Version 19.1.0
+- **npm**: Update auf Version 11.4.2
+- **TailwindCSS**: Update auf Version 4.1.11
+- **TypeScript**: Update auf Version 5.8.3
+- **Styled Components**: Neue Integration Version 6.1.19
+
+#### 🔧 Konfigurationsverbesserungen
+- **remotePatterns**: Optimierte Konfiguration mit neuer URL()-Unterstützung
+- **ESLint**: Aktualisierte Konfiguration mit neuen Regeln
+- **PostCSS**: Update auf TailwindCSS PostCSS Plugin
+- **TypeScript**: Verbesserte Plugin-Performance
+
+#### 🛡️ Sicherheits-Updates
+- **OAuth-Sicherheit**: Verbesserte Discord OAuth-Implementierung
+- **CORS-Konfiguration**: Optimierte Cross-Origin-Einstellungen
+- **Session-Management**: Erweiterte Session-Sicherheit
+
+### 🎯 UX/UI Verbesserungen
+
+#### 🎨 Visuelle Verbesserungen
+- **Konsistente Farbschemata**: Einheitliche Farben über alle Komponenten
+- **Verbesserte Typografie**: Optimierte Schriftarten und -größen
+- **Hover-Effekte**: Neue interaktive Hover-Animationen
+- **Loading-States**: Elegante Ladeanimationen und Skeleton-Screens
+
+#### 📱 Mobile-First Design
+- **Touch-Optimierung**: Verbesserte Touch-Targets und Gesten
+- **Responsive Breakpoints**: Optimierte Breakpoints für alle Geräte
+- **Performance**: Schnellere Ladezeiten auf mobilen Geräten
+
+### 🔄 API-Erweiterungen
+
+#### 🔗 Neue Endpunkte
+- **Discord OAuth**: Erweiterte OAuth-Endpunkte für Discord-Integration
+- **Account-Verknüpfung**: Spezielle API-Routen für Account-Management
+- **Benutzerfilter**: Optimierte API für erweiterte Benutzerfilterung
+
+### 📊 Performance-Optimierungen
+
+#### ⚡ Ladezeit-Verbesserungen
+- **Code-Splitting**: Bessere Bundle-Aufteilung
+- **Lazy Loading**: Optimiertes Laden von Komponenten
+- **Caching**: Verbesserte Caching-Strategien
+- **Image Optimization**: Optimierte Bildverarbeitung
+
+## [3.5.0] -  Major Feature Release 🎉
+
+### Hinzugefügt
+
+#### 🔔 Vollständiges Benachrichtigungssystem
+- **Echtzeit-Benachrichtigungsinfrastruktur** mit umfassender Verfolgung von Benutzerinteraktionen
+- **Benachrichtigungstypen**: Kommentar, Antwort, Like, Dislike, Favorit, Erwähnung, System-Benachrichtigungen
+- **Benachrichtigungsverwaltung**: Als gelesen markieren, alle löschen, granulare Einstellungen pro Kategorie
+- **Erweiterte Benachrichtigungsglocke** mit Live-Zähler und Schnellvorschau
+- **@Erwähnungssystem** mit automatischer Benutzername-Erkennung und Benachrichtigungsauslösern
+- **Benachrichtigungs-API-Endpunkte** (`/api/notifications`) mit Filterung und Paginierung
+
+
+#### 🛡️ Erweiterte Moderationssystem
+- **Umfassendes Moderations-Dashboard** mit Echtzeit-Statistiken
+- **Moderations-API-Endpunkte** (`/api/moderation/*`) für Aktionen, Statistiken und Content-Management
+- **Benutzerverwaltungstools**: Sperren, entsperren, Rollenänderungen mit automatischer Protokollierung
+- **Content-Moderation**: Genehmigen, ablehnen, löschen von Posts und Kommentaren
+- **Meldesystem**: Erweiterte Kommentar- und Post-Meldung mit Verfolgung
+- **Moderationsstatistiken**: Ausstehende Kommentare, gemeldete Inhalte, aktive Benutzerüberwachung
+- **Bulk-Moderationsoperationen** für effizientes Content-Management
+
+#### 🔄 Erweiterte Interaktionssystem
+- **Vereinheitlichte Interaktions-API** (`/api/posts/[id]/interactions`) für alle Benutzeraktionen
+- **Optimistische UI-Updates** für Like-, Dislike- und Favorit-Aktionen
+- **Konsistente Interaktionsprotokollierung** und Echtzeit-Statistiken
+- **Verbesserte Fehlerbehandlung** und Benutzerfeedback für alle Interaktionen
+- **Benachrichtigungsintegration** für alle Interaktionstypen
+
+#### 🏷️ Erweiterte Tag-Verwaltung
+- **Erweiterte Tag-Validierung** und Normalisierung
+- **Batch-Tag-Operationen** für effiziente Verwaltung
+- **Verbesserte Tag-Statistiken** und Trending-Berechnungen
+- **Moderationstools** für Tag-Management und Bereinigung
+
+### Verbessert
+
+#### 🔧 Technische Verbesserungen
+- **WebSocket-Infrastruktur** Vorbereitung für Echtzeit-Features
+- **Kommentar-Polling-System** für Live-Updates (10-Sekunden-Intervalle)
+- **Datenbankoptimierungen** mit verbesserter Indizierung und Query-Performance
+- **Benutzerrollensystem** Erweiterung (user, premium, moderator, admin, banned)
+- **API-Endpunkt-Erweiterung** mit besserer Fehlerbehandlung und Validierung
+- **Speicherquota-Management** mit benutzerspezifischen Limits und Verfolgung
+- **Authentifizierungsverbesserungen** mit rollenbasierter Zugriffskontrolle
+
+#### 🎨 Benutzererfahrungsverbesserungen
+- **Echtzeit-UI-Updates** für bessere Reaktionsfähigkeit
+- **Erweiterte Benutzerprofile** mit Premium-Indikatoren und Rollenabzeichen
+- **Verbesserte Navigation** mit Benachrichtigungsintegration
+- **Bessere Fehlermeldungen** und Benutzerfeedback auf der gesamten Plattform
+- **Konsistente Gestaltung** für Premium-Features und Moderationstools
+
+### Technische Details
+- **Neue API-Endpunkte**:
+  - `/api/notifications` - Benachrichtigungsverwaltung
+  - `/api/moderation/stats` - Moderationsstatistiken
+  - `/api/moderation/actions` - Moderationsoperationen
+  - `/api/posts/[id]/interactions` - Vereinheitlichte Interaktionsbehandlung
+- **Datenbankschema-Updates**:
+  - Benutzerrollen und Premium-Status-Verfolgung
+  - Benachrichtigungsspeicherung und Indizierung
+  - Interaktionsprotokollierung und Statistiken
+  - Moderationsaktions-Historie
+- **Frontend-Komponenten**:
+  - `NotificationBell` - Echtzeit-Benachrichtigungsindikator
+  - `PremiumClient` - Premium-Feature-Management
+  - `SettingsPremium` - Premium-Einstellungsschnittstelle
+  - Erweiterte Moderations-Dashboard-Komponenten
+
+<details>
+<summary>Vorherige Versionen (zum Erweitern klicken)</summary>
+
 ## [3.4.2]
 
 - **Bug fixes**:

@@ -28,6 +28,7 @@ interface IPost extends mongoose.Document {
   updatedAt: Date;
   hasCommentsDisabled?: boolean;
   isPinned?: boolean;
+  isAd?: boolean;
 }
 
 const postSchema = new mongoose.Schema({
@@ -80,11 +81,25 @@ const postSchema = new mongoose.Schema({
     comments: { type: Number, default: 0 },
     favorites: { type: Number, default: 0 }
   },
+  likedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    index: true
+  }],
+  dislikedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    index: true
+  }],
   hasCommentsDisabled: {
     type: Boolean,
     default: false
   },
   isPinned: {
+    type: Boolean,
+    default: false
+  },
+  isAd: {
     type: Boolean,
     default: false
   }

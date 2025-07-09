@@ -2,9 +2,9 @@
 import { useState } from 'react';
 
 const uploadOptions = [
-  { id: 'skipDuplicate', label: 'Skip duplicate' },
-  { id: 'forceUploadSimilar', label: 'Force upload similar' },
-  { id: 'pauseOnError', label: 'Pause on error' },
+  { id: 'skipDuplicate', label: 'Skip duplicate' }, // This will be used for client-side check for now
+  { id: 'forceUploadSimilar', label: 'Force upload similar' }, // This implies server-side check
+  // { id: 'pauseOnError', label: 'Pause on error' }, // Removed as per request
   { id: 'uploadAnonymously', label: 'Upload anonymously' }
 ] as const;
 
@@ -12,9 +12,9 @@ type OptionId = typeof uploadOptions[number]['id'];
 
 export function UploadOptions() {
   const [options, setOptions] = useState<Record<OptionId, boolean>>({
-    skipDuplicate: false,
+    skipDuplicate: true, // Default to true for client-side duplicate check
     forceUploadSimilar: false,
-    pauseOnError: false,
+    // pauseOnError: false, // Removed
     uploadAnonymously: false
   });
 

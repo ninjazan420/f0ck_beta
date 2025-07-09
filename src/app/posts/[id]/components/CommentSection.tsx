@@ -77,9 +77,10 @@ export function CommentSection({ postId }: CommentSectionProps) {
         disabled={commentsDisabled}
       />
       
-      <CommentList 
+      <CommentList
         postId={postId}
         newComment={newComment}
+        showPostPreview={false}
       />
     </div>
   );

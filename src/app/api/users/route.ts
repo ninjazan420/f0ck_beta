@@ -105,10 +105,33 @@ export async function GET(request: Request) {
         { $match: query },
         {
           $lookup: {
-            from: 'comments',
+            from: 'posts',
             localField: '_id',
             foreignField: 'author',
+            as: 'userPosts'
+          }
+        },
+        {
+          $lookup: {
+            from: 'comments',
+            let: { userId: '$_id' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ['$author', '$$userId'] },
+                  status: 'approved'
+                }
+              }
+            ],
             as: 'userComments'
+          }
+        },
+        {
+          $lookup: {
+            from: 'tags',
+            localField: '_id',
+            foreignField: 'creator',
+            as: 'userTags'
           }
         },
         {
@@ -121,13 +144,12 @@ export async function GET(request: Request) {
             premium: '$isPremium',
             avatar: 1,
             stats: {
-              $mergeObjects: {
-                uploads: { $size: { $ifNull: ["$uploads", []] } },
-                comments: { $size: { $ifNull: ["$userComments", []] } },
-                favorites: { $size: { $ifNull: ["$favorites", []] } },
-                likes: { $size: { $ifNull: ["$likes", []] } },
-                tags: { $size: { $ifNull: ["$tags", []] } }
-              }
+              uploads: { $size: { $ifNull: ["$userPosts", []] } },
+              comments: { $size: { $ifNull: ["$userComments", []] } },
+              favorites: { $size: { $ifNull: ["$favorites", []] } },
+              likes: { $size: { $ifNull: ["$likes", []] } },
+              dislikes: { $size: { $ifNull: ["$dislikes", []] } },
+              tags: { $size: { $ifNull: ["$userTags", []] } }
             }
           }
         },

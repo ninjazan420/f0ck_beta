@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { action, targetType, targetId, reason, duration } = body;
+    const { action, targetType, targetId, reason, duration, newRole } = body;
 
     if (!action || !targetType || !targetId || !reason) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -129,6 +129,29 @@ export async function POST(req: Request) {
       case 'unpin':
         await handleUnpinAction(targetId, session.user.id);
         return NextResponse.json({ success: true });
+      case 'role_change':
+        if (targetType !== 'user') {
+          return NextResponse.json(
+            { error: 'Can only change roles for users' },
+            { status: 400 }
+          );
+        }
+        if (!newRole || !['user', 'moderator', 'admin'].includes(newRole)) {
+          return NextResponse.json(
+            { error: 'Invalid role specified' },
+            { status: 400 }
+          );
+        }
+        // Only admins can promote to admin or demote admins
+        if ((newRole === 'admin' || target.role === 'admin') && session.user.role !== 'admin') {
+          return NextResponse.json(
+            { error: 'Only admins can manage admin roles' },
+            { status: 403 }
+          );
+        }
+        target.role = newRole;
+        await target.save();
+        break;
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }

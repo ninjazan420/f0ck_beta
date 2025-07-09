@@ -10,7 +10,7 @@ import mongoose from 'mongoose';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -23,7 +23,7 @@ export async function POST(
     const { vote } = body; // vote can be 'like', 'dislike', or null (to remove vote)
     
     // Find post by id
-    const postId = params.id;
+    const { id: postId } = await params;
     let post;
     
     if (mongoose.isValidObjectId(postId)) {
@@ -57,16 +57,16 @@ export async function POST(
     }
     
     // Check current state
-    const hasLiked = user.likes.some(id => id.toString() === post._id.toString());
-    const hasDisliked = user.dislikes.some(id => id.toString() === post._id.toString());
+    const hasLiked = user.likes.includes(post._id);
+    const hasDisliked = user.dislikes.includes(post._id);
     
     // Remove existing votes first
     if (hasLiked) {
       // Remove like from user
-      user.likes = user.likes.filter(id => id.toString() !== post._id.toString());
+      user.likes = user.likes.filter((likeId: mongoose.Types.ObjectId) => !likeId.equals(post._id));
       
       // Remove user from post's likedBy
-      post.likedBy = post.likedBy.filter(id => id.toString() !== session.user.id);
+      post.likedBy = post.likedBy.filter((userId: mongoose.Types.ObjectId) => !userId.equals(session.user.id));
       
       // Update post stats
       post.stats.likes = Math.max(0, post.stats.likes - 1);
@@ -74,56 +74,82 @@ export async function POST(
     
     if (hasDisliked) {
       // Remove dislike from user
-      user.dislikes = user.dislikes.filter(id => id.toString() !== post._id.toString());
+      user.dislikes = user.dislikes.filter((id: mongoose.Types.ObjectId) => !id.equals(post._id));
       
       // Remove user from post's dislikedBy
-      post.dislikedBy = post.dislikedBy.filter(id => id.toString() !== session.user.id);
+      post.dislikedBy = post.dislikedBy.filter((id: mongoose.Types.ObjectId) => !id.equals(session.user.id));
       
       // Update post stats
       post.stats.dislikes = Math.max(0, post.stats.dislikes - 1);
     }
     
-    // Add new vote if requested
+    // Determine new vote state - toggle logic
     let currentVote = null;
-    
-    if (vote === 'like') {
-      // Add like
+    let actionToLog = null;
+    let reasonToLog = '';
+
+    if (vote === 'like' && !hasLiked) {
+      // Add like only if user hasn't liked before
       user.likes.push(post._id);
       post.likedBy.push(session.user.id);
       post.stats.likes += 1;
       currentVote = 'like';
-      
+      actionToLog = 'like';
+      reasonToLog = 'User liked post';
+
       // Send notification if the post isn't by the current user
       if (post.author && post.author.toString() !== session.user.id) {
         await NotificationService.notifyPostLike(post._id.toString(), session.user.id);
       }
-    } else if (vote === 'dislike') {
-      // Add dislike
+    } else if (vote === 'dislike' && !hasDisliked) {
+      // Add dislike only if user hasn't disliked before
       user.dislikes.push(post._id);
       post.dislikedBy.push(session.user.id);
       post.stats.dislikes += 1;
       currentVote = 'dislike';
+      actionToLog = 'dislike';
+      reasonToLog = 'User disliked post';
+    } else if (vote === 'like' && hasLiked) {
+      // Remove like (toggle behavior)
+      actionToLog = 'remove_vote';
+      reasonToLog = 'User removed like from post';
+    } else if (vote === 'dislike' && hasDisliked) {
+      // Remove dislike (toggle behavior)
+      actionToLog = 'remove_vote';
+      reasonToLog = 'User removed dislike from post';
     }
+    // If no action needed (e.g., user clicks same vote again), actionToLog stays null
     
-    // Log the action
-    await ModLog.create({
-      moderator: session.user.id,
-      action: vote || 'remove_vote',
-      targetType: 'post',
-      targetId: post._id,
-      reason: vote ? `User ${vote}d post` : 'User removed vote from post',
-      metadata: {
-        postId: post._id,
-        postTitle: post.title,
-        previousLike: hasLiked,
-        previousDislike: hasDisliked,
-        newVote: vote
-      }
-    });
-    
-    // Save changes
-    await user.save();
-    await post.save();
+    // Use session to handle version conflicts and ensure atomicity
+    const session_db = await mongoose.startSession();
+
+    try {
+      await session_db.withTransaction(async () => {
+        // Save changes within transaction
+        await user.save({ session: session_db });
+        await post.save({ session: session_db });
+
+        // Log the action only if something actually changed
+        if (actionToLog) {
+          await ModLog.create([{
+            moderator: session.user.id,
+            action: actionToLog,
+            targetType: 'post',
+            targetId: post._id,
+            reason: reasonToLog,
+            metadata: {
+              postId: post._id,
+              postTitle: post.title,
+              previousLike: hasLiked,
+              previousDislike: hasDisliked,
+              newVote: currentVote
+            }
+          }], { session: session_db });
+        }
+      });
+    } finally {
+      await session_db.endSession();
+    }
     
     return NextResponse.json({
       userVote: currentVote,
@@ -140,4 +166,4 @@ export async function POST(
       { status: 500 }
     );
   }
-} 
+}

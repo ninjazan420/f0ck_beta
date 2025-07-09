@@ -87,7 +87,7 @@ export async function GET(req: Request) {
         .populate('author', 'username avatar role')
         .populate({
           path: 'post',
-          select: '_id id title numericId'
+          select: '_id id title numericId imageUrl videoUrl type nsfw'
         })
         .populate({
           path: 'replyTo',
@@ -244,10 +244,9 @@ export async function POST(req: Request) {
     console.log('Creating comment with author:', author, 'isAnonymous:', actualIsAnonymous);
 
     // Kommentarinhalt sanitisieren und Zeilenumbrüche erhalten
-    // Ersetze \n durch <br> für korrekte Zeilenumbrüche
-    const contentWithLineBreaks = content.replace(/\n/g, '<br>');
-    const sanitizedContent = DOMPurify.sanitize(contentWithLineBreaks, {
-      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br'],
+    // Behalte \n als \n, konvertiere nicht zu <br> beim Speichern
+    const sanitizedContent = DOMPurify.sanitize(content, {
+      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p'],
       ALLOWED_ATTR: ['href', 'title', 'target']
     });
 
@@ -269,6 +268,13 @@ export async function POST(req: Request) {
       await comment.save();
       console.log('Comment saved successfully:', comment._id);
 
+      // Add comment to user's comments array if not anonymous
+      if (comment.author) {
+        await User.findByIdAndUpdate(comment.author, {
+          $addToSet: { comments: comment._id }
+        });
+      }
+
       // Aktualisiere die Statistiken
       if (comment.author) {
         await CommentStatsService.updateUserCommentStats(comment.author);
@@ -287,16 +293,16 @@ export async function POST(req: Request) {
           await NotificationService.notifyNewComment(comment._id.toString());
         }
 
-        // Neue Funktion: Benutzererwähnungen verarbeiten und Benachrichtigungen senden
+        // New function: Process user mentions and send notifications
         if (session?.user?.id) {
           const authorId = session.user.id;
           const postIdForMention = postObjectId.toString();
           const commentId = comment._id.toString();
 
-          // Importieren Sie den MentionService an der Spitze der Datei
+          // Import MentionService at the top of the file
           const { MentionService } = await import('@/lib/services/mentionService');
 
-          // Erwähnungen extrahieren und verarbeiten
+          // Extract and process mentions
           await MentionService.extractAndProcessMentions(
             sanitizedContent,
             authorId,
@@ -306,7 +312,7 @@ export async function POST(req: Request) {
         }
       } catch (notifyError) {
         console.error('Error sending notification:', notifyError);
-        // Fehler beim Senden der Benachrichtigung sollte den Erfolg des Kommentars nicht beeinträchtigen
+        // Notification sending error should not affect comment success
       }
     } catch (saveError) {
       console.error('Error saving comment:', saveError);

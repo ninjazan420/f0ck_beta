@@ -7,6 +7,7 @@ import dbConnect from '@/lib/db/mongodb';
 import Post from '@/models/Post';
 import Tag from '@/models/Tag';
 import Comment from '@/models/Comment';
+import User from '@/models/User';
 import { PostTagEditor } from '@/app/posts/components/PostTagEditor';
 import { PostModerator } from '@/app/posts/components/PostModerator';
 import { Suspense } from 'react';
@@ -140,17 +141,67 @@ async function getPostData(id: string) {
       }
     }
 
-    // Bereite die Autor-Informationen vor
+    // Bereite die Autor-Informationen vor mit einheitlicher Aggregation
     let authorData = null;
     if (post.author) {
-      // Hole die tatsächlichen Benutzerstatistiken
-      const [userComments, userUploads, userLikes, userFavorites, userTags] = await Promise.all([
-        Comment.countDocuments({ author: post.author._id, status: 'approved' }),
-        Post.countDocuments({ author: post.author._id }),
-        Post.countDocuments({ likedBy: post.author._id }),
-        Post.countDocuments({ favoritedBy: post.author._id }),
-        Tag.countDocuments({ creator: post.author._id })
+      // Verwende die gleiche Aggregation wie in /api/users/[username] und /api/user
+      const userStats = await User.aggregate([
+        {
+          $match: { _id: post.author._id }
+        },
+        {
+          $lookup: {
+            from: 'posts',
+            localField: '_id',
+            foreignField: 'author',
+            as: 'userPosts'
+          }
+        },
+        {
+          $lookup: {
+            from: 'comments',
+            let: { userId: '$_id' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ['$author', '$$userId'] },
+                  status: 'approved'
+                }
+              }
+            ],
+            as: 'userComments'
+          }
+        },
+        {
+          $lookup: {
+            from: 'tags',
+            localField: '_id',
+            foreignField: 'creator',
+            as: 'userTags'
+          }
+        },
+        {
+          $project: {
+            stats: {
+              uploads: { $size: { $ifNull: ["$userPosts", []] } },
+              comments: { $size: { $ifNull: ["$userComments", []] } },
+              favorites: { $size: { $ifNull: ["$favorites", []] } },
+              likes: { $size: { $ifNull: ["$likes", []] } },
+              dislikes: { $size: { $ifNull: ["$dislikes", []] } },
+              tags: { $size: { $ifNull: ["$userTags", []] } }
+            }
+          }
+        }
       ]);
+
+      const stats = userStats[0]?.stats || {
+        uploads: 0,
+        comments: 0,
+        favorites: 0,
+        likes: 0,
+        dislikes: 0,
+        tags: 0
+      };
 
       authorData = {
         username: post.author.username || 'anonymous',
@@ -158,13 +209,7 @@ async function getPostData(id: string) {
         bio: post.author.bio || '',
         premium: !!post.author.premium,
         role: post.author.role || 'user',
-        stats: {
-          uploads: userUploads,
-          comments: userComments,
-          likes: userLikes,
-          favorites: userFavorites,
-          tags: userTags
-        }
+        stats: stats
       };
     }
 

@@ -16,12 +16,12 @@ export async function GET(
     
     // Try to find by MongoDB ObjectId first
     if (mongoose.Types.ObjectId.isValid(postId)) {
-      post = await Post.findById(postId).select('hasCommentsDisabled isPinned');
+      post = await Post.findById(postId).select('hasCommentsDisabled isPinned isAd');
     }
     
     // If not found, try as numeric ID
     if (!post) {
-      post = await Post.findOne({ id: parseInt(postId, 10) }).select('hasCommentsDisabled isPinned');
+      post = await Post.findOne({ id: parseInt(postId, 10) }).select('hasCommentsDisabled isPinned isAd');
     }
     
     if (!post) {
@@ -35,13 +35,15 @@ export async function GET(
     console.log("Post status API returning:", {
       id: post._id,
       commentsDisabled: post.hasCommentsDisabled || false,
-      isPinned: post.isPinned || false
+      isPinned: post.isPinned || false,
+      isAd: post.isAd || false
     });
     
     return NextResponse.json({
       id: post._id,
       commentsDisabled: post.hasCommentsDisabled || false,
-      isPinned: post.isPinned || false
+      isPinned: post.isPinned || false,
+      isAd: post.isAd || false
     });
   } catch (error) {
     console.error('Error fetching post status:', error);
@@ -50,4 +52,4 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}

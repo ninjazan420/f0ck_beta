@@ -4,10 +4,10 @@ import Post from '@/models/Post';
 import { NextResponse } from 'next/server';
 import User from '@/models/User';
 import Comment from '@/models/Comment';
-import { rateLimit } from '@/lib/rateLimit';
+import { rateLimitLegacy } from '@/lib/rateLimit';
 
 export async function POST(req: Request) {
-  return withAuth(async (session) => {
+  return withAuth(async (session: { user: { id: string } }) => {
     const { title, content, mediaUrl, mediaType, tags, isNSFW } = await req.json();
     
     if (!title || !content || !mediaUrl || !mediaType) {
@@ -32,12 +32,9 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const ip = req.headers.get('x-forwarded-for') || 'anonymous';
-    const rateLimitResult = await rateLimit(`fetch_posts_${ip}`, 50, 60); // 50 Anfragen pro Minute
+    const rateLimitResult = rateLimitLegacy(`fetch_posts_${ip}`, 50, 60); // 50 Anfragen pro Minute
     if (rateLimitResult) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again later.' },
-        { status: 429 }
-      );
+      return rateLimitResult;
     }
     
     await dbConnect();
@@ -170,8 +167,34 @@ export async function GET(req: Request) {
     // Get total count for pagination
     const totalPosts = await Post.countDocuments(query);
     
-    // Get paginated results
-    const posts = await Post.find(query)
+    // Get all ads first (they need to be mixed randomly)
+    const allAds = await Post.find({ ...query, isAd: true })
+      .select({
+        id: 1,
+        title: 1,
+        imageUrl: 1,
+        thumbnailUrl: 1,
+        stats: 1,
+        contentRating: 1,
+        meta: 1,
+        author: 1,
+        mediaType: 1,
+        hasAudio: 1,
+        isPinned: 1,
+        isAd: 1,
+        createdAt: 1,
+        _id: 0
+      })
+      .populate('author', 'username avatar premium member admin moderator');
+
+    // Calculate how many ads to include on this page (roughly 1 ad per 10 posts)
+    const adsPerPage = allAds.length > 0 ? Math.min(Math.ceil(limit / 10), allAds.length) : 0;
+
+    // Adjust limit for normal posts to make room for ads
+    const normalPostsLimit = limit - adsPerPage;
+
+    // Get normal posts (excluding ads) with adjusted limit
+    const normalPosts = await Post.find({ ...query, isAd: { $ne: true } })
       .select({
         id: 1,
         title: 1,
@@ -189,11 +212,61 @@ export async function GET(req: Request) {
         _id: 0
       })
       .populate('author', 'username avatar premium member admin moderator')
-      .sort({ isPinned: -1, ...sortOptions }) // Gepinnte Posts zuerst
+      .sort({ isPinned: -1, ...sortOptions }) // Pinned posts first
       .skip(offset)
-      .limit(limit);
+      .limit(normalPostsLimit);
+
+    // Start with normal posts
+    const mixedPosts = [...normalPosts];
+
+    if (allAds.length > 0 && adsPerPage > 0) {
+      // Use page number as seed for consistent randomization across requests
+      const pageNumber = Math.floor(offset / limit);
+      const seed = pageNumber * 12345; // Simple seed based on page
+
+      // Shuffle ads with seeded randomization for consistency
+      const shuffledAds = [...allAds].sort((a, b) => {
+        const randomA = Math.sin(seed + a.id * 7777) * 10000;
+        const randomB = Math.sin(seed + b.id * 7777) * 10000;
+        return (randomA - Math.floor(randomA)) - (randomB - Math.floor(randomB));
+      });
+
+      // Take only the ads we need for this page
+      const pageAds = shuffledAds.slice(0, adsPerPage);
+
+      // Insert ads at random positions
+      pageAds.forEach((ad, index) => {
+        const pinnedCount = mixedPosts.filter(post => post.isPinned).length;
+
+        // For page 1, allow ads anywhere after pinned posts (but not before them)
+        // For other pages, allow ads anywhere
+        let minPosition, maxPosition;
+
+        if (pageNumber === 0) {
+          // On first page, ads can be placed anywhere after pinned posts
+          minPosition = pinnedCount;
+          maxPosition = Math.max(pinnedCount, mixedPosts.length);
+        } else {
+          // On other pages, allow ads anywhere
+          minPosition = 0;
+          maxPosition = Math.max(0, mixedPosts.length);
+        }
+
+        // Use seeded random for consistent positioning
+        const positionSeed = seed + index * 9999;
+        const randomValue = Math.sin(positionSeed) * 10000;
+        const normalizedRandom = randomValue - Math.floor(randomValue);
+        const randomPosition = Math.floor(normalizedRandom * (maxPosition - minPosition + 1)) + minPosition;
+
+        // Ensure we don't exceed array bounds
+        const safePosition = Math.min(randomPosition, mixedPosts.length);
+        mixedPosts.splice(safePosition, 0, ad);
+      });
+    }
+
+    const posts = mixedPosts;
     
-    // Ergänze die Verarbeitung der Posts, um das isVideo-Flag zu verwenden
+    // Process posts including ad status and video flags
     const processedPosts = posts.map((post) => ({
       id: post._id || post.id,
       title: post.title || '',
@@ -209,10 +282,12 @@ export async function GET(req: Request) {
       },
       contentRating: post.contentRating || 'safe',
       isPinned: post.isPinned || false,
-      // Setze den mediaType basierend auf dem post.meta.isVideo Flag
-      mediaType: post.meta?.isVideo ? 'video' : 
+      isAd: post.isAd || false, // Include ad status
+      author: post.author || { username: 'anonymous' }, // Include author info
+      // Set mediaType based on post.meta.isVideo flag
+      mediaType: post.meta?.isVideo ? 'video' :
                  (post.meta?.format === 'gif' ? 'gif' : 'image'),
-      // Falls es ein Video ist, setze hasAudio immer auf true (kann später verfeinert werden)
+      // If it's a video, set hasAudio to true (can be refined later)
       hasAudio: post.meta?.isVideo ? true : false,
     }));
     

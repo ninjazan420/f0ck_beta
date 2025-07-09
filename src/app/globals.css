@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
 
 :root {
   --background: #ffffff; /* Reines Weiß als Hintergrund */
@@ -56,11 +55,11 @@ body {
   .stat-card {
     @apply p-5 rounded-xl 
            bg-[var(--card-bg)]
-           backdrop-blur-sm
+           backdrop-blur-xs
            border border-[var(--card-border)]
            text-center 
            transition-all duration-300
-           hover:scale-[1.02] hover:shadow-sm
+           hover:scale-[1.02] hover:shadow-xs
            hover:bg-gray-50/90 dark:hover:bg-gray-900/60;
   }
   
@@ -111,7 +110,7 @@ body {
   .settings-card {
     @apply p-4 rounded-lg
            bg-[var(--card-bg)]
-           backdrop-blur-sm
+           backdrop-blur-xs
            border border-[var(--card-border)]
            transition-all duration-300
            space-y-3;

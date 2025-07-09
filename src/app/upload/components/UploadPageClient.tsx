@@ -17,17 +17,15 @@ export function UploadPageClient() {
     const validFiles = newFiles.filter(file => {
       const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB limit
       const isValidType = [
-        'image/jpeg',
-        'image/png',
-        'image/gif',
-        'video/webm',
-        'video/mp4',
-        'video/quicktime',
-        'application/x-shockwave-flash',
-        'image/avif',
-        'image/heif',
-        'image/heic',
-        'image/webp'
+        // Image formats
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif',
+        'image/heif', 'image/heic', 'image/bmp', 'image/tiff', 'image/svg+xml',
+        'image/apng',
+        // Video formats
+        'video/webm', 'video/mp4', 'video/quicktime', 'video/avi',
+        'video/x-msvideo', 'video/mkv', 'video/x-matroska', 'video/ogg',
+        // Legacy support
+        'application/x-shockwave-flash'
       ].includes(file.type);
 
       if (!isValidSize) {

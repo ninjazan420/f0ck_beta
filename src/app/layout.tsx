@@ -1,11 +1,14 @@
 import { Inter } from 'next/font/google'
 import { JetBrains_Mono } from 'next/font/google'
 import './globals.css'
+import '../styles/gif-autoplay.css'
 import { Navbar } from '@/components/Navbar'
 import { ThemeProvider } from '@/context/ThemeContext'
 import AuthProvider from '@/context/AuthProvider'
+import { AuthProvider as AuthContextProvider } from '@/app/contexts/AuthContext'
 import { PageMetaProvider } from '@/context/PageMetaContext'
 import { AutoPageMetaUpdater } from '@/components/PageMetaUpdater'
+import { AgeVerificationBanner } from '@/components/AgeVerificationBanner'
 import { siteConfig } from './metadata'
 import type { Metadata } from 'next'
 
@@ -24,7 +27,8 @@ if (!hasInitialized) {
 
 export const metadata: Metadata = {
   title: "Home | " + siteConfig.name,
-  description: "Anonymous Imageboard platform for sharing Memes, Cats, and more",
+  description:
+    "Discover f0ck.org, the anonymous imageboard. Share, rate & comment on images, videos and take part in creative cat memes. Enjoy full transparancy, anonymity and little to none moderation.",
   icons: siteConfig.icon,
 };
 
@@ -37,13 +41,16 @@ export default function RootLayout({
     <html lang="de" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetBrainsMono.variable} antialiased`}>
         <AuthProvider>
-          <ThemeProvider>
-            <PageMetaProvider>
-              <AutoPageMetaUpdater />
-              <Navbar />
-              {children}
-            </PageMetaProvider>
-          </ThemeProvider>
+          <AuthContextProvider>
+            <ThemeProvider>
+              <PageMetaProvider>
+                <AutoPageMetaUpdater />
+                <AgeVerificationBanner />
+                <Navbar />
+                {children}
+              </PageMetaProvider>
+            </ThemeProvider>
+          </AuthContextProvider>
         </AuthProvider>
       </body>
     </html>

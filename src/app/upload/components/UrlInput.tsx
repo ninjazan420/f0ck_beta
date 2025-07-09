@@ -189,7 +189,7 @@ export function UrlInput({
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="Paste image URL here..."
+            placeholder="Paste image directlink or URL here..."
             className={`w-full p-1 rounded-lg border ${
               isImageUrl ? 'border-green-300 dark:border-green-700' : 'border-gray-200 dark:border-gray-700'
             } bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200`}
@@ -252,10 +252,6 @@ export function UrlInput({
           </div>
         </div>
       )}
-      
-      <p className="text-xs px-1 text-gray-500 dark:text-gray-400">
-        Paste image URLs or links to social media posts. URLs from clipboard will be automatically detected. (not functional yet)
-      </p>
     </div>
   );
 }

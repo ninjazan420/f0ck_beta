@@ -25,7 +25,7 @@ export default function PostContent({ postData, postId }) {
     ? postData.tags.map(tag => typeof tag === 'string' ? tag : tag.name)
     : [];
 
-  // Lade den Benutzer-Interaktionsstatus und aktuelle Kommentaranzahl beim Laden der Komponente
+  // Lade den Benutzer-Interaktionsstatus und aktuelle Stats beim Laden der Komponente
   useEffect(() => {
     async function loadData() {
       try {
@@ -40,11 +40,22 @@ export default function PostContent({ postData, postId }) {
           }
         }
 
-        // Lade aktuelle Kommentaranzahl
-        const commentsResponse = await fetch(`/api/posts/${postId}/comments/count`);
-        if (commentsResponse.ok) {
-          const data = await commentsResponse.json();
-          setCommentCount(data.count);
+        // Lade aktuelle Stats (einheitlich wie bei anderen Seiten)
+        const statsResponse = await fetch(`/api/posts/batch-stats`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postIds: [postId] })
+        });
+
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          const currentStats = statsData[postId];
+          if (currentStats) {
+            setLikeCount(currentStats.likes || 0);
+            setDislikeCount(currentStats.dislikes || 0);
+            setFavoriteCount(currentStats.favorites || 0);
+            setCommentCount(currentStats.comments || 0);
+          }
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -405,20 +416,20 @@ export default function PostContent({ postData, postId }) {
 
               {postData.author.username !== 'anonymous' && (
                 <div className="flex flex-wrap gap-4 mt-2">
-                  <Link href={`/posts?uploader=${postData.author.username}`} className="text-sm hover:text-purple-600">
-                    <span className="text-gray-500">uploads:</span> {postData.author.stats.uploads}
+                  <Link href={`/posts?uploader=${postData.author.username}`} className="text-sm hover:text-purple-600 dark:hover:text-purple-400">
+                    <span className="text-gray-500">uploads:</span> <span className="font-bold text-purple-600 dark:text-purple-400">{postData.author.stats.uploads}</span>
                   </Link>
-                  <Link href={`/comments?author=${postData.author.username}`} className="text-sm hover:text-purple-600">
-                    <span className="text-gray-500">comments:</span> {postData.author.stats.comments}
+                  <Link href={`/comments?author=${postData.author.username}`} className="text-sm hover:text-blue-600 dark:hover:text-blue-400">
+                    <span className="text-gray-500">comments:</span> <span className="font-bold text-blue-600 dark:text-blue-400">{postData.author.stats.comments}</span>
                   </Link>
-                  <Link href={`/posts?liked_by=${postData.author.username}`} className="text-sm hover:text-purple-600">
-                    <span className="text-gray-500">likes:</span> {postData.author.stats.likes}
+                  <Link href={`/posts?liked_by=${postData.author.username}`} className="text-sm hover:text-green-600 dark:hover:text-green-400">
+                    <span className="text-gray-500">likes:</span> <span className="font-bold text-green-600 dark:text-green-400">{postData.author.stats.likes}</span>
                   </Link>
-                  <Link href={`/posts?favorited_by=${postData.author.username}`} className="text-sm hover:text-purple-600">
-                    <span className="text-gray-500">favorites:</span> {postData.author.stats.favorites}
+                  <Link href={`/posts?favorited_by=${postData.author.username}`} className="text-sm hover:text-pink-600 dark:hover:text-pink-400">
+                    <span className="text-gray-500">favorites:</span> <span className="font-bold text-pink-600 dark:text-pink-400">{postData.author.stats.favorites}</span>
                   </Link>
-                  <Link href={`/tags?creator=${postData.author.username}`} className="text-sm hover:text-purple-600">
-                    <span className="text-gray-500">tags:</span> {postData.author.stats.tags}
+                  <Link href={`/tags?creator=${postData.author.username}`} className="text-sm hover:text-orange-600 dark:hover:text-orange-400">
+                    <span className="text-gray-500">tags:</span> <span className="font-bold text-orange-600 dark:text-orange-400">{postData.author.stats.tags}</span>
                   </Link>
                 </div>
               )}

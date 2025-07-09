@@ -24,6 +24,7 @@ interface User {
     comments?: number;
     favorites?: number;
     likes?: number;
+    dislikes?: number;
     tags?: number;
   };
   avatar?: string | null;
@@ -70,9 +71,9 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
     fetchUsers();
   }, [filters, page]);
 
-  if (loading) {
-    return <div className="animate-pulse">Lade Benutzer...</div>;
-  }
+  // if (loading) {
+  //   return <div className="animate-pulse">Lade Benutzer...</div>;
+  // }
 
   if (error) {
     return <div className="text-red-500">{error}</div>;
@@ -83,7 +84,7 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {users.map((user) => (
           <div key={user.username}
-            className="p-4 rounded-lg bg-white dark:bg-gray-800 shadow hover:shadow-md transition-shadow"
+            className="p-4 rounded-lg bg-white dark:bg-gray-800 shadow-xs hover:shadow-sm transition-shadow"
           >
             <div className="flex items-start gap-4">
               {/* Avatar - Mit Link auf Benutzerprofil */}
@@ -139,35 +140,35 @@ export function UserList({ filters, page, totalPages, onPageChange }: UserListPr
                   {user.bio || "No bio yet"}
                 </p>
 
-                {/* Statistiken */}
-                <div className="mt-2 grid grid-cols-5 gap-2 text-xs text-gray-400">
+                {/* Statistics - same colors as /account */}
+                <div className="mt-2 grid grid-cols-5 gap-2 text-xs">
                   <Link href={`/posts?uploader=${user.username}`} className="hover:text-purple-600 dark:hover:text-purple-400">
-                    <span className="block">uploads</span>
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
+                    <span className="block text-gray-400">uploads</span>
+                    <span className="font-bold text-purple-600 dark:text-purple-400">
                       {user.stats?.uploads || 0}
                     </span>
                   </Link>
-                  <Link href={`/comments?author=${user.username}`} className="hover:text-purple-600 dark:hover:text-purple-400">
-                    <span className="block">comments</span>
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
+                  <Link href={`/comments?author=${user.username}`} className="hover:text-blue-600 dark:hover:text-blue-400">
+                    <span className="block text-gray-400">comments</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
                       {user.stats?.comments || 0}
                     </span>
                   </Link>
-                  <Link href={`/posts?liked=${user.username}`} className="hover:text-purple-600 dark:hover:text-purple-400">
-                    <span className="block">likes</span>
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
+                  <Link href={`/posts?liked=${user.username}`} className="hover:text-green-600 dark:hover:text-green-400">
+                    <span className="block text-gray-400">likes</span>
+                    <span className="font-bold text-green-600 dark:text-green-400">
                       {user.stats?.likes || 0}
                     </span>
                   </Link>
-                  <Link href={`/posts?favorited=${user.username}`} className="hover:text-purple-600 dark:hover:text-purple-400">
-                    <span className="block">favorites</span>
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
+                  <Link href={`/posts?favorited=${user.username}`} className="hover:text-pink-600 dark:hover:text-pink-400">
+                    <span className="block text-gray-400">favorites</span>
+                    <span className="font-bold text-pink-600 dark:text-pink-400">
                       {user.stats?.favorites || 0}
                     </span>
                   </Link>
-                  <Link href={`/tags?creator=${user.username}`} className="hover:text-purple-600 dark:hover:text-purple-400">
-                    <span className="block">tags</span>
-                    <span className="font-medium text-gray-600 dark:text-gray-300">
+                  <Link href={`/tags?creator=${user.username}`} className="hover:text-orange-600 dark:hover:text-orange-400">
+                    <span className="block text-gray-400">tags</span>
+                    <span className="font-bold text-orange-600 dark:text-orange-400">
                       {user.stats?.tags || 0}
                     </span>
                   </Link>

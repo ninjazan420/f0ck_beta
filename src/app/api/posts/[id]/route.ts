@@ -26,7 +26,8 @@ export async function GET(
       .populate({
         path: 'author',
         select: 'username avatar bio role premium lastSeen createdAt uploads comments likes favorites tags'
-      });
+      })
+      .select('+hasCommentsDisabled +isPinned +isAd');
 
     if (!post) {
       return NextResponse.json(
@@ -85,11 +86,73 @@ export async function GET(
       console.log('Final serialized tags:', serializedPost.tags);
     }
 
-    // Füge das Upload-Datum hinzu
+    // Füge das Upload-Datum und Status-Felder hinzu
     serializedPost.uploadDate = post.createdAt;
+    serializedPost.hasCommentsDisabled = post.hasCommentsDisabled || false;
+    serializedPost.isPinned = post.isPinned || false;
+    serializedPost.isAd = post.isAd || false;
 
-    // Wenn ein Autor existiert, populate die Autor-Daten
+    // Wenn ein Autor existiert, populate die Autor-Daten mit einheitlicher Aggregation
     if (post.author) {
+      // Verwende die gleiche Aggregation wie in anderen APIs für konsistente Stats
+      const userStats = await User.aggregate([
+        {
+          $match: { _id: post.author._id }
+        },
+        {
+          $lookup: {
+            from: 'posts',
+            localField: '_id',
+            foreignField: 'author',
+            as: 'userPosts'
+          }
+        },
+        {
+          $lookup: {
+            from: 'comments',
+            let: { userId: '$_id' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ['$author', '$$userId'] },
+                  status: 'approved'
+                }
+              }
+            ],
+            as: 'userComments'
+          }
+        },
+        {
+          $lookup: {
+            from: 'tags',
+            localField: '_id',
+            foreignField: 'creator',
+            as: 'userTags'
+          }
+        },
+        {
+          $project: {
+            stats: {
+              uploads: { $size: { $ifNull: ["$userPosts", []] } },
+              comments: { $size: { $ifNull: ["$userComments", []] } },
+              favorites: { $size: { $ifNull: ["$favorites", []] } },
+              likes: { $size: { $ifNull: ["$likes", []] } },
+              dislikes: { $size: { $ifNull: ["$dislikes", []] } },
+              tags: { $size: { $ifNull: ["$userTags", []] } }
+            }
+          }
+        }
+      ]);
+
+      const stats = userStats[0]?.stats || {
+        uploads: 0,
+        comments: 0,
+        favorites: 0,
+        likes: 0,
+        dislikes: 0,
+        tags: 0
+      };
+
       serializedPost.author = post.author;
       serializedPost.uploader = {
         name: post.author.username,
@@ -99,20 +162,19 @@ export async function GET(
         admin: post.author.role === 'admin',
         moderator: post.author.role === 'moderator',
         joinDate: post.author.createdAt,
-        // Benutzerstatistiken direkt aus den Arrays berechnen
         stats: {
-          uploads: post.author.uploads?.length || 0,
-          comments: post.author.comments?.length || 0,
-          likes: post.author.likes?.length || 0,
-          favorites: post.author.favorites?.length || 0,
-          tags: post.author.tags?.length || 0,
-          // Zusätzliche Felder
-          totalPosts: post.author.uploads?.length || 0,
-          totalLikes: post.author.likes?.length || 0,
-          totalViews: 0, // Falls benötigt, aus einer anderen Quelle
-          level: 1, // Beispielwert
-          xp: 0, // Beispielwert
-          xpNeeded: 100 // Beispielwert
+          uploads: stats.uploads,
+          comments: stats.comments,
+          likes: stats.likes,
+          favorites: stats.favorites,
+          tags: stats.tags,
+          // Zusätzliche Felder für Kompatibilität
+          totalPosts: stats.uploads,
+          totalLikes: stats.likes,
+          totalViews: 0,
+          level: 1,
+          xp: 0,
+          xpNeeded: 100
         }
       };
     } else {

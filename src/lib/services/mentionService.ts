@@ -15,7 +15,7 @@ export class MentionService {
       const processedMentions = [];
       
       for (const mention of mentions) {
-        const username = mention.substring(1); // Entferne das @ am Anfang
+        const username = mention.substring(1); // Remove the @ at the beginning
         
         const mentionedUser = await User.findOne({ 
           username: { $regex: new RegExp(`^${username}$`, 'i') }
@@ -42,11 +42,11 @@ export class MentionService {
   
   static async searchUsers(query: string, limit = 5) {
     try {
-      // Benutze die neue API-Route statt direkter DB-Zugriffe
+      // Use the new API route instead of direct DB access
       const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}&limit=${limit}`);
       
       if (!response.ok) {
-        throw new Error(`API Fehler: ${response.status}`);
+        throw new Error(`API Error: ${response.status}`);
       }
       
       const users = await response.json();

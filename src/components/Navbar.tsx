@@ -25,41 +25,53 @@ export const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
+  const [avatarKey, setAvatarKey] = useState(0); // Neuer State für Avatar-Updates
 
   // Import der Seitenmetadaten
   const { title, description } = usePageMeta();
 
   // Improved Avatar-Aktualisierungs-Listener
   useEffect(() => {
-    const handleAvatarUpdate = (event: Event) => {
+    const handleAvatarUpdate = async (event: Event) => {
       console.log('Avatar update event received in Navbar');
 
-      // Force rerender by updating the forceUpdate state
-      setForceUpdate(prev => prev + 1);
-
-      // Get the new avatar URL from the event if available
       const customEvent = event as CustomEvent;
       const newAvatarUrl = customEvent.detail?.newAvatarUrl;
+      const timestamp = customEvent.detail?.timestamp;
 
-      if (newAvatarUrl !== undefined) {
-        console.log('New avatar URL from event:', newAvatarUrl);
+      // Force immediate avatar rerender with new key
+      setAvatarKey(prev => prev + 1);
+      setForceUpdate(prev => prev + 1);
 
-        // If we have the session and a new avatar URL, update the session directly
+      // Update session with the new avatar URL
+      try {
+        console.log('Updating session in navbar with new avatar URL:', newAvatarUrl);
+
         if (session?.user) {
-          updateSession({
+          await updateSession({
             ...session,
             user: {
               ...session.user,
               avatar: newAvatarUrl
             }
           });
-        } else {
-          // Otherwise just refresh the session
-          updateSession();
         }
-      } else {
-        // If no specific URL was provided, just refresh the session
-        updateSession();
+
+        console.log('Session updated in navbar successfully');
+
+        // Force multiple rerenders to ensure the change is visible
+        setTimeout(() => {
+          setAvatarKey(prev => prev + 1);
+          setForceUpdate(prev => prev + 1);
+        }, 100);
+
+        setTimeout(() => {
+          setAvatarKey(prev => prev + 1);
+          setForceUpdate(prev => prev + 1);
+        }, 500);
+
+      } catch (error) {
+        console.error('Failed to update session in navbar:', error);
       }
     };
 
@@ -70,7 +82,7 @@ export const Navbar = () => {
     return () => {
       window.removeEventListener('avatar-updated', handleAvatarUpdate);
     };
-  }, [session, updateSession]);
+  }, [updateSession, session]);
 
   // Erkennen der Bildschirmgröße
   useEffect(() => {
@@ -173,7 +185,7 @@ export const Navbar = () => {
               <div className="w-6 h-6 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                 {session?.user?.avatar ? (
                   <Image
-                    key={`avatar-${forceUpdate}-${session.user.avatar}`}
+                    key={`navbar-avatar-${avatarKey}-${forceUpdate}-${Date.now()}`}
                     src={getImageUrlWithCacheBuster(session.user.avatar, true)}
                     alt="Avatar"
                     width={24}
@@ -181,6 +193,8 @@ export const Navbar = () => {
                     className="object-cover w-full h-full"
                     unoptimized={true}
                     priority={true}
+                    onLoad={() => console.log('Navbar avatar loaded')}
+                    onError={() => console.log('Navbar avatar failed to load')}
                   />
                 ) : (
                   <div className="text-xs text-gray-400">
@@ -271,7 +285,7 @@ export const Navbar = () => {
           {/* Burger icon */}
           <button
             onClick={toggleMobileMenu}
-            className="w-8 h-8 flex flex-col justify-center items-center gap-[5px] focus:outline-none"
+            className="w-8 h-8 flex flex-col justify-center items-center gap-[5px] focus:outline-hidden"
             aria-label="Toggle menu"
           >
             <span className={`block h-[2px] w-5 bg-current transition-transform duration-300 ${isMobileMenuOpen ? 'transform rotate-45 translate-y-[6px]' : ''}`}></span>
@@ -295,7 +309,7 @@ export const Navbar = () => {
                 <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                   {session?.user?.avatar ? (
                     <Image
-                      key={`avatar-${forceUpdate}-${session.user.avatar}`}
+                      key={`mobile-avatar-${avatarKey}-${forceUpdate}-${Date.now()}`}
                       src={getImageUrlWithCacheBuster(session.user.avatar, true)}
                       alt="Avatar"
                       width={32}
@@ -329,7 +343,7 @@ export const Navbar = () => {
                   <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
                     {session?.user?.avatar ? (
                       <Image
-                        key={`avatar-${forceUpdate}-${session.user.avatar}`}
+                        key={`mobile-menu-avatar-${avatarKey}-${forceUpdate}-${Date.now()}`}
                         src={getImageUrlWithCacheBuster(session.user.avatar, true)}
                         alt="Avatar"
                         width={40}

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { TagList } from './TagList';
-import { TagFilter } from './TagFilter';
+import { TagFilterModern } from './TagFilterModern';
 import { Footer } from "@/components/Footer";
 
 export type SortBy = 'most_used' | 'newest' | 'alphabetical' | 'trending';
@@ -85,7 +85,7 @@ export function TagsPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
-      <TagFilter
+      <TagFilterModern
         filters={filters}
         onFilterChange={setFilters}
       />

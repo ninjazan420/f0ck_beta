@@ -71,12 +71,13 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
     if (storedSettings) {
       try {
         const parsedSettings = JSON.parse(storedSettings);
-        if (parsedSettings.blurNsfw !== undefined) {
-          setSettings(prev => ({
-            ...prev,
-            blurNsfw: parsedSettings.blurNsfw
-          }));
-        }
+        setSettings(prev => ({
+          ...prev,
+          blurNsfw: parsedSettings.blurNsfw !== undefined ? parsedSettings.blurNsfw : prev.blurNsfw,
+          autoplayGifs: parsedSettings.autoplayGifs !== undefined ? parsedSettings.autoplayGifs : prev.autoplayGifs,
+          autoplayVideos: parsedSettings.autoplayVideos !== undefined ? parsedSettings.autoplayVideos : prev.autoplayVideos,
+          muteAutoplay: parsedSettings.muteAutoplay !== undefined ? parsedSettings.muteAutoplay : prev.muteAutoplay
+        }));
       } catch (error) {
         console.error('Failed to parse settings from localStorage:', error);
       }
@@ -99,9 +100,7 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
     }));
     
     // Update global settings state
-    if (setting === 'blurNsfw') {
-      updateSetting('blurNsfw', newValue);
-    }
+    updateSetting(setting as keyof typeof userSettings, newValue);
   };
 
   return (
@@ -169,12 +168,7 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
               </span>
               <Switch
                 checked={settings.autoplayVideos}
-                onChange={(e) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    autoplayVideos: e.target.checked,
-                  }))
-                }
+                onChange={handleSettingChange("autoplayVideos")}
               />
             </div>
 
@@ -184,12 +178,7 @@ export default function SettingsClient({ userRole = 'user' }: SettingsClientProp
               </span>
               <Switch
                 checked={settings.muteAutoplay}
-                onChange={(e) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    muteAutoplay: e.target.checked,
-                  }))
-                }
+                onChange={handleSettingChange("muteAutoplay")}
               />
             </div>
           </section>

@@ -38,4 +38,4 @@ export async function seedInitialData() {
     console.error('❌ Fehler beim Erstellen der initialen Daten:', error);
     return { success: false, error };
   }
-} 
+}

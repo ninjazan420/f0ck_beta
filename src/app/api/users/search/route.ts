@@ -10,21 +10,21 @@ export async function GET(request: Request) {
     const query = searchParams.get('q') || '';
     const limit = parseInt(searchParams.get('limit') || '5');
 
-    // Verbindung zur Datenbank herstellen
+    // Establish database connection
     await dbConnect();
     
     let users;
     
     if (!query || query.length < 1) {
-      // Bei leerem Query aktive Benutzer zurückgeben
+      // Return active users for empty query
       users = await User.find({
         role: { $ne: 'banned' }
       })
-      .sort({ lastActive: -1 }) // Kürzlich aktive Benutzer zuerst
+      .sort({ lastSeen: -1 }) // Recently active users first
       .select('username name avatar')
       .limit(limit);
     } else {
-      // Bei Query nach Benutzernamen oder Anzeigenamen suchen
+      // Search by username or display name for query
       users = await User.find({
         $or: [
           { username: { $regex: new RegExp(query, 'i') } },
@@ -35,8 +35,8 @@ export async function GET(request: Request) {
       .select('username name avatar')
       .limit(limit);
     }
-    
-    // Bereite die Daten für die Antwort vor
+
+    // Prepare data for response
     const formattedUsers = users.map(user => ({
       id: user._id.toString(),
       username: user.username,

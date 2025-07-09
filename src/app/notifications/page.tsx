@@ -383,7 +383,7 @@ export default function NotificationsPage() {
         <>
           <ul className="space-y-4">
             {filteredNotifications.map((notification) => (
-              <li key={notification._id} className={`transition-all ${!notification.read ? 'bg-purple-50/50 dark:bg-purple-900/10' : 'bg-white dark:bg-gray-800'} rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-md`}>
+              <li key={notification._id} className={`transition-all ${!notification.read ? 'bg-purple-50/50 dark:bg-purple-900/10' : 'bg-white dark:bg-gray-800'} rounded-xl shadow-xs border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-sm`}>
                 <Link 
                   href={getNotificationLink(notification)}
                   className="block"

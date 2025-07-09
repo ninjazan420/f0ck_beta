@@ -73,9 +73,9 @@ export function TagFilter({ filters, onFilterChange }: TagFilterProps) {
           {/* Additional Filters */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
-                Creator
-              </label>
+              <label className="block text-sm font-normal text-gray-600 dark:text-gray-400 mb-1">
+            Creator
+          </label>
               <input
                 type="text"
                 value={filters.creator}
@@ -85,9 +85,9 @@ export function TagFilter({ filters, onFilterChange }: TagFilterProps) {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
-                Used by user
-              </label>
+              <label className="block text-sm font-normal text-gray-600 dark:text-gray-400 mb-1">
+            Used by user
+          </label>
               <input
                 type="text"
                 value={filters.usedBy}

@@ -283,24 +283,19 @@ export function PostGrid({
     );
   }
 
-  // Verbesserte Methode für die Anzeige der Posts mit Unterstützung für gepinnte Posts
+  // Simplified method for displaying posts - ads are now mixed on server-side
   const getVisiblePosts = () => {
-    // Wir filtern die Posts immer nach Content Rating, unabhängig vom Scroll-Modus
-    // Dies stellt sicher, dass die Filter konsistent angewendet werden
+    // Filter posts by content rating only
+    // Ad mixing is now handled on the server-side for consistency across pagination
     const filteredPosts = posts.filter(post => {
-      // Wenn keine Content-Rating-Filter gesetzt sind, zeigen wir alle Posts an
+      // If no content rating filters are set, show all posts
       if (!filters.contentRating?.length) return true;
 
-      // Sonst nur Posts anzeigen, die dem ausgewählten Content Rating entsprechen
+      // Otherwise only show posts that match the selected content rating
       return filters.contentRating.includes(post.contentRating);
     });
 
-    // Sortiere Posts: gepinnte Posts zuerst, dann die restlichen
-    return [...filteredPosts].sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      return 0;
-    });
+    return filteredPosts;
   };
 
   const visiblePosts = getVisiblePosts();
@@ -317,204 +312,251 @@ export function PostGrid({
 
   return (
     <div>
-      {infiniteScroll
-        ? Object.entries(postsByPage).map(([pageNum, pagePosts], pageIndex) => (
-            <div key={`page-${pageNum}`}>
-              {/* Page separator (only show after first page) */}
-              {pageIndex > 0 && (
-                <div className="w-full my-6 flex items-center justify-center">
-                  <div className="w-1/3 h-px bg-gray-300 dark:bg-gray-700"></div>
-                  <div className="px-4 text-sm text-gray-500">
-                    Page {parseInt(pageNum) + 1} of {totalPages || '?'}
-                  </div>
-                  <div className="w-1/3 h-px bg-gray-300 dark:bg-gray-700"></div>
+      {infiniteScroll ? (
+        Object.entries(postsByPage).map(([pageNum, pagePosts], pageIndex) => (
+          <div key={`page-${pageNum}`}>
+            {/* Page separator (only show after first page) */}
+            {pageIndex > 0 && (
+              <div className="w-full my-6 flex items-center justify-center">
+                <div className="w-1/3 h-px bg-gray-300 dark:bg-gray-700"></div>
+                <div className="px-4 text-sm text-gray-500">
+                  Page {parseInt(pageNum) + 1} of {totalPages || "?"}
                 </div>
-              )}
+                <div className="w-1/3 h-px bg-gray-300 dark:bg-gray-700"></div>
+              </div>
+            )}
 
-              {/* Grid for this page */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 auto-rows-fr gap-2">
-                {pagePosts.map((post) => (
-                  <div key={post.id} data-post-id={post.id}>
-                    <Link
-                      href={`/post/${post.id}`}
-                      className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 block"
-                    >
-              <div className="relative w-full h-full flex items-center justify-center">
-                <div className="relative">
-                  <Image
-                    src={getImageUrlWithCacheBuster(post.thumbnail)}
-                    alt={post.title}
-                    width={200}
-                    height={200}
-                    className={`object-contain w-full h-full group-hover:opacity-75 transition-opacity ${settings.blurNsfw && (post.contentRating === 'unsafe' || post.contentRating === 'sketchy') ? 'blur-md' : ''}`}
-                    unoptimized={true}
-                  />
-                  {settings.blurNsfw && (post.contentRating === 'unsafe' || post.contentRating === 'sketchy') && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className={`px-2 py-1 rounded text-sm font-bold ${post.contentRating === 'unsafe' ? 'bg-red-500/70' : 'bg-yellow-500/70'} text-white`}>
-                        {post.contentRating.toUpperCase()}
-                      </span>
+            {/* Grid for this page */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 auto-rows-fr gap-2">
+              {pagePosts.map((post) => (
+                <div key={post.id} data-post-id={post.id}>
+                  <Link
+                    href={`/post/${post.id}`}
+                    className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 block"
+                  >
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      <div className="relative">
+                        <Image
+                          src={getImageUrlWithCacheBuster(post.thumbnail)}
+                          alt={post.title}
+                          width={200}
+                          height={200}
+                          className={`object-contain w-full h-full group-hover:opacity-75 transition-opacity ${
+                            settings.blurNsfw &&
+                            (post.contentRating === "unsafe" ||
+                              post.contentRating === "sketchy")
+                              ? "blur-md"
+                              : ""
+                          }`}
+                          unoptimized={true}
+                        />
+                        {settings.blurNsfw &&
+                          (post.contentRating === "unsafe" ||
+                            post.contentRating === "sketchy") && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span
+                                className={`px-2 py-1 rounded text-sm font-bold ${
+                                  post.contentRating === "unsafe"
+                                    ? "bg-red-500/70"
+                                    : "bg-yellow-500/70"
+                                } text-white`}
+                              >
+                                {post.contentRating.toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Top Badge Row */}
-              <div className="absolute top-1 sm:top-2 left-1 sm:left-2 right-1 sm:right-2 flex justify-between items-start">
-                {/* Left Badges */}
-                <div className="flex flex-col gap-0.5 sm:gap-1">
-                  {post.isPinned && (
-                    <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-amber-500/40 text-white border border-amber-500/50">
-                      📌 PINNED
-                    </span>
-                  )}
-                  {post.isAd && (
-                    <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-purple-500/40 text-white border border-purple-500/50">
-                      💎 AD
-                    </span>
-                  )}
-                </div>
+                    {/* Top Badge Row */}
+                    <div className="absolute top-1 sm:top-2 left-1 sm:left-2 right-1 sm:right-2 flex justify-between items-start">
+                      {/* Left Badges */}
+                      <div className="flex flex-col gap-0.5 sm:gap-1">
+                        {post.isPinned && (
+                          <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-amber-500/40 text-white border border-amber-500/50">
+                            📌 PINNED
+                          </span>
+                        )}
+                        {post.isAd && (
+                          <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-blue-400 text-white border border-purple-500/50">
+                            💎 AD
+                          </span>
+                        )}
+                      </div>
 
-                {/* Right Badge (Rating) */}
-                <span className={`px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium ${
-                  post.contentRating === 'safe'
-                    ? 'bg-green-500/40 text-white border border-green-500/50'
-                    : post.contentRating === 'sketchy'
-                      ? 'bg-yellow-500/40 text-white border border-yellow-500/50'
-                      : 'bg-red-500/40 text-white border border-red-500/50'
-                }`}>
-                  {post.contentRating.toUpperCase()}
-                </span>
-              </div>
-
-              {/* Bottom Info Bar */}
-              <div className="absolute bottom-0 left-0 right-0 p-1 sm:p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-                <div className="space-y-0.5 sm:space-y-1">
-                  {/* Stats and Media Type */}
-                  <div className="flex items-center justify-between text-gray-300 text-[8px] sm:text-[10px]">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <span className="flex items-center gap-0.5">
-                        <span className="opacity-60">👍</span>
-                        <span data-like-count={post.id}>{post.likes}</span>
-                      </span>
-                      <span className="flex items-center gap-0.5">
-                        <span className="opacity-60">❤️</span>
-                        <span data-favorite-count={post.id}>{post.favorites}</span>
-                      </span>
-                      <span className="flex items-center gap-0.5">
-                        <span className="opacity-60">💬</span>
-                        <span data-comment-count={post.id}>{post.comments}</span>
-                      </span>
+                      {/* Right Badge (Rating) - only show if not an ad */}
+                      {!post.isAd && (
+                        <span
+                          className={`px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium ${
+                            post.contentRating === "safe"
+                              ? "bg-green-500/40 text-white border border-green-500/50"
+                              : post.contentRating === "sketchy"
+                              ? "bg-yellow-500/40 text-white border border-yellow-500/50"
+                              : "bg-red-500/40 text-white border border-red-500/50"
+                          }`}
+                        >
+                          {post.contentRating.toUpperCase()}
+                        </span>
+                      )}
                     </div>
-                    <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-gray-500/40 text-white border border-gray-500/50">
-                      {post.mediaType === 'gif'
-                        ? '🎞️ GIF'
-                        : post.mediaType === 'video'
-                          ? '🎬 VID'
-                          : '🖼️ PIC'}
-                      {post.mediaType === 'video' && post.hasAudio && ' 🔊'}
-                    </span>
-                  </div>
+
+                    {/* Bottom Info Bar */}
+                    <div className="absolute bottom-0 left-0 right-0 p-1 sm:p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                      <div className="space-y-0.5 sm:space-y-1">
+                        {/* Stats and Media Type */}
+                        <div className="flex items-center justify-between text-gray-300 text-[8px] sm:text-[10px]">
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            <span className="flex items-center gap-0.5">
+                              <span className="opacity-60">👍</span>
+                              <span data-like-count={post.id}>
+                                {post.likes}
+                              </span>
+                            </span>
+                            <span className="flex items-center gap-0.5">
+                              <span className="opacity-60">❤️</span>
+                              <span data-favorite-count={post.id}>
+                                {post.favorites}
+                              </span>
+                            </span>
+                            <span className="flex items-center gap-0.5">
+                              <span className="opacity-60">💬</span>
+                              <span data-comment-count={post.id}>
+                                {post.comments}
+                              </span>
+                            </span>
+                          </div>
+                          <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-gray-500/40 text-white border border-gray-500/50">
+                            {post.mediaType === "gif"
+                              ? "🎞️ GIF"
+                              : post.mediaType === "video"
+                              ? "🎬 VID"
+                              : "🖼️ PIC"}
+                            {post.mediaType === "video" &&
+                              post.hasAudio &&
+                              " 🔊"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
                 </div>
-              </div>
-                    </Link>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
-          ))
-        : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 auto-rows-fr gap-2">
-            {visiblePosts.map((post) => (
-              <div key={post.id} data-post-id={post.id}>
-                <Link
-                  href={`/post/${post.id}`}
-                  className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 block"
-                >
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    <div className="relative">
-                      <Image
-                        src={getImageUrlWithCacheBuster(post.thumbnail)}
-                        alt={post.title}
-                        width={200}
-                        height={200}
-                        className={`object-contain w-full h-full group-hover:opacity-75 transition-opacity ${settings.blurNsfw && (post.contentRating === 'unsafe' || post.contentRating === 'sketchy') ? 'blur-md' : ''}`}
-                        unoptimized={true}
-                      />
-                      {settings.blurNsfw && (post.contentRating === 'unsafe' || post.contentRating === 'sketchy') && (
+          </div>
+        ))
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 auto-rows-fr gap-2">
+          {visiblePosts.map((post) => (
+            <div key={post.id} data-post-id={post.id}>
+              <Link
+                href={`/post/${post.id}`}
+                className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 block"
+              >
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <div className="relative">
+                    <Image
+                      src={getImageUrlWithCacheBuster(post.thumbnail)}
+                      alt={post.title}
+                      width={200}
+                      height={200}
+                      className={`object-contain w-full h-full group-hover:opacity-75 transition-opacity ${
+                        settings.blurNsfw &&
+                        (post.contentRating === "unsafe" ||
+                          post.contentRating === "sketchy")
+                          ? "blur-md"
+                          : ""
+                      }`}
+                      unoptimized={true}
+                    />
+                    {settings.blurNsfw &&
+                      (post.contentRating === "unsafe" ||
+                        post.contentRating === "sketchy") && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <span className={`px-2 py-1 rounded text-sm font-bold ${post.contentRating === 'unsafe' ? 'bg-red-500/70' : 'bg-yellow-500/70'} text-white`}>
+                          <span
+                            className={`px-2 py-1 rounded text-sm font-bold ${
+                              post.contentRating === "unsafe"
+                                ? "bg-red-500/70"
+                                : "bg-yellow-500/70"
+                            } text-white`}
+                          >
                             {post.contentRating.toUpperCase()}
                           </span>
                         </div>
                       )}
-                    </div>
+                  </div>
+                </div>
+
+                {/* Top Badge Row */}
+                <div className="absolute top-1 sm:top-2 left-1 sm:left-2 right-1 sm:right-2 flex justify-between items-start">
+                  {/* Left Badges */}
+                  <div className="flex flex-col gap-0.5 sm:gap-1">
+                    {post.isPinned && (
+                      <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-amber-500/40 text-white border border-amber-500/50">
+                        📌 PINNED
+                      </span>
+                    )}
+                    {post.isAd && (
+                      <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-blue-400 text-white border border-purple-500/50">
+                        💎 AD
+                      </span>
+                    )}
                   </div>
 
-                  {/* Top Badge Row */}
-                  <div className="absolute top-1 sm:top-2 left-1 sm:left-2 right-1 sm:right-2 flex justify-between items-start">
-                    {/* Left Badges */}
-                    <div className="flex flex-col gap-0.5 sm:gap-1">
-                      {post.isPinned && (
-                        <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-amber-500/40 text-white border border-amber-500/50">
-                          📌 PINNED
-                        </span>
-                      )}
-                      {post.isAd && (
-                        <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-purple-500/40 text-white border border-purple-500/50">
-                          💎 AD
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Right Badge (Rating) */}
-                    <span className={`px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium ${
-                      post.contentRating === 'safe'
-                        ? 'bg-green-500/40 text-white border border-green-500/50'
-                        : post.contentRating === 'sketchy'
-                          ? 'bg-yellow-500/40 text-white border border-yellow-500/50'
-                          : 'bg-red-500/40 text-white border border-red-500/50'
-                    }`}>
+                  {/* Right Badge (Rating) - only show if not an ad */}
+                  {!post.isAd && (
+                    <span
+                      className={`px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium ${
+                        post.contentRating === "safe"
+                          ? "bg-green-500/40 text-white border border-green-500/50"
+                          : post.contentRating === "sketchy"
+                          ? "bg-yellow-500/40 text-white border border-yellow-500/50"
+                          : "bg-red-500/40 text-white border border-red-500/50"
+                      }`}
+                    >
                       {post.contentRating.toUpperCase()}
                     </span>
-                  </div>
+                  )}
+                </div>
 
-                  {/* Bottom Info Bar */}
-                  <div className="absolute bottom-0 left-0 right-0 p-1 sm:p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-                    <div className="space-y-0.5 sm:space-y-1">
-                      {/* Stats and Media Type */}
-                      <div className="flex items-center justify-between text-gray-300 text-[8px] sm:text-[10px]">
-                        <div className="flex items-center gap-1 sm:gap-2">
-                          <span className="flex items-center gap-0.5">
-                            <span className="opacity-60">👍</span>
-                            <span data-like-count={post.id}>{post.likes}</span>
+                {/* Bottom Info Bar */}
+                <div className="absolute bottom-0 left-0 right-0 p-1 sm:p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                  <div className="space-y-0.5 sm:space-y-1">
+                    {/* Stats and Media Type */}
+                    <div className="flex items-center justify-between text-gray-300 text-[8px] sm:text-[10px]">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <span className="flex items-center gap-0.5">
+                          <span className="opacity-60">👍</span>
+                          <span data-like-count={post.id}>{post.likes}</span>
+                        </span>
+                        <span className="flex items-center gap-0.5">
+                          <span className="opacity-60">❤️</span>
+                          <span data-favorite-count={post.id}>
+                            {post.favorites}
                           </span>
-                          <span className="flex items-center gap-0.5">
-                            <span className="opacity-60">❤️</span>
-                            <span data-favorite-count={post.id}>{post.favorites}</span>
+                        </span>
+                        <span className="flex items-center gap-0.5">
+                          <span className="opacity-60">💬</span>
+                          <span data-comment-count={post.id}>
+                            {post.comments}
                           </span>
-                          <span className="flex items-center gap-0.5">
-                            <span className="opacity-60">💬</span>
-                            <span data-comment-count={post.id}>{post.comments}</span>
-                          </span>
-                        </div>
-                        <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-gray-500/40 text-white border border-gray-500/50">
-                          {post.mediaType === 'gif'
-                            ? '🎞️ GIF'
-                            : post.mediaType === 'video'
-                              ? '🎬 VID'
-                              : '🖼️ PIC'}
-                          {post.mediaType === 'video' && post.hasAudio && ' 🔊'}
                         </span>
                       </div>
+                      <span className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] leading-3 sm:leading-4 font-medium bg-gray-500/40 text-white border border-gray-500/50">
+                        {post.mediaType === "gif"
+                          ? "🎞️ GIF"
+                          : post.mediaType === "video"
+                          ? "🎬 VID"
+                          : "🖼️ PIC"}
+                        {post.mediaType === "video" && post.hasAudio && " 🔊"}
+                      </span>
                     </div>
                   </div>
-                </Link>
-              </div>
-            ))}
-          </div>
-        )
-      }
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Loading indicator for infinite scroll */}
       {infiniteScroll && isLoading && posts.length > 0 && (

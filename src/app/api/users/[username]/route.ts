@@ -22,6 +22,14 @@ export async function GET(
       },
       {
         $lookup: {
+          from: 'posts',
+          localField: '_id',
+          foreignField: 'author',
+          as: 'userPosts'
+        }
+      },
+      {
+        $lookup: {
           from: 'comments',
           let: { userId: '$_id' },
           pipeline: [
@@ -36,6 +44,14 @@ export async function GET(
         }
       },
       {
+        $lookup: {
+          from: 'tags',
+          localField: '_id',
+          foreignField: 'creator',
+          as: 'userTags'
+        }
+      },
+      {
         $project: {
           username: 1,
           email: 1,
@@ -46,12 +62,12 @@ export async function GET(
           premium: { $eq: ["$role", "premium"] },
           avatar: 1,
           stats: {
-            uploads: { $size: { $ifNull: ["$uploads", []] } },
+            uploads: { $size: { $ifNull: ["$userPosts", []] } },
             comments: { $size: { $ifNull: ["$userComments", []] } },
             favorites: { $size: { $ifNull: ["$favorites", []] } },
             likes: { $size: { $ifNull: ["$likes", []] } },
             dislikes: { $size: { $ifNull: ["$dislikes", []] } },
-            tags: { $size: { $ifNull: ["$tags", []] } }
+            tags: { $size: { $ifNull: ["$userTags", []] } }
           }
         }
       }

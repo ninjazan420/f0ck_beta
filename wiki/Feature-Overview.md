@@ -116,7 +116,7 @@ This document provides a detailed overview of the key features available in the 
 - **Performance Optimization**: Fast loading and rendering
 - **Accessibility Features**: Improved screen reader support
 - **Stay Logged In**: Option to maintain longer login sessions
-- **Notification System**: Real-time notifications for user interactions
+- **Advanced Notification System**: Comprehensive real-time notifications with management
 - **Sharing Features**: Easy content sharing with share banners
 
 ## User System
@@ -135,51 +135,81 @@ This document provides a detailed overview of the key features available in the 
 
 ### Role System
 
-- **User Roles**: Regular, Premium, Moderator, Admin tiers
-- **Role Badges**: Visual indicators of user status
+- **User Roles**: Regular, Premium, Moderator, Admin, Banned tiers
+- **Role Badges**: Visual indicators of user status with premium styling
 - **Permission System**: Different capabilities based on role
-
+- **Premium Membership**: Enhanced features and visual distinction
 ## Moderation System
 
-### Content Moderation
+### Advanced Content Moderation
 
-- **Comment Moderation**: Review and manage comments
-- **Content Flagging**: System for reporting inappropriate content
-- **Moderation Queue**: Organized review of flagged content
+- **Real-time Moderation Dashboard**: Comprehensive overview with live statistics
+- **Comment Moderation**: Review, approve, reject, and delete comments
+- **Content Flagging**: Enhanced reporting system for inappropriate content
+- **Moderation Queue**: Organized review of flagged content with priority handling
 - **Featured Posts**: Ability to highlight important content
 - **Pinned Posts**: Pin important posts to the top of listings
-- **Tag Management**: Moderation tools for managing tags
+- **Advanced Tag Management**: Bulk operations and moderation tools for tags
+- **Reported Content Tracking**: Real-time tracking of reported posts and comments
 
-### User Management
+### Enhanced User Management
 
-- **User Restrictions**: Ability to limit problematic users
-- **Ban System**: Temporary or permanent account restrictions
-- **Action Logging**: Comprehensive logs of moderation actions
+- **Comprehensive User Controls**: Ban, unban, role changes with automated logging
+- **User Restrictions**: Granular ability to limit problematic users
+- **Advanced Ban System**: Temporary or permanent account restrictions with reasons
+- **Action Logging**: Comprehensive logs of all moderation actions with timestamps
+- **Bulk Operations**: Efficient management of multiple users or content items
 
-### Administration
+### Administration Dashboard
 
-- **System Statistics**: Overview of platform activity
-- **Performance Monitoring**: Track system health
-- **User Growth Metrics**: Monitor user registration and activity
+- **Real-time Statistics**: Live overview of platform activity and health
+- **Moderation Metrics**: Pending comments, reported content, active user monitoring
+- **Performance Monitoring**: Track system health and response times
+- **User Growth Metrics**: Monitor user registration and activity trends
+- **Moderation Workload**: Track moderator activity and efficiency
+
+## Notification System
+
+### Comprehensive Notifications
+
+- **Real-time Delivery**: Instant notifications for all user interactions
+- **Notification Types**: Comment, Reply, Like, Dislike, Favorite, Mention, System
+- **@Mention System**: Smart username detection with automatic notifications
+- **Notification Management**: Mark as read, clear all, granular category settings
+- **Live Counter**: Real-time unread notification indicator
+- **Quick Preview**: Instant preview of recent notifications in navigation
+
+### Notification Features
+
+- **Granular Settings**: Control notifications per category and type
+- **Batch Operations**: Mark all as read or clear all notifications
+- **Direct Links**: Navigate directly to related content from notifications
+- **Filtering Options**: Enhanced filtering for premium users
 
 ## Technical Features
 
-### WebSocket Integration
+### Enhanced WebSocket Integration
 
-- **Real-time Updates**: Live notifications and comments
-- **Connection Management**: Efficient socket handling
+- **Real-time Infrastructure**: Preparation for full WebSocket implementation
+- **Comment Polling**: Live comment updates with 10-second intervals
+- **Notification Delivery**: Real-time notification system
+- **Connection Management**: Efficient socket handling and fallback systems
 - **Event Broadcasting**: System for real-time event distribution
 
-### API System
+### Expanded API System
 
 - **RESTful Endpoints**: Well-structured API for all operations
+- **New Endpoints**: Notifications, moderation, enhanced interactions
+- **Unified Interactions**: Streamlined API for likes, dislikes, favorites
 - **Rate Limiting**: Protection against API abuse
-- **Error Handling**: Comprehensive error responses
+- **Enhanced Error Handling**: Comprehensive error responses and validation
+- **Role-based Access**: API endpoints with proper permission checking
 
-### Security Features
+### Advanced Security Features
 
-- **Authentication**: Secure user authentication system
+- **Enhanced Authentication**: Role-based authentication with premium support
 - **Rate Protection**: Guards against brute force attacks
 - **Input Validation**: Thorough validation of all user inputs
 - **XSS Protection**: Measures against cross-site scripting
 - **CSRF Protection**: Prevention of cross-site request forgery attacks
+- **Storage Quota Management**: User-specific upload limits and tracking

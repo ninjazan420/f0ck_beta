@@ -1,9 +1,10 @@
 import { AuthOptions, DefaultSession } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import DiscordProvider from 'next-auth/providers/discord';
 import dbConnect from './db/mongodb';
 import User from '../models/User';
 import bcrypt from 'bcryptjs';
-import { rateLimit } from '@/lib/rateLimit';
+import { rateLimitLegacy } from '@/lib/rateLimit';
 import { getServerSession } from 'next-auth/next';
 
 // Extend the built-in session types
@@ -24,7 +25,7 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
-    username?: string;
+    username: string;
     email?: string | null;
     role: string;
     avatar?: string | null;
@@ -36,6 +37,10 @@ declare module 'next-auth/jwt' {
 
 export const authOptions: AuthOptions = {
   providers: [
+    DiscordProvider({
+      clientId: process.env.AUTH_DISCORD_ID!,
+      clientSecret: process.env.AUTH_DISCORD_SECRET!,
+    }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -88,7 +93,7 @@ export const authOptions: AuthOptions = {
           // Apply rate limiting
           const ip = req?.headers?.['x-forwarded-for'] || 'anonymous';
           const rateLimitKey = `login_${ip}_${credentials?.username || 'unknown'}`;
-          const rateLimitResult = rateLimit(rateLimitKey, 5, 60);
+          const rateLimitResult = rateLimitLegacy(rateLimitKey, 5, 60);
           if (rateLimitResult) {
             throw new Error('Too many attempts. Please try again later');
           }
@@ -154,6 +159,16 @@ export const authOptions: AuthOptions = {
   debug: process.env.NODE_ENV === 'development',
   callbacks: {
     async redirect({ url, baseUrl }) {
+      // Spezielle Behandlung für Discord Account-Verknüpfung
+      if (url.includes('discord-linked=true') || url.includes('/account')) {
+        return `${baseUrl}/account?discord-linked=true`;
+      }
+      
+      // Behandlung für Discord OAuth State (Account-Verknüpfung)
+      if (url.includes('state=link-account-')) {
+        return `${baseUrl}/account?discord-linked=true`;
+      }
+      
       // Allow API routes
       if (url.startsWith('/api/')) {
         return url;
@@ -172,9 +187,148 @@ export const authOptions: AuthOptions = {
       // For absolute URLs, check if they belong to the same domain
       return url.startsWith(baseUrl) ? url : baseUrl;
     },
-    async jwt({ token, user, trigger }) {
-      // Wenn ein neuer Benutzer angemeldet wird
-      if (user) {
+    async jwt({ token, user, trigger, session, account }) {
+      // Discord OAuth Login Handling
+      if (account?.provider === 'discord' && account.access_token) {
+        console.log('Discord OAuth detected, processing...');
+        
+        try {
+          // Hole Discord-Benutzerdaten
+          const discordResponse = await fetch('https://discord.com/api/users/@me', {
+            headers: {
+              Authorization: `Bearer ${account.access_token}`,
+            },
+          });
+          
+          if (!discordResponse.ok) {
+            console.error('Failed to fetch Discord user data');
+            return token;
+          }
+          
+          const discordUser = await discordResponse.json();
+          console.log('Discord user data:', discordUser);
+          
+          // Prüfe, ob dies eine Account-Verknüpfung ist (basierend auf State)
+          const isLinkingAccount = typeof account.state === 'string' && account.state.startsWith('link-account-');
+          
+          if (isLinkingAccount) {
+            console.log('Account linking detected');
+            // Extrahiere User-ID aus State
+            const userId = typeof account.state === 'string' ? account.state.split('-')[2] : undefined;
+            
+            if (userId && token.id === userId) {
+              // Verknüpfe Discord mit bestehendem Account
+              const existingUser = await User.findById(userId);
+              
+              if (existingUser) {
+                // Prüfe, ob Discord-Account bereits mit anderem Benutzer verknüpft ist
+                const discordAlreadyLinked = await User.findOne({ discordId: discordUser.id, _id: { $ne: userId } });
+                
+                if (discordAlreadyLinked) {
+                  console.error('Discord account already linked to another user');
+                  return token;
+                }
+                
+                existingUser.discordId = discordUser.id;
+                existingUser.discordUsername = discordUser.username;
+                
+                // Aktualisiere Avatar falls noch keiner gesetzt ist
+                if (!existingUser.avatar && discordUser.avatar) {
+                  existingUser.avatar = `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`;
+                }
+                
+                await existingUser.save();
+                console.log('Discord account linked to existing user');
+                
+                // Aktualisiere Token
+                token.discordId = existingUser.discordId;
+                token.discordUsername = existingUser.discordUsername;
+                token.avatar = existingUser.avatar;
+                
+                return token;
+              }
+            }
+            
+            console.error('Invalid account linking attempt');
+            return token;
+          }
+          
+          // Normale Discord-Anmeldung (nicht Account-Verknüpfung)
+          // Prüfe, ob bereits ein Benutzer mit dieser Discord-ID existiert
+          const existingUserWithDiscord = await User.findOne({ discordId: discordUser.id });
+          
+          if (existingUserWithDiscord) {
+            console.log('Found existing user with Discord ID:', existingUserWithDiscord._id);
+            // Benutzer mit dieser Discord-ID existiert bereits, logge ihn ein
+            token.id = existingUserWithDiscord._id.toString();
+            token.username = existingUserWithDiscord.username;
+            token.email = existingUserWithDiscord.email;
+            token.role = existingUserWithDiscord.role;
+            token.avatar = existingUserWithDiscord.avatar;
+            token.bio = existingUserWithDiscord.bio;
+            token.discordId = existingUserWithDiscord.discordId;
+            token.discordUsername = existingUserWithDiscord.discordUsername;
+            return token;
+          }
+          
+          // Prüfe, ob ein Benutzer mit der Discord-E-Mail bereits existiert
+          const existingUserWithEmail = await User.findOne({ email: discordUser.email });
+          
+          if (existingUserWithEmail) {
+            console.log('Found existing user with email, linking Discord account');
+            // Verknüpfe Discord-Account mit bestehendem Benutzer
+            existingUserWithEmail.discordId = discordUser.id;
+            existingUserWithEmail.discordUsername = discordUser.username;
+            
+            // Aktualisiere Avatar falls noch keiner gesetzt ist
+            if (!existingUserWithEmail.avatar && discordUser.avatar) {
+              existingUserWithEmail.avatar = `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`;
+            }
+            
+            await existingUserWithEmail.save();
+            console.log('Successfully linked Discord account to existing user');
+            
+            token.id = existingUserWithEmail._id.toString();
+            token.username = existingUserWithEmail.username;
+            token.email = existingUserWithEmail.email;
+            token.role = existingUserWithEmail.role;
+            token.avatar = existingUserWithEmail.avatar;
+            token.bio = existingUserWithEmail.bio;
+            token.discordId = existingUserWithEmail.discordId;
+            token.discordUsername = existingUserWithEmail.discordUsername;
+            return token;
+          }
+          
+          // Erstelle neuen Benutzer aus Discord-Daten
+          console.log('Creating new user from Discord data');
+          const newUser = new User({
+            username: discordUser.username,
+            email: discordUser.email,
+            discordId: discordUser.id,
+            discordUsername: discordUser.username,
+            avatar: discordUser.avatar ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png` : null,
+            role: 'user',
+            // Kein Passwort für Discord-Benutzer
+          });
+          
+          await newUser.save();
+          console.log('New Discord user created:', newUser._id);
+          
+          token.id = newUser._id.toString();
+          token.username = newUser.username;
+          token.email = newUser.email;
+          token.role = newUser.role;
+          token.avatar = newUser.avatar;
+          token.bio = newUser.bio;
+          token.discordId = newUser.discordId;
+          token.discordUsername = newUser.discordUsername;
+          
+        } catch (error) {
+          console.error('Error processing Discord OAuth:', error);
+        }
+      }
+      // Wenn ein neuer Benutzer angemeldet wird (Credentials)
+      else if (user) {
         // Debug-Ausgabe für JWT-Token-Aktualisierung
         console.log('JWT update - user bio:', user.bio);
 
@@ -210,6 +364,32 @@ export const authOptions: AuthOptions = {
         console.log('JWT updated - token bio:', token.bio);
       }
 
+      // Handle session updates (when updateSession is called)
+      if (trigger === 'update' && session) {
+        console.log('JWT callback triggered by session update');
+        
+        // Update token with new session data
+        if (session.user) {
+          if (session.user.avatar !== undefined) {
+            token.avatar = session.user.avatar;
+            console.log('JWT token avatar updated to:', token.avatar);
+          }
+          if (session.user.bio !== undefined) {
+            token.bio = session.user.bio;
+            console.log('JWT token bio updated to:', token.bio);
+          }
+          if (session.user.username !== undefined) {
+            token.username = session.user.username;
+          }
+          if (session.user.email !== undefined) {
+            token.email = session.user.email;
+          }
+          if (session.user.role !== undefined) {
+            token.role = session.user.role;
+          }
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -223,6 +403,8 @@ export const authOptions: AuthOptions = {
         session.user.role = token.role;
         session.user.avatar = token.avatar || null;
         session.user.bio = token.bio || null;
+        (session.user as any).discordId = token.discordId;
+        (session.user as any).discordUsername = token.discordUsername;
 
         // Setze die Ablaufzeit der Session basierend auf der "Angemeldet bleiben"-Option
         if (token.stayLoggedIn) {

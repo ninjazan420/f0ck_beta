@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Footer } from "@/components/Footer";
-import { RandomLogo } from "@/components/RandomLogo";
+import { Footer } from '@/components/Footer';
+import { RandomLogo } from '@/components/RandomLogo';
 import { StatusBanner } from '@/components/StatusBanner';
+import DiscordButton from '@/components/DiscordButton';
 
 interface LoginClientProps {
   registered?: boolean;
@@ -110,7 +111,7 @@ export default function LoginClient({ registered }: LoginClientProps) {
       </div>
 
       <div className="container mx-auto px-4 py-4 max-w-4xl flex-grow">
-        <div className="p-6 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+        <div className="p-6 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-xs border border-gray-100 dark:border-gray-800">
           <div className="max-w-md mx-auto">
             <h2 className="text-2xl font-[family-name:var(--font-geist-mono)] mb-6 text-black dark:text-gray-400">
               Login
@@ -172,25 +173,40 @@ export default function LoginClient({ registered }: LoginClientProps) {
               )}
 
               <button
-                type="submit"
-                disabled={loading}
-                className="relative h-12 w-full mt-6 rounded-lg overflow-hidden transition-all duration-500 group"
-              >
-                <div className="absolute inset-0 rounded-lg p-[2px] bg-gradient-to-b from-[#654358] via-[#17092A] to-[#2F0D64]">
-                  <div className="absolute inset-0 bg-[#170928] rounded-lg opacity-90"></div>
+                  type="submit"
+                  disabled={loading}
+                  className="relative h-12 w-full mt-6 rounded-lg overflow-hidden transition-all duration-500 group"
+                >
+                  <div className="absolute inset-0 rounded-lg p-[2px] bg-gradient-to-b from-[#654358] via-[#17092A] to-[#2F0D64]">
+                    <div className="absolute inset-0 bg-[#170928] rounded-lg opacity-90"></div>
+                  </div>
+                  <div className="absolute inset-[2px] bg-[#170928] rounded-lg opacity-95"></div>
+                  <div className="absolute inset-[2px] bg-gradient-to-r from-[#170928] via-[#1d0d33] to-[#170928] rounded-lg opacity-90"></div>
+                  <div className="absolute inset-[2px] bg-gradient-to-b from-[#654358]/40 via-[#1d0d33] to-[#2F0D64]/30 rounded-lg opacity-80"></div>
+                  <div className="absolute inset-[2px] bg-gradient-to-br from-[#C787F6]/10 via-[#1d0d33] to-[#2A1736]/50 rounded-lg"></div>
+                  <div className="absolute inset-[2px] shadow-[inset_0_0_15px_rgba(199,135,246,0.15)] rounded-lg"></div>
+                  <div className="relative flex items-center justify-center gap-2">
+                    <span className="text-lg font-normal bg-gradient-to-b from-[#D69DDE] to-[#B873F8] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(199,135,246,0.4)] tracking-tighter">
+                      {loading ? "Logging in..." : "Login"}
+                    </span>
+                  </div>
+                  <div className="absolute inset-[2px] opacity-0 transition-opacity duration-300 bg-gradient-to-r from-[#2A1736]/20 via-[#C787F6]/10 to-[#2A1736]/20 group-hover:opacity-100 rounded-lg"></div>
+                </button>
+
+                {/* Discord Login Button */}
+                <div className="mt-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">or</span>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <DiscordButton text="Login with Discord" variant="login" disabled={loading} />
+                  </div>
                 </div>
-                <div className="absolute inset-[2px] bg-[#170928] rounded-lg opacity-95"></div>
-                <div className="absolute inset-[2px] bg-gradient-to-r from-[#170928] via-[#1d0d33] to-[#170928] rounded-lg opacity-90"></div>
-                <div className="absolute inset-[2px] bg-gradient-to-b from-[#654358]/40 via-[#1d0d33] to-[#2F0D64]/30 rounded-lg opacity-80"></div>
-                <div className="absolute inset-[2px] bg-gradient-to-br from-[#C787F6]/10 via-[#1d0d33] to-[#2A1736]/50 rounded-lg"></div>
-                <div className="absolute inset-[2px] shadow-[inset_0_0_15px_rgba(199,135,246,0.15)] rounded-lg"></div>
-                <div className="relative flex items-center justify-center gap-2">
-                  <span className="text-lg font-normal bg-gradient-to-b from-[#D69DDE] to-[#B873F8] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(199,135,246,0.4)] tracking-tighter">
-                    {loading ? 'Logging in...' : 'Login'}
-                  </span>
-                </div>
-                <div className="absolute inset-[2px] opacity-0 transition-opacity duration-300 bg-gradient-to-r from-[#2A1736]/20 via-[#C787F6]/10 to-[#2A1736]/20 group-hover:opacity-100 rounded-lg"></div>
-              </button>
             </form>
 
             <div className="mt-6 space-y-4">
@@ -207,7 +223,11 @@ export default function LoginClient({ registered }: LoginClientProps) {
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   By logging in, you agree to the{' '}
                   <Link href="/rules" className="text-blue-600 dark:text-blue-400 hover:underline">
-                    Rules/ToS
+                    Rules
+                  </Link>
+                  {' '}•{' '}
+                  <Link href="/terms" className="text-blue-600 dark:text-blue-400 hover:underline">
+                    Terms
                   </Link>
                   {' '}•{' '}
                   <Link href="/help" className="text-blue-600 dark:text-blue-400 hover:underline">

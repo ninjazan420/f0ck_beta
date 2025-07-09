@@ -126,22 +126,30 @@ async function handleLikeInteraction(user: any, post: any, postMongoId: string, 
     // Like-Zähler aktualisieren
     post.stats.likes = Math.max(0, (post.stats.likes || 0) - 1);
     
-    await user.save();
-    await post.save();
-    
-    // ModLog eintragen
-    await ModLog.create({
-      moderator: userId,
-      action: 'like',
-      targetType: 'post',
-      targetId: post._id,
-      reason: 'User removed like from post',
-      metadata: {
-        postId: post._id,
-        postTitle: post.title,
-        removed: true
-      }
-    });
+    // Use transaction to prevent version conflicts
+    const session_db = await mongoose.startSession();
+    try {
+      await session_db.withTransaction(async () => {
+        await user.save({ session: session_db });
+        await post.save({ session: session_db });
+
+        // ModLog eintragen
+        await ModLog.create([{
+          moderator: userId,
+          action: 'like',
+          targetType: 'post',
+          targetId: post._id,
+          reason: 'User removed like from post',
+          metadata: {
+            postId: post._id,
+            postTitle: post.title,
+            removed: true
+          }
+        }], { session: session_db });
+      });
+    } finally {
+      await session_db.endSession();
+    }
     
     return NextResponse.json({
       liked: false,
@@ -184,26 +192,34 @@ async function handleLikeInteraction(user: any, post: any, postMongoId: string, 
     // Speichere Like auch beim User
     user.likes.push(post._id);
     
-    await user.save();
-    await post.save();
-    
-    // Benachrichtigung an den Autor senden
+    // Use transaction to prevent version conflicts
+    const session_db = await mongoose.startSession();
+    try {
+      await session_db.withTransaction(async () => {
+        await user.save({ session: session_db });
+        await post.save({ session: session_db });
+
+        // ModLog eintragen
+        await ModLog.create([{
+          moderator: userId,
+          action: 'like',
+          targetType: 'post',
+          targetId: post._id,
+          reason: 'User liked post',
+          metadata: {
+            postId: post._id,
+            postTitle: post.title
+          }
+        }], { session: session_db });
+      });
+    } finally {
+      await session_db.endSession();
+    }
+
+    // Benachrichtigung an den Autor senden (outside transaction)
     if (post.author && post.author.toString() !== userId) {
       await NotificationService.notifyPostLike(post._id.toString(), userId);
     }
-    
-    // ModLog eintragen
-    await ModLog.create({
-      moderator: userId,
-      action: 'like',
-      targetType: 'post',
-      targetId: post._id,
-      reason: 'User liked post',
-      metadata: {
-        postId: post._id,
-        postTitle: post.title
-      }
-    });
     
     return NextResponse.json({
       liked: true,
@@ -246,22 +262,30 @@ async function handleDislikeInteraction(user: any, post: any, postMongoId: strin
     // Dislike-Zähler reduzieren
     post.stats.dislikes = Math.max(0, post.stats.dislikes - 1);
     
-    await user.save();
-    await post.save();
-    
-    // ModLog-Eintrag erstellen
-    await ModLog.create({
-      moderator: userId,
-      action: 'dislike', // Verwende 'dislike' direkt
-      targetType: 'post',
-      targetId: post._id,
-      reason: 'User removed dislike from post',
-      metadata: {
-        postId: post._id,
-        postTitle: post.title,
-        removed: true
-      }
-    });
+    // Use transaction to prevent version conflicts
+    const session_db = await mongoose.startSession();
+    try {
+      await session_db.withTransaction(async () => {
+        await user.save({ session: session_db });
+        await post.save({ session: session_db });
+
+        // ModLog-Eintrag erstellen
+        await ModLog.create([{
+          moderator: userId,
+          action: 'dislike', // Verwende 'dislike' direkt
+          targetType: 'post',
+          targetId: post._id,
+          reason: 'User removed dislike from post',
+          metadata: {
+            postId: post._id,
+            postTitle: post.title,
+            removed: true
+          }
+        }], { session: session_db });
+      });
+    } finally {
+      await session_db.endSession();
+    }
     
     return NextResponse.json({
       disliked: false,
@@ -302,21 +326,29 @@ async function handleDislikeInteraction(user: any, post: any, postMongoId: strin
     post.dislikedBy.push(userId);
     post.stats.dislikes += 1;
     
-    await user.save();
-    await post.save();
-    
-    // ModLog-Eintrag erstellen
-    await ModLog.create({
-      moderator: userId,
-      action: 'dislike', // Verwende 'dislike' direkt
-      targetType: 'post',
-      targetId: post._id,
-      reason: 'User disliked post',
-      metadata: {
-        postId: post._id,
-        postTitle: post.title
-      }
-    });
+    // Use transaction to prevent version conflicts
+    const session_db = await mongoose.startSession();
+    try {
+      await session_db.withTransaction(async () => {
+        await user.save({ session: session_db });
+        await post.save({ session: session_db });
+
+        // ModLog-Eintrag erstellen
+        await ModLog.create([{
+          moderator: userId,
+          action: 'dislike', // Verwende 'dislike' direkt
+          targetType: 'post',
+          targetId: post._id,
+          reason: 'User disliked post',
+          metadata: {
+            postId: post._id,
+            postTitle: post.title
+          }
+        }], { session: session_db });
+      });
+    } finally {
+      await session_db.endSession();
+    }
     
     return NextResponse.json({
       disliked: true,
@@ -388,21 +420,29 @@ async function handleFavoriteInteraction(user: any, post: any, postMongoId: stri
     // Zähler erhöhen
     post.stats.favorites = (post.stats.favorites || 0) + 1;
     
-    await user.save();
-    await post.save();
-    
-    // ModLog erstellen
-    await ModLog.create({
-      moderator: userId,
-      action: 'favorite',
-      targetType: 'post',
-      targetId: post._id,
-      reason: 'User favorited post',
-      metadata: {
-        postId: post._id,
-        postTitle: post.title
-      }
-    });
+    // Use transaction to prevent version conflicts
+    const session_db = await mongoose.startSession();
+    try {
+      await session_db.withTransaction(async () => {
+        await user.save({ session: session_db });
+        await post.save({ session: session_db });
+
+        // ModLog erstellen
+        await ModLog.create([{
+          moderator: userId,
+          action: 'favorite',
+          targetType: 'post',
+          targetId: post._id,
+          reason: 'User favorited post',
+          metadata: {
+            postId: post._id,
+            postTitle: post.title
+          }
+        }], { session: session_db });
+      });
+    } finally {
+      await session_db.endSession();
+    }
     
     // Benachrichtigung senden
     try {

@@ -108,8 +108,14 @@ export async function POST(request: NextRequest) {
     if (files && files.length > 0) {
       // Validiere die Dateitypen und -größen
       const validFileTypes = [
-        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 
-        'video/webm', 'video/mp4', 'video/quicktime'
+        // Image formats
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif',
+        'image/heif', 'image/heic', 'image/bmp', 'image/tiff', 'image/svg+xml',
+        // Animated image formats
+        'image/apng',
+        // Video formats
+        'video/webm', 'video/mp4', 'video/quicktime', 'video/avi',
+        'video/x-msvideo', 'video/mkv', 'video/x-matroska', 'video/ogg'
       ];
       const maxFileSize = 100 * 1024 * 1024; // 100MB für Videos
       

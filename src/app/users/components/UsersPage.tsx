@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { UserList } from './UserList';
-import { UserFilter } from './UserFilter';
+import { UserFilterModern } from './UserFilterModern';
 import { Footer } from "@/components/Footer";
 
 export type UserRole = 'member' | 'premium' | 'moderator' | 'admin' | 'banned';
@@ -31,7 +31,7 @@ export function UsersPage() {
       {/* Navigation Bar */}
 
       <div className="container mx-auto px-4 flex-grow space-y-6 pb-6">
-        <UserFilter filters={filters} onFilterChange={setFilters} />
+        <UserFilterModern filters={filters} onFilterChange={setFilters} />
         <UserList 
           filters={filters}
           page={currentPage}

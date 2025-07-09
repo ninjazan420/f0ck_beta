@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import User from '@/models/User';
 import dbConnect from '@/lib/db/mongodb';
+import { Types } from 'mongoose';
 import mongoose from 'mongoose';
 
 export async function GET() {
@@ -16,12 +17,84 @@ export async function GET() {
 
     await dbConnect();
 
-    // Finde den Benutzer
-    const user = await User.findById(session.user.id).lean();
+    // Use aggregation to get accurate statistics like in /api/users/[username]
+    const users = await User.aggregate([
+      {
+        $match: { _id: new Types.ObjectId(session.user.id) }
+      },
+      {
+        $lookup: {
+          from: 'posts',
+          localField: '_id',
+          foreignField: 'author',
+          as: 'userPosts'
+        }
+      },
+      {
+        $lookup: {
+          from: 'comments',
+          let: { userId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$author', '$$userId'] },
+                status: 'approved'
+              }
+            }
+          ],
+          as: 'userComments'
+        }
+      },
+      {
+        $lookup: {
+          from: 'tags',
+          localField: '_id',
+          foreignField: 'creator',
+          as: 'userTags'
+        }
+      },
+      {
+        $project: {
+          username: 1,
+          email: 1,
+          bio: 1,
+          createdAt: 1,
+          lastSeen: 1,
+          role: 1,
+          avatar: 1,
+          favorites: 1,
+          likes: 1,
+          dislikes: 1,
+          stats: {
+            uploads: { $size: { $ifNull: ["$userPosts", []] } },
+            comments: { $size: { $ifNull: ["$userComments", []] } },
+            favorites: { $size: { $ifNull: ["$favorites", []] } },
+            likes: { $size: { $ifNull: ["$likes", []] } },
+            dislikes: { $size: { $ifNull: ["$dislikes", []] } },
+            tags: { $size: { $ifNull: ["$userTags", []] } }
+          }
+        }
+      }
+    ]);
 
-    if (!user) {
+    if (!users || users.length === 0) {
       console.error('User not found with ID:', session.user.id);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const user = users[0];
+
+    // Fallback if stats are missing
+    if (!user.stats) {
+      console.warn('Stats missing from aggregation, using fallback');
+      user.stats = {
+        uploads: 0,
+        comments: 0,
+        favorites: Array.isArray(user.favorites) ? user.favorites.length : 0,
+        likes: Array.isArray(user.likes) ? user.likes.length : 0,
+        dislikes: Array.isArray(user.dislikes) ? user.dislikes.length : 0,
+        tags: 0
+      };
     }
 
     // Debug-Ausgabe
@@ -37,15 +110,10 @@ export async function GET() {
       .then(() => console.log('Updated lastSeen for user:', user.username))
       .catch(err => console.error('Error updating lastSeen:', err));
 
-    // Berechne Statistiken
-    const stats = {
-      uploads: Array.isArray(user.uploads) ? user.uploads.length : 0,
-      comments: Array.isArray(user.comments) ? user.comments.length : 0,
-      favorites: Array.isArray(user.favorites) ? user.favorites.length : 0,
-      likes: Array.isArray(user.likes) ? user.likes.length : 0,
-      dislikes: Array.isArray(user.dislikes) ? user.dislikes.length : 0,
-      tags: Array.isArray(user.tags) ? user.tags.length : 0
-    };
+    // Use the calculated stats from aggregation
+    const stats = user.stats;
+
+    console.log('User stats from aggregation:', stats);
 
     // Bereite die Antwort vor
     const response = {
@@ -58,6 +126,8 @@ export async function GET() {
       role: user.role || 'user',
       premium: user.role === 'premium',
       avatar: user.avatar || null,
+      hasPassword: !!user.password,
+      discordId: user.discordId || null,
       stats
     };
 
@@ -174,14 +244,63 @@ export async function PUT(req: Request) {
     // Debug-Ausgabe nach dem Update
     console.log('Updated user bio:', user.bio);
 
-    // Calculate stats
-    const stats = {
-      uploads: Array.isArray(user.uploads) ? user.uploads.length : 0,
-      comments: Array.isArray(user.comments) ? user.comments.length : 0,
-      favorites: Array.isArray(user.favorites) ? user.favorites.length : 0,
-      likes: Array.isArray(user.likes) ? user.likes.length : 0,
-      dislikes: Array.isArray(user.dislikes) ? user.dislikes.length : 0,
-      tags: Array.isArray(user.tags) ? user.tags.length : 0
+    // Calculate stats using aggregation for consistency
+    const userWithStats = await User.aggregate([
+      {
+        $match: { _id: user._id }
+      },
+      {
+        $lookup: {
+          from: 'posts',
+          localField: '_id',
+          foreignField: 'author',
+          as: 'userPosts'
+        }
+      },
+      {
+        $lookup: {
+          from: 'comments',
+          let: { userId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$author', '$$userId'] },
+                status: 'approved'
+              }
+            }
+          ],
+          as: 'userComments'
+        }
+      },
+      {
+        $lookup: {
+          from: 'tags',
+          localField: '_id',
+          foreignField: 'creator',
+          as: 'userTags'
+        }
+      },
+      {
+        $project: {
+          stats: {
+            uploads: { $size: { $ifNull: ["$userPosts", []] } },
+            comments: { $size: { $ifNull: ["$userComments", []] } },
+            favorites: { $size: { $ifNull: ["$favorites", []] } },
+            likes: { $size: { $ifNull: ["$likes", []] } },
+            dislikes: { $size: { $ifNull: ["$dislikes", []] } },
+            tags: { $size: { $ifNull: ["$userTags", []] } }
+          }
+        }
+      }
+    ]);
+
+    const stats = userWithStats[0]?.stats || {
+      uploads: 0,
+      comments: 0,
+      favorites: 0,
+      likes: 0,
+      dislikes: 0,
+      tags: 0
     };
 
     // Prepare response
@@ -195,6 +314,8 @@ export async function PUT(req: Request) {
       role: user.role || 'user',
       premium: user.role === 'premium',
       avatar: user.avatar || null,
+      hasPassword: !!user.password,
+      discordId: user.discordId || null,
       stats
     };
 

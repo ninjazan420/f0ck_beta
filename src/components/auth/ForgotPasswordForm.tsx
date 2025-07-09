@@ -15,24 +15,21 @@ export function ForgotPasswordForm() {
     setError(null);
 
     try {
-      // Hier implementieren Sie die API-Integration zum Zurücksetzen des Passworts
-      // Beispiel:
-      // const response = await fetch('/api/auth/forgot-password', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email }),
-      // });
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
       
-      // if (!response.ok) {
-      //   throw new Error('Fehler beim Zurücksetzen des Passworts');
-      // }
-
-      // Erfolgsfall simulieren (entfernen, wenn API integriert ist)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send reset email');
+      }
       
       setSubmitSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ein unerwarteter Fehler ist aufgetreten');
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -42,27 +39,25 @@ export function ForgotPasswordForm() {
     return (
       <div className="text-center space-y-4">
         <h2 className="text-xl font-medium text-green-600 dark:text-green-400">
-          E-Mail gesendet
-        </h2>
+              Email Sent
+            </h2>
 
-        <p className="text-gray-600 dark:text-gray-400">
-          Wenn ein Konto mit dieser E-Mail-Adresse existiert, haben wir eine
-          E-Mail mit Anweisungen zum Zurücksetzen Ihres Passworts gesendet.
-        </p>
+            <p className="text-gray-600 dark:text-gray-400">
+              If an account with that email address exists, we have sent password reset instructions.
+            </p>
 
-        <p className="text-sm text-gray-500 dark:text-gray-500">
-          Haben Sie keine E-Mail erhalten? Überprüfen Sie Ihren Spam-Ordner oder
-          versuchen Sie es erneut.
-        </p>
+            <p className="text-sm text-gray-500 dark:text-gray-500">
+              Did not receive the email? Check your spam folder or try again.
+            </p>
 
-        <div className="mt-6">
-          <Link
-            href="/login"
-            className="text-sm text-purple-600 dark:text-purple-400 hover:underline"
-          >
-            Back to the login
-          </Link>
-        </div>
+            <div className="mt-6">
+              <Link
+                href="/login"
+                className="text-sm text-purple-600 dark:text-purple-400 hover:underline"
+              >
+                Back to Login
+              </Link>
+            </div>
       </div>
     );
   }
@@ -82,7 +77,7 @@ export function ForgotPasswordForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-          placeholder="E-Mail-Adresse"
+          placeholder="Email address"
         />
       </div>
 
@@ -101,7 +96,7 @@ export function ForgotPasswordForm() {
         <div className="absolute inset-[2px] shadow-[inset_0_0_15px_rgba(199,135,246,0.15)] rounded-lg"></div>
         <div className="relative flex items-center justify-center gap-2">
           <span className="text-lg font-normal bg-gradient-to-b from-[#D69DDE] to-[#B873F8] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(199,135,246,0.4)] tracking-tighter">
-            {isSubmitting ? "Wird gesendet..." : "Zurücksetzen-Link senden"}
+            {isSubmitting ? "Sending..." : "Send Link"}
           </span>
         </div>
         <div className="absolute inset-[2px] opacity-0 transition-opacity duration-300 bg-gradient-to-r from-[#2A1736]/20 via-[#C787F6]/10 to-[#2A1736]/20 group-hover:opacity-100 rounded-lg"></div>

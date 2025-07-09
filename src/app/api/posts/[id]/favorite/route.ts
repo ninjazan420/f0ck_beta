@@ -60,23 +60,32 @@ export async function POST(
       user.favorites = [];
     }
     user.favorites.push(postId);
-    await user.save();
 
     // Increment favorites count on post
     post.stats.favorites = (post.stats.favorites || 0) + 1;
-    await post.save();
 
-    // Create ModLog entry
-    await ModLog.create({
-      moderator: session.user.id,
-      action: 'favorite',
-      targetType: 'post',
-      targetId: post._id,
-      reason: 'User favorited post',
-      metadata: {
-        autoTriggered: true
-      }
-    });
+    // Use transaction to prevent version conflicts
+    const session_db = await mongoose.startSession();
+    try {
+      await session_db.withTransaction(async () => {
+        await user.save({ session: session_db });
+        await post.save({ session: session_db });
+
+        // Create ModLog entry
+        await ModLog.create([{
+          moderator: session.user.id,
+          action: 'favorite',
+          targetType: 'post',
+          targetId: post._id,
+          reason: 'User favorited post',
+          metadata: {
+            autoTriggered: true
+          }
+        }], { session: session_db });
+      });
+    } finally {
+      await session_db.endSession();
+    }
 
     // Send notification to post author (implement this function)
     try {
@@ -160,29 +169,38 @@ export async function DELETE(
     if (favoriteIndex !== -1) {
       // Post aus Favoriten entfernen
       user.favorites.splice(favoriteIndex, 1);
-      await user.save();
-      
+
       // Aktualisiere den Post-Zähler
       if (!post.stats) {
         post.stats = { likes: 0, views: 0, comments: 0, favorites: 0 };
       }
-      
+
       post.stats.favorites = Math.max(0, (post.stats.favorites || 0) - 1);
-      await post.save();
-      
-      // ModLog eintragen mit korrekter action
-      await ModLog.create({
-        moderator: session.user.id,
-        action: 'favorite', // Änderung von 'unfavorite' zu 'favorite'
-        targetType: 'post',
-        targetId: post._id,
-        reason: 'User removed post from favorites',
-        metadata: {
-          postId: post._id,
-          postTitle: post.title,
-          removed: true // Zeigt an, dass es eine Entfernung ist
-        }
-      });
+
+      // Use transaction to prevent version conflicts
+      const session_db = await mongoose.startSession();
+      try {
+        await session_db.withTransaction(async () => {
+          await user.save({ session: session_db });
+          await post.save({ session: session_db });
+
+          // ModLog eintragen mit korrekter action
+          await ModLog.create([{
+            moderator: session.user.id,
+            action: 'favorite', // Änderung von 'unfavorite' zu 'favorite'
+            targetType: 'post',
+            targetId: post._id,
+            reason: 'User removed post from favorites',
+            metadata: {
+              postId: post._id,
+              postTitle: post.title,
+              removed: true // Zeigt an, dass es eine Entfernung ist
+            }
+          }], { session: session_db });
+        });
+      } finally {
+        await session_db.endSession();
+      }
     }
 
     return NextResponse.json({ 

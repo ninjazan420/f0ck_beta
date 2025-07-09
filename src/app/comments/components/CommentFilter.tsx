@@ -50,7 +50,7 @@ export function CommentFilter({ filters, onFilterChange, infiniteScroll, onToggl
   }, [searchParams]);
   
   // Aktualisiere URL wenn sich die Filter ändern
-  const updateURLParams = (newFilters) => {
+  const updateURLParams = (newFilters: FilterProps['filters']) => {
     const params = new URLSearchParams();
     
     if (newFilters.username) params.set('author', newFilters.username);
@@ -67,81 +67,94 @@ export function CommentFilter({ filters, onFilterChange, infiniteScroll, onToggl
   };
 
   return (
-    <div className="p-3 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-[family-name:var(--font-geist-mono)] text-gray-800 dark:text-gray-400">
-          Comment Filter
-        </h3>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap items-center gap-2">
+    <div className="p-4 rounded-xl bg-gray-50/80 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800">
+      {/* Main Filter Row */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-3">
+        {/* Search Input */}
+        <div className="flex-1">
           <input
             type="text"
-            placeholder="👤 Username"
-            value={filters.username}
-            onChange={e => updateURLParams({ ...filters, username: e.target.value })}
-            className="w-32 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-          />
-          
-          <input
-            type="text"
-            placeholder="🔍 Search in comments..."
+            placeholder="Search comments..."
             value={filters.searchText}
             onChange={e => updateURLParams({ ...filters, searchText: e.target.value })}
-            className="w-48 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
+            className="w-full px-4 py-2 text-sm rounded-lg border-0 bg-white/50 dark:bg-gray-800/50 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500/20 focus:bg-white dark:focus:bg-gray-700 transition-all"
           />
-          
-          <input
-            type="number"
-            min="0"
-            placeholder="❤️ Min likes"
-            value={filters.minLikes || ''}
-            onChange={e => updateURLParams({ ...filters, minLikes: parseInt(e.target.value) || 0 })}
-            className="w-24 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
-          />
-          
-          <button
-            onClick={() => setShowDatePicker(!showDatePicker)}
-            className="inline-flex items-center gap-1 p-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300"
-          >
-            📅 {filters.dateFrom || filters.dateTo ? 'Date filtered' : 'Date filter'}
-          </button>
-
-          {showDatePicker && (
-            <div className="absolute mt-2 p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg z-50">
-              <div className="flex items-center gap-2 text-sm">
-                <input
-                  type="date"
-                  value={filters.dateFrom}
-                  onChange={e => updateURLParams({ ...filters, dateFrom: e.target.value })}
-                  className="p-1 rounded border border-gray-200 dark:border-gray-700 bg-transparent"
-                />
-                <span className="text-gray-400">-</span>
-                <input
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={e => updateURLParams({ ...filters, dateTo: e.target.value })}
-                  className="p-1 rounded border border-gray-200 dark:border-gray-700 bg-transparent"
-                />
-              </div>
-            </div>
-          )}
-
-          <label className="flex items-center gap-2 pl-2 border-l border-gray-200 dark:border-gray-700 cursor-pointer whitespace-nowrap">
-            <span className="text-sm text-gray-500 dark:text-gray-400">Infinite Scroll</span>
-            <div className="relative inline-flex items-center">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={infiniteScroll}
-                onChange={e => onToggleInfiniteScroll(e.target.checked)}
-              />
-              <div className="w-7 h-4 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-            </div>
-          </label>
         </div>
+        
+        {/* Username Input */}
+        <input
+          type="text"
+          placeholder="Username"
+          value={filters.username}
+          onChange={e => updateURLParams({ ...filters, username: e.target.value })}
+          className="px-4 py-2 text-sm rounded-lg border-0 bg-white/50 dark:bg-gray-800/50 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500/20 focus:bg-white dark:focus:bg-gray-700 transition-all min-w-[140px]"
+        />
+        
+        {/* Min Likes Input */}
+        <input
+          type="number"
+          min="0"
+          placeholder="Min likes"
+          value={filters.minLikes || ''}
+          onChange={e => updateURLParams({ ...filters, minLikes: parseInt(e.target.value) || 0 })}
+          className="px-4 py-2 text-sm rounded-lg border-0 bg-white/50 dark:bg-gray-800/50 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500/20 focus:bg-white dark:focus:bg-gray-700 transition-all min-w-[120px]"
+        />
+          
+        {/* Date Range Toggle */}
+        <button
+          onClick={() => setShowDatePicker(!showDatePicker)}
+          className={`px-4 py-2 text-sm font-normal rounded-lg transition-all ${
+            showDatePicker || filters.dateFrom || filters.dateTo
+              ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+          }`}
+        >
+          📅 Date Range
+        </button>
+        
+        {/* Infinite Scroll Button */}
+        <button
+          onClick={() => onToggleInfiniteScroll(!infiniteScroll)}
+          className={`px-4 py-2 text-sm font-normal rounded-lg transition-all ${
+            infiniteScroll
+              ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+          }`}
+        >
+          ♾️ Infinite Scroll
+        </button>
       </div>
+      
+      {/* Date Range Picker */}
+      {showDatePicker && (
+        <div className="mt-3 p-4 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg border border-gray-200/50 dark:border-gray-700/50">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-normal text-gray-600 dark:text-gray-400 mb-2">
+                From Date
+              </label>
+              <input
+                type="date"
+                value={filters.dateFrom}
+                onChange={e => updateURLParams({ ...filters, dateFrom: e.target.value })}
+                className="w-full px-4 py-2 text-sm rounded-lg border-0 bg-white/50 dark:bg-gray-800/50 focus:ring-2 focus:ring-purple-500/20 focus:bg-white dark:focus:bg-gray-700 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-normal text-gray-600 dark:text-gray-400 mb-2">
+                To Date
+              </label>
+              <input
+                type="date"
+                value={filters.dateTo}
+                onChange={e => updateURLParams({ ...filters, dateTo: e.target.value })}
+                className="w-full px-4 py-2 text-sm rounded-lg border-0 bg-white/50 dark:bg-gray-800/50 focus:ring-2 focus:ring-purple-500/20 focus:bg-white dark:focus:bg-gray-700 transition-all"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+
 }

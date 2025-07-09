@@ -35,8 +35,8 @@ export function PostThumbnail({ post }: PostProps) {
     <a href={`/post/${post.id}`} className="block group">
       <div className="relative aspect-[4/3] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
         {/* Thumbnail */}
-        <Image 
-          src={post.thumbnail} 
+        <Image
+          src={post.thumbnail}
           alt={post.title}
           width={400}
           height={300}
@@ -44,10 +44,19 @@ export function PostThumbnail({ post }: PostProps) {
         />
 
         {/* Video-Indikator für Videos */}
-        {post.mediaType === 'video' && (
+        {post.mediaType === "video" && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-12 h-12 rounded-full bg-black/60 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-white"
+              >
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             </div>
@@ -61,27 +70,34 @@ export function PostThumbnail({ post }: PostProps) {
               📌 PINNED
             </div>
           )}
-          {post.isAd && (
-            <div className="px-1.5 py-0.5 rounded bg-blue-500/40 text-white border border-blue-400/50">
-              AD
+          {post.isAd ? (
+            <div className="px-1.5 py-0.5 rounded bg-blue-400 text-white border border-purple-500/50">
+              💎 AD
+            </div>
+          ) : (
+            <div
+              className={`px-1.5 py-0.5 rounded ${
+                ratingColors[post.contentRating]
+              }`}
+            >
+              {post.contentRating}
             </div>
           )}
-          <div className={`px-1.5 py-0.5 rounded ${ratingColors[post.contentRating]}`}>
-            {post.contentRating}
-          </div>
         </div>
 
         {/* Info Overlay mit Medientyp-Indikator */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent">
           <div className="absolute left-1.5 bottom-1.5 right-1.5">
             <div className="flex items-center gap-1 text-[10px] font-medium text-gray-300/90 line-clamp-1">
-              <span className="opacity-90">{mediaTypeInfo[post.mediaType].icon}</span>
-              {post.mediaType === 'video' && (
+              <span className="opacity-90">
+                {mediaTypeInfo[post.mediaType].icon}
+              </span>
+              {post.mediaType === "video" && (
                 <span className="bg-purple-500/70 px-1.5 py-0.5 rounded text-white">
                   {mediaTypeInfo[post.mediaType].label}
                 </span>
               )}
-              {post.mediaType === 'video' && !post.hasAudio && (
+              {post.mediaType === "video" && !post.hasAudio && (
                 <span className="opacity-90">🔇</span>
               )}
               <span>{post.title}</span>
